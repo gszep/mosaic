@@ -137,9 +137,9 @@ This approach eliminates the need for sub-tile AABB collision, corner-sliding ed
 
 Each NPC uses **one** dialogue mode, chosen by the friend during portal submission:
 
-**Mode A: Hardcoded dialogue.** The friend writes 3-5 lines during submission. These are stored as a static sequence and played back verbatim during the game. No AI involvement.
+**Mode A: Hardcoded dialogue tree.** The friend authors a full dialogue tree during submission: NPC lines, player response choices, branching follow-ups, and conversation endpoints. Trees can be arbitrary in structure -- linear, branching, or even looping (e.g., an NPC that keeps redirecting the conversation back to an earlier node to mess with the player). The only constraint is that every path through the tree must have at least one reachable leaf that ends the conversation and gives the gift. No AI involvement.
 
-**Mode B: AI-generated dialogue.** The friend provides personality traits and a personality prompt during submission. At runtime, the interaction follows a fixed structure:
+**Mode B: AI-generated dialogue.** The friend provides personality traits and a personality prompt during submission. At runtime, the interaction follows a fixed 3-turn structure:
 
 1. Player interacts with the NPC.
 2. The LLM generates an initial greeting and 3 possible player responses.
@@ -152,10 +152,25 @@ Hardcoded dialogue data format:
 {
   "speaker": "FriendName",
   "mode": "hardcoded",
-  "lines": [
-    { "text": "Happy birthday!" },
-    { "text": "I got you something special." }
-  ],
+  "tree": {
+    "text": "Happy birthday!",
+    "responses": [
+      {
+        "option": "Thanks! What did you get me?",
+        "next": {
+          "text": "Something you'll love.",
+          "responses": null
+        }
+      },
+      {
+        "option": "Do I know you?",
+        "next": {
+          "text": "Very funny. Here, just take your present.",
+          "responses": null
+        }
+      }
+    ]
+  },
   "giftObject": "telescope"
 }
 ```
@@ -239,7 +254,7 @@ Simple form-based:
 
 - **Name**: Friend's display name (used as the NPC's speaker name)
 - **Dialogue mode toggle**: Hardcoded or AI-generated
-- **If hardcoded**: "What would you say on someone's birthday?" -- 3-5 free-text lines that become their static dialogue
+- **If hardcoded**: A dialogue tree builder where the friend writes NPC lines, adds player response choices that branch to different follow-ups, and marks conversation-ending leaves. Trees can loop or branch freely; the portal validates that at least one ending is reachable.
 - **If AI**: 3-5 personality traits (dropdown/tag selection: cheerful, sarcastic, shy, nerdy, etc.) and a personality prompt text field. The friend can review and edit the generated prompt before confirming.
 - **Gift object**: Text field describing what their character gives the birthday boy (e.g., "a tiny telescope", "homemade cookies"). The developer creates the corresponding pixel art asset.
 
