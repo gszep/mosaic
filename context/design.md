@@ -215,7 +215,7 @@ A **$5-10 monthly spending cap** is set on the Google AI Studio billing account.
 
 **Content safety**: The personality prompt constrains tone and topic. The API call includes a system instruction enforcing birthday-appropriate, wholesome responses. Responses are length-capped (max ~100 tokens per exchange). This is an invite-only game shared with a known group of friends.
 
-**Privacy**: No conversation data is stored beyond the transient API request and the client-side IndexedDB cache.
+**Privacy**: No conversation data is stored beyond the transient API request. Nothing is cached or persisted on the client.
 
 ### 5.3 Dialogue Presentation
 
@@ -402,7 +402,7 @@ dist/
 ## 11. Accessibility
 
 - **Colorblind-safe palette**: All game-critical information uses the Ninja Adventure pack palette with strong value contrast. No color-only indicators.
-- **Keyboard navigation**: Full keyboard support (arrow keys + spacebar/enter for interaction). Mobile: tap-and-hold to move (direction relative to screen center), double-tap to interact.
+- **Keyboard navigation**: Full keyboard support (arrow keys + spacebar/enter for interaction). Mobile: tap-and-hold to move (direction relative to screen center), double-tap to interact with the nearest NPC within 2 tiles.
 - **Font scaling**: BitmapFont rendered at integer multiples for crisp text at all display sizes.
 - **Screen reader**: Not a primary target for a visual pixel art game, but dialogue text is stored as accessible strings for potential future integration.
 
