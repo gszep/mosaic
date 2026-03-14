@@ -25,7 +25,7 @@ Development is driven by **Microsoft Amplifier** and **Claude Code**, using a cu
 | 4K (3840x2160) | 8x | Pixel-perfect |
 | 720p (1280x720) | 2.67x | Nearest-neighbor with letterboxing |
 
-**Viewport policy**: The game accepts any viewport size on both mobile and desktop -- no forced orientation locks or rotation prompts. On mobile, the primary use case is debugging and playtesting (friends editing assets on the go via the portal). The final game experience is optimized for landscape aspect ratios on desktop.
+**Viewport policy**: The game accepts any viewport size and orientation on both mobile and desktop -- no forced orientation locks, rotation prompts, or landscape/portrait bias. The 480×270 internal resolution is rendered at the largest integer scale that fits the viewport, centered with letterboxing on all sides. Dialogue boxes and UI elements are positioned relative to the internal resolution, so they render correctly at any aspect ratio. In portrait orientation the visible world is narrower (~17 tiles wide vs ~30 in landscape), but the game remains fully playable.
 
 **Tile size: 16x16 pixels**, the dominant standard across classic and modern pixel RPGs (Pokemon GBC/GBA, Stardew Valley, Final Fantasy, EarthBound). This yields a viewport of ~30x17 tiles, providing generous world visibility while maintaining the chunky pixel aesthetic of handheld games.
 
@@ -188,19 +188,19 @@ AI dialogue data format:
 
 ### 5.2 AI Dialogue Backend
 
-AI dialogue uses **Google AI Studio** with a billing account attached for reliability:
+AI dialogue calls the **Gemini API directly from the client** using a Google AI Studio API key. No serverless proxy.
 
-| Model | Free Tier | Paid Overflow | Use Case |
-|---|---|---|---|
-| Gemini 2.5 Flash-Lite | 1,000 requests/day, 250K tokens/min | Pay-as-you-go (~fractions of a cent per request) | All AI dialogue |
+| Model | Pricing | Use Case |
+|---|---|---|
+| Gemini 2.5 Flash-Lite | Pay-as-you-go (~fractions of a cent per request) | All AI dialogue |
 
-A small monthly budget ($5-10) is set as a spending cap. The free tier handles normal usage; paid overflow prevents downtime during playtesting spikes or the birthday session. If both tiers are somehow exhausted, the game falls back to a generic "Happy birthday!" greeting for AI-mode NPCs.
+A **$5-10 monthly spending cap** is set on the Google AI Studio billing account. Even if the API key is extracted from client code, spending is hard-capped. This is acceptable because the game is invite-only, shared with ~15 trusted friends.
 
-**Architecture**: A lightweight serverless function (Cloudflare Worker or Vercel Edge Function) proxies requests to the Gemini API. The game client sends the NPC's personality prompt + the player's selected response. Responses are cached in IndexedDB on the client so replaying the same interaction doesn't burn additional requests.
+**Architecture**: The game client calls the Gemini API directly with the NPC's personality prompt + the player's selected response. Responses are cached in IndexedDB on the client so replaying the same interaction doesn't burn additional requests. If the API is unreachable, the game falls back to a generic "Happy birthday!" greeting for AI-mode NPCs.
 
-**Content safety**: The personality prompt constrains tone and topic. The serverless proxy adds a system instruction enforcing birthday-appropriate, wholesome responses. Responses are length-capped (max ~100 tokens per exchange). This is an invite-only game shared with a known group of friends.
+**Content safety**: The personality prompt constrains tone and topic. The API call includes a system instruction enforcing birthday-appropriate, wholesome responses. Responses are length-capped (max ~100 tokens per exchange). This is an invite-only game shared with a known group of friends.
 
-**Privacy**: No conversation data is stored server-side beyond the transient proxy request.
+**Privacy**: No conversation data is stored beyond the transient API request and the client-side IndexedDB cache.
 
 ### 5.3 Dialogue Presentation
 
@@ -272,6 +272,8 @@ Friends record short "dialogue noises" (1-3 seconds) via their microphone. Each 
 
 **Fallback**: If microphone access is denied or unavailable, the friend selects from **5-6 preset voice textures** (high chirp, low hum, breathy, nasal, etc.) and names each one. Pitch-shifted by name hash. Still personalized, zero hardware requirement.
 
+**Browser support**: Audio recording requires the MediaRecorder API and OfflineAudioContext, which have unreliable behavior on Safari (codec issues, blob handling quirks, audio context inconsistencies). The portal detects Safari and disables the audio recording feature with a message: "Audio recording is not supported in Safari. Please use Chrome or Firefox." The rest of the portal (character creator, dialogue builder, form fields) works normally in Safari. The game itself (PixiJS + WebGL2) runs fine on all modern browsers including Safari.
+
 ### 6.5 Playtesting
 
 Friends can launch the full game in its current state at any time from the portal. The game loads the latest submissions from the database, so friends see their character in the world, test their dialogue, and hear their audio blip. If a friend updates their submission, they reload the game to see the changes.
@@ -300,6 +302,8 @@ The submit link is only shared with friends once the core loop is working: a fri
 **Tiled** (mapeditor.org) for level design, exporting to TMJ (JSON) format. Loaded via a **custom TMJ loader** that parses the Tiled JSON and renders tiles using **`@pixi/tilemap`** (the official PixiJS tilemap package).
 
 `@pixi/tilemap` provides optimized batch rendering of rectangular tilemaps. The custom loader reads Tiled layers (terrain, collision, object/NPC spawn points) and translates them into `Tilemap.tile()` calls. This avoids depending on third-party Tiled integration libraries with uncertain maintenance.
+
+**Hot reload**: TMJ map files are imported as JSON assets through Vite. The map loader module uses `import.meta.hot.accept` to detect changes, reload the TMJ data, and rebuild the tilemap without losing player position or game state. This enables real-time map iteration in Tiled with sub-second feedback in the browser.
 
 **Layer convention in Tiled**:
 - `ground`: Base terrain (grass, paths, floors)
@@ -349,8 +353,8 @@ The project name is **Mosaic**. It is hosted via **GitHub Pages** from the `mosa
 
 - **Game URL**: `http://gszep.com/mosaic` -- the main game entry point.
 - **Portal URL**: `http://gszep.com/mosaic/submit` -- the friend submission portal.
-- **Serverless proxy**: Cloudflare Worker or Vercel Edge Function for the Gemini API proxy.
 - **Database**: Small managed database (Supabase, Turso, or PlanetScale free tier) for friend submissions.
+- **AI dialogue**: Direct client-side calls to the Gemini API (no serverless proxy).
 - **Build structure**: Vite multi-entry-point build. The game and portal are separate entry points with independent bundles, sharing common code (palette, database types, sprite templates). Vite `base: '/mosaic/'` ensures correct asset paths under GitHub Pages.
 
 ```
@@ -363,7 +367,8 @@ dist/
 
 - **Local development**: Uses the live database so developers and friends share the same view of submitted assets.
 - **Playtesting**: Friends access the game at the same URL. The game always loads the latest submissions from the database, so friends see their character as soon as they submit.
-- **Static bake (final build)**: Once all friend submissions are locked in before the birthday, a build step fetches all data from the database and bakes it directly into the game bundle. The final birthday build is fully self-contained -- no database dependency, no network requests for friend data. This ensures the birthday play session works regardless of database or network availability.
+- **Data access layer**: The game accesses friend data through a single interface (e.g., `getFriendSubmissions()`). At dev/playtest time, this function fetches from the live database. In the static bake, the same function detects the bundled JSON file and returns it directly. One code path, two data sources, zero branching in game logic.
+- **Static bake (final build)**: Once all friend submissions are locked in before the birthday, a build step fetches all data from the database and writes it to a JSON file bundled into the build. This eliminates the database dependency at runtime -- no network requests for friend data. The Gemini API is still called live for AI-mode dialogue. This ensures the birthday play session is resilient to database outages while keeping AI dialogue functional.
 - **Total payload**: Tileset sprites + music + game code. Target: under 5MB initial load (excluding friend data fetched from database; included in static bake).
 
 ---
