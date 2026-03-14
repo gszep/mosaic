@@ -228,7 +228,7 @@ An **invitation-only** web app where loved ones contribute their characters. The
 
 ### 6.1 Data Persistence and Access
 
-A small database (e.g., Supabase, PlanetScale, or a simple SQLite via Turso) stores loved-one submissions. Each loved one receives an invite link containing a **unique token in the query parameters** (e.g., `gszep.com/mosaic/submit?token=abc123`). The token uniquely identifies the loved one and their submission.
+**Firebase Realtime Database** (part of the existing GCP account) stores loved-one submissions. Each loved one receives an invite link containing a **unique token in the query parameters** (e.g., `gszep.com/mosaic/submit?token=abc123`). The token uniquely identifies the loved one and their submission.
 
 **Access control**: Two-layer gate. First, a client-side password prompt protects the portal from bots and casual unauthorized access. The password is a single shared secret distributed to loved ones alongside their invite link; the client stores only a hashed form and validates input against it. After the password is accepted, the portal reads the unique token from the URL to identify the loved one and load their submission. Both the password and a valid token are required -- the password alone grants no access, and a token without the password is blocked at the gate.
 
@@ -297,7 +297,7 @@ The invite link is shared with loved ones after Milestone 2, once the portal sup
 
 **Milestone 1: Submission → Playtest Loop (plumbing)**
 1. **Project scaffolding**: Vite multi-entry build (game at `/mosaic/`, portal at `/mosaic/submit/`), TypeScript, React (portal), PixiJS v8 (game), shared types between entry points.
-2. **Database**: Schema designed for the full game (loved-one name, sprite data, dialogue tree, audio blips, personality traits, gift object) with M2/M3 fields nullable. Only name + sprite data are written in M1.
+2. **Firebase Realtime Database**: JSON structure designed for the full game (loved-one name, sprite data, dialogue tree, audio blips, personality traits, gift object). Only name + sprite data are written in M1. Security rules enforce public reads and token-gated writes. Part of the existing GCP account -- no new vendor, no inactivity pausing.
 3. **Portal access control**: Shared password gate (client-side hash check) + unique token in URL query params to identify each loved one and load their submission.
 4. **Ninja Adventure palette extraction**: Extract the color palette from the asset pack into a fixed swatch set used by the pixel editor and (later) the template assembly system.
 5. **Portal (minimal)**: Name field + freeform pixel editor only (the canvas editor from §6.2 phase 2, shipped first because it has no template art dependency -- 16x32 grid, Ninja Adventure palette swatches). No template assembly, no dialogue builder, no audio recording, no gift field yet. Loved ones can draw anything.
@@ -384,9 +384,9 @@ The project name is **Mosaic**. It is hosted via **GitHub Pages** from the `mosa
 
 - **Game URL**: `https://gszep.com/mosaic` -- the main game entry point.
 - **Portal URL**: `https://gszep.com/mosaic/submit` -- the submission portal.
-- **Database**: Small managed database (Supabase, Turso, or PlanetScale free tier) for loved-one submissions.
+- **Database**: Firebase Realtime Database (GCP free tier) for loved-one submissions.
 - **AI dialogue**: Direct client-side calls to the Gemini API.
-- **Build structure**: Vite multi-entry-point build. The game and portal are separate entry points with independent bundles, sharing common code (palette, database types, sprite templates). Vite `base: '/mosaic/'` ensures correct asset paths under GitHub Pages.
+- **Build structure**: Vite multi-entry-point build. The game and portal are separate entry points with independent bundles, sharing common code (palette, Firebase types, sprite templates). Vite `base: '/mosaic/'` ensures correct asset paths under GitHub Pages.
 
 ```
 dist/
@@ -398,7 +398,7 @@ dist/
 
 - **Local development**: Uses the live database so developers and loved ones share the same view of submitted assets.
 - **Playtesting**: Loved ones access the game at the same URL. The game always loads the latest submissions from the database, so loved ones see their character as soon as they submit.
-- **Final lockdown**: Before the birthday, the database is switched to **read-only mode** (write access removed). The game fetches from the live database at startup, accepting the risk of database downtime in exchange for simpler code with a single data path.
+- **Final lockdown**: Before the birthday, Firebase security rules are switched to **read-only mode** (write rules removed). The game fetches from the live database at startup, accepting the risk of database downtime in exchange for simpler code with a single data path.
 - **Total payload**: Tileset sprites + music + game code + loved-one data fetched from database. Target: under 5MB total initial load.
 
 ---

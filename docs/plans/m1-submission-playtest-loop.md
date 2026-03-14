@@ -4,9 +4,9 @@
 
 **Goal:** Prove the end-to-end submission pipeline: a loved one creates a character sprite in the portal, and it appears in the game world at the public URL.
 
-**Architecture:** Vite multi-entry TypeScript project. The portal (`/mosaic/submit/`) is a React app where loved ones create character sprites via a canvas-based pixel editor. The game (`/mosaic/`) is a PixiJS v8 app that fetches submissions from Supabase and renders them as sprites on a Tiled village square map. Both entry points share types, palette data, and the Supabase client.
+**Architecture:** Vite multi-entry TypeScript project. The portal (`/mosaic/submit/`) is a React app where loved ones create character sprites via a canvas-based pixel editor. The game (`/mosaic/`) is a PixiJS v8 app that fetches submissions from Firebase Realtime Database and renders them as sprites on a Tiled village square map. Both entry points share types, palette data, and the Firebase client.
 
-**Tech Stack:** Vite 6, TypeScript (strict), React 19, PixiJS v8, @pixi/tilemap, Supabase (PostgreSQL + JS client), Vitest
+**Tech Stack:** Vite 6, TypeScript (strict), React 19, PixiJS v8, @pixi/tilemap, Firebase Realtime Database (GCP, JS SDK v9 modular), Vitest
 
 **Design Reference:** `context/design.md` -- sections referenced as section-N throughout.
 
@@ -17,7 +17,7 @@
 These are not plan tasks. Complete them before starting.
 
 1. **Ninja Adventure asset pack**: Download from itch.io (pixel-boy, CC0 license). Extract to a working location -- tileset PNGs will be copied into `public/tilesets/` during Task 3.
-2. **Supabase project**: Create at supabase.com. Note the project URL and anon key. The schema is applied in Task 2.
+2. **Firebase project**: Create at console.firebase.google.com (or use an existing GCP project). Enable Realtime Database in the Firebase Console. Note the database URL. Security rules are configured in Task 2.
 3. **Tiled map editor**: Install from mapeditor.org. The village square map is created in Task 8.
 4. **Node.js 18+**: Required for Vite and all tooling.
 
@@ -33,7 +33,7 @@ mosaic/
     shared/
       types.ts                     # Submission row type, sprite data shape
       palette.ts                   # Ninja Adventure color swatches (hex array)
-      supabase.ts                  # Supabase client singleton
+      firebase.ts                  # Firebase RTDB client singleton
     portal/
       main.tsx                     # React DOM entry point
       App.tsx                      # PasswordGate -> SubmissionForm routing
@@ -43,7 +43,7 @@ mosaic/
         PixelEditor.tsx            # 16x32 canvas editor, click/drag/touch paint
         PalettePicker.tsx          # Horizontal swatch bar, selected color state
       hooks/
-        useSubmission.ts           # Load/save submission via Supabase by token
+        useSubmission.ts           # Load/save submission via Firebase by token
     game/
       main.ts                      # PixiJS entry point, orchestrates boot
       viewport.ts                  # Integer scaling, letterboxing, resize
@@ -57,14 +57,14 @@ mosaic/
   index.html                       # Game HTML shell
   submit/
     index.html                     # Portal HTML shell
-  supabase/
-    schema.sql                     # Table definitions (applied manually via SQL editor)
+  firebase/
+    database.rules.json            # Firebase security rules (applied via Firebase Console)
   scripts/
     extract-palette.ts             # One-shot script to extract palette from tileset PNGs
   vite.config.ts
   tsconfig.json
   package.json
-  .env.local                       # VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY (not committed)
+  .env.local                       # VITE_FIREBASE_DATABASE_URL, VITE_FIREBASE_API_KEY, VITE_FIREBASE_PROJECT_ID (not committed)
   .gitignore
 ```
 
@@ -83,7 +83,7 @@ mosaic/
 
 ```bash
 npm init -y
-npm install pixi.js @pixi/tilemap react react-dom @supabase/supabase-js
+npm install pixi.js @pixi/tilemap react react-dom firebase
 npm install -D vite @vitejs/plugin-react typescript @types/react @types/react-dom vitest
 ```
 
@@ -230,73 +230,60 @@ git commit -m "feat(m1): project scaffolding -- Vite multi-entry, TS, React, Pix
 
 ---
 
-### Task 2: Database Schema and Client
+### Task 2: Firebase Database and Client
 
 **Files:**
-- Create: `supabase/schema.sql`, `src/shared/types.ts`, `src/shared/supabase.ts`, `.env.local`
+- Create: `firebase/database.rules.json`, `src/shared/types.ts`, `src/shared/firebase.ts`, `.env.local`
 
-- [ ] **Step 1: Write schema SQL**
+- [ ] **Step 1: Write Firebase security rules**
 
-`supabase/schema.sql` -- forward-compatible with M2/M3 fields as nullable columns:
+`firebase/database.rules.json` -- security rules that allow public reads and writes scoped to token paths:
 
-```sql
--- Apply via Supabase SQL Editor (Dashboard > SQL Editor > New Query)
-
-create table submissions (
-  id         uuid primary key default gen_random_uuid(),
-  token      text unique not null,
-  name       text,
-  sprite_data jsonb,
-  -- M2 fields (nullable, unused in M1)
-  dialogue_mode       text check (dialogue_mode in ('hardcoded', 'ai')),
-  dialogue_tree       jsonb,
-  personality_traits   text[],
-  personality_prompt   text,
-  gift_object         text,
-  audio_blips         jsonb,
-  -- Developer-only field
-  location_description text default 'In the village square.',
-  created_at timestamptz default now(),
-  updated_at timestamptz default now()
-);
-
--- RLS: allow public reads (game fetches all submissions)
-alter table submissions enable row level security;
-
-create policy "public read" on submissions
-  for select using (true);
-
--- RLS: allow upserts (portal writes by token)
-create policy "public write" on submissions
-  for insert with check (true);
-
-create policy "public update" on submissions
-  for update using (true);
-
--- Auto-update updated_at on changes
-create or replace function update_updated_at()
-returns trigger as $$
-begin
-  new.updated_at = now();
-  return new;
-end;
-$$ language plpgsql;
-
-create trigger submissions_updated_at
-  before update on submissions
-  for each row execute function update_updated_at();
+```json
+{
+  "rules": {
+    "submissions": {
+      ".read": true,
+      "$token": {
+        ".write": true
+      }
+    }
+  }
+}
 ```
 
-Apply this SQL in the Supabase dashboard SQL Editor.
+Apply these rules in the Firebase Console (Realtime Database > Rules).
+
+The JSON structure in Firebase will be:
+```json
+{
+  "submissions": {
+    "token-abc123": {
+      "name": "Alice",
+      "spriteData": { "width": 16, "height": 32, "pixels": ["#000000"] },
+      "dialogueMode": null,
+      "dialogueTree": null,
+      "personalityTraits": null,
+      "personalityPrompt": null,
+      "giftObject": null,
+      "audioBlips": null,
+      "locationDescription": "In the village square."
+    }
+  }
+}
+```
+
+No schema migration needed -- Firebase is schemaless. New M2/M3 fields are simply written when ready.
 
 - [ ] **Step 2: Create .env.local**
 
 ```
-VITE_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
-VITE_SUPABASE_ANON_KEY=YOUR_ANON_KEY
+VITE_FIREBASE_API_KEY=YOUR_API_KEY
+VITE_FIREBASE_PROJECT_ID=YOUR_PROJECT_ID
+VITE_FIREBASE_DATABASE_URL=https://YOUR_PROJECT.firebaseio.com
 ```
 
-Replace with actual values from Supabase dashboard (Settings > API).
+Replace with actual values from Firebase Console (Project Settings > General).
 
 - [ ] **Step 3: Write shared types**
 
@@ -311,41 +298,44 @@ export interface SpriteData {
   pixels: string[];
 }
 
-/** A loved-one's submission as stored in the database. */
+/** A loved-one's submission as stored in Firebase. */
 export interface Submission {
-  id: string;
   token: string;
   name: string | null;
-  sprite_data: SpriteData | null;
-  dialogue_mode: "hardcoded" | "ai" | null;
-  dialogue_tree: unknown | null;
-  personality_traits: string[] | null;
-  personality_prompt: string | null;
-  gift_object: string | null;
-  audio_blips: unknown | null;
-  location_description: string;
-  created_at: string;
-  updated_at: string;
+  spriteData: SpriteData | null;
+  dialogueMode: "hardcoded" | "ai" | null;
+  dialogueTree: unknown | null;
+  personalityTraits: string[] | null;
+  personalityPrompt: string | null;
+  giftObject: string | null;
+  audioBlips: unknown | null;
+  locationDescription: string;
 }
 ```
 
-- [ ] **Step 4: Write Supabase client**
+- [ ] **Step 4: Write Firebase client**
 
-`src/shared/supabase.ts`:
+`src/shared/firebase.ts`:
 
 ```ts
-import { createClient } from "@supabase/supabase-js";
+import { initializeApp } from "firebase/app";
+import { getDatabase, ref, get, set, child } from "firebase/database";
 
-const url = import.meta.env.VITE_SUPABASE_URL as string;
-const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY as string,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID as string,
+  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL as string,
+};
 
-if (!url || !key) {
+if (!firebaseConfig.apiKey || !firebaseConfig.databaseURL) {
   throw new Error(
-    "Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY in environment"
+    "Missing VITE_FIREBASE_API_KEY or VITE_FIREBASE_DATABASE_URL in environment"
   );
 }
 
-export const supabase = createClient(url, key);
+const app = initializeApp(firebaseConfig);
+export const db = getDatabase(app);
+export { ref, get, set, child };
 ```
 
 - [ ] **Step 5: Write test for types and client module**
@@ -354,7 +344,7 @@ export const supabase = createClient(url, key);
 
 ```ts
 import { describe, it, expect } from "vitest";
-import type { SpriteData, Submission } from "../types";
+import type { SpriteData } from "../types";
 
 describe("SpriteData", () => {
   it("accepts a valid 16x32 pixel grid", () => {
@@ -381,14 +371,15 @@ Expected: PASS.
 Add a temporary check to `src/game/main.ts`:
 
 ```ts
-import { supabase } from "../shared/supabase";
+import { db, ref, get } from "../shared/firebase";
 
 async function boot() {
-  const { data, error } = await supabase.from("submissions").select("id");
-  if (error) {
-    document.body.textContent = `DB error: ${error.message}`;
-  } else {
-    document.body.textContent = `DB connected. ${data.length} submissions.`;
+  try {
+    const snapshot = await get(ref(db, "submissions"));
+    const count = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
+    document.body.textContent = `DB connected. ${count} submissions.`;
+  } catch (err) {
+    document.body.textContent = `DB error: ${(err as Error).message}`;
   }
 }
 
@@ -397,13 +388,13 @@ boot();
 
 Run `npx vite`, visit the game URL. Should show "DB connected. 0 submissions."
 
-Revert `src/game/main.ts` back to the placeholder after verifying.
+After verifying, revert back to placeholder.
 
 - [ ] **Step 8: Commit**
 
 ```bash
 git add -A
-git commit -m "feat(m1): Supabase schema, shared types, database client"
+git commit -m "feat(m1): Firebase RTDB setup, shared types, database client"
 ```
 
 ---
@@ -964,11 +955,11 @@ git commit -m "feat(m1): pixel editor (16x32 canvas) and palette picker"
 
 `src/portal/hooks/useSubmission.ts`:
 
-Parses the `token` query parameter from the URL. On mount, loads any existing submission for that token. Exposes a `save` function that upserts to Supabase.
+Parses the `token` query parameter from the URL. On mount, loads any existing submission for that token. Exposes a `save` function that writes to Firebase.
 
 ```ts
 import { useState, useEffect, useCallback } from "react";
-import { supabase } from "../../shared/supabase";
+import { db, ref, get, set } from "../../shared/firebase";
 import type { Submission, SpriteData } from "../../shared/types";
 
 function getToken(): string | null {
@@ -1002,24 +993,22 @@ export function useSubmission() {
       return;
     }
 
-    supabase
-      .from("submissions")
-      .select("*")
-      .eq("token", token)
-      .maybeSingle()
-      .then(({ data, error }) => {
-        if (error) {
-          setState((s) => ({ ...s, loading: false, error: error.message }));
-        } else if (data) {
+    get(ref(db, `submissions/${token}`))
+      .then((snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.val() as Submission;
           setState((s) => ({
             ...s,
             loading: false,
             name: data.name ?? "",
-            spriteData: data.sprite_data as SpriteData | null,
+            spriteData: data.spriteData ?? null,
           }));
         } else {
           setState((s) => ({ ...s, loading: false }));
         }
+      })
+      .catch((err) => {
+        setState((s) => ({ ...s, loading: false, error: (err as Error).message }));
       });
   }, []);
 
@@ -1037,19 +1026,22 @@ export function useSubmission() {
 
     setState((s) => ({ ...s, saving: true, error: null }));
 
-    const { error } = await supabase.from("submissions").upsert(
-      {
+    try {
+      await set(ref(db, `submissions/${token}`), {
         token,
         name: state.name || null,
-        sprite_data: state.spriteData,
-      },
-      { onConflict: "token" }
-    );
-
-    if (error) {
-      setState((s) => ({ ...s, saving: false, error: error.message }));
-    } else {
+        spriteData: state.spriteData,
+        dialogueMode: null,
+        dialogueTree: null,
+        personalityTraits: null,
+        personalityPrompt: null,
+        giftObject: null,
+        audioBlips: null,
+        locationDescription: "In the village square.",
+      } satisfies Submission);
       setState((s) => ({ ...s, saving: false }));
+    } catch (err) {
+      setState((s) => ({ ...s, saving: false, error: (err as Error).message }));
     }
   }, [state.name, state.spriteData]);
 
@@ -1128,11 +1120,7 @@ export function App() {
 
 - [ ] **Step 4: Seed a test token in the database**
 
-In the Supabase SQL Editor, insert a test row:
-
-```sql
-insert into submissions (token) values ('test-token-abc');
-```
+In the Firebase Console (Realtime Database > Data), manually add an entry: set key `submissions/test-token-abc` to `{ "token": "test-token-abc" }`.
 
 - [ ] **Step 5: Verify end-to-end portal flow**
 
@@ -1148,14 +1136,14 @@ Verify:
 3. Draw a sprite using the pixel editor.
 4. Enter a name.
 5. Click Save. Verify no errors.
-6. Check Supabase dashboard -- the `submissions` row for `test-token-abc` should have `name` and `sprite_data` populated.
+6. Check Firebase Console (Realtime Database > Data) -- the `submissions/test-token-abc` entry should have `name` and `spriteData` populated.
 7. Refresh the page. Name and sprite should reload from the database.
 
 - [ ] **Step 6: Commit**
 
 ```bash
 git add -A
-git commit -m "feat(m1): submission form with name, pixel editor, and Supabase persistence"
+git commit -m "feat(m1): submission form with name, pixel editor, and Firebase persistence"
 ```
 
 ---
@@ -1497,11 +1485,11 @@ git commit -m "feat(m1): Tiled TMJ loader and village square tilemap rendering"
 
 `src/game/npcs.ts`:
 
-Fetches all submissions from Supabase, converts each sprite's pixel data into a PixiJS `Texture`, and places sprites in a grid layout in the village square.
+Fetches all submissions from Firebase Realtime Database, converts each sprite's pixel data into a PixiJS `Texture`, and places sprites in a grid layout in the village square.
 
 ```ts
 import { Container, Sprite, Texture } from "pixi.js";
-import { supabase } from "../shared/supabase";
+import { db, ref, get } from "../shared/firebase";
 import type { Submission, SpriteData } from "../shared/types";
 
 const TILE = 16;
@@ -1542,35 +1530,34 @@ export async function loadNpcSprites(
   mapWidth: number,
   mapHeight: number
 ): Promise<Container> {
-  const { data, error } = await supabase
-    .from("submissions")
-    .select("*")
-    .not("sprite_data", "is", null);
-
-  if (error) {
-    console.error("Failed to fetch submissions:", error.message);
-    return new Container();
-  }
-
-  const submissions = (data ?? []) as Submission[];
   const container = new Container();
 
-  // Grid layout: center of map, 3 tiles apart.
-  const cols = Math.ceil(Math.sqrt(submissions.length));
-  const startX = Math.floor(mapWidth / 2 / TILE - cols) * TILE;
-  const startY = Math.floor(mapHeight / 2 / TILE - 2) * TILE;
+  try {
+    const snapshot = await get(ref(db, "submissions"));
+    if (!snapshot.exists()) return container;
 
-  for (let i = 0; i < submissions.length; i++) {
-    const sub = submissions[i];
-    if (!sub.sprite_data) continue;
+    const all = snapshot.val() as Record<string, Submission>;
+    const submissions = Object.values(all).filter((s) => s.spriteData != null);
 
-    const texture = spriteDataToTexture(sub.sprite_data);
-    const sprite = new Sprite(texture);
-    const col = i % cols;
-    const row = Math.floor(i / cols);
-    sprite.x = startX + col * TILE * 3;
-    sprite.y = startY + row * TILE * 3;
-    container.addChild(sprite);
+    // Grid layout: center of map, 3 tiles apart.
+    const cols = Math.ceil(Math.sqrt(submissions.length));
+    const startX = Math.floor(mapWidth / 2 / TILE - cols) * TILE;
+    const startY = Math.floor(mapHeight / 2 / TILE - 2) * TILE;
+
+    for (let i = 0; i < submissions.length; i++) {
+      const sub = submissions[i];
+      if (!sub.spriteData) continue;
+
+      const texture = spriteDataToTexture(sub.spriteData);
+      const sprite = new Sprite(texture);
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      sprite.x = startX + col * TILE * 3;
+      sprite.y = startY + row * TILE * 3;
+      container.addChild(sprite);
+    }
+  } catch (err) {
+    console.error("Failed to fetch submissions:", (err as Error).message);
   }
 
   return container;
@@ -1629,7 +1616,7 @@ Visit game URL. The submitted sprite should appear on the tilemap in the village
 
 ```bash
 git add -A
-git commit -m "feat(m1): render loved-one sprites from Supabase on village tilemap"
+git commit -m "feat(m1): render loved-one sprites from Firebase on village tilemap"
 ```
 
 ---
@@ -1864,8 +1851,9 @@ jobs:
       - run: npm ci
       - run: npx vite build
         env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_DATABASE_URL: ${{ secrets.VITE_FIREBASE_DATABASE_URL }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
@@ -1873,7 +1861,7 @@ jobs:
         uses: actions/deploy-pages@v4
 ```
 
-For Option C, add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` as repository secrets in GitHub Settings > Secrets and variables > Actions.
+For Option C, add `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_PROJECT_ID`, and `VITE_FIREBASE_DATABASE_URL` as repository secrets in GitHub Settings > Secrets and variables > Actions.
 
 Enable GitHub Pages in repository settings: Settings > Pages > Source: GitHub Actions.
 
@@ -1898,11 +1886,7 @@ This is the M1 acceptance test. No code changes -- just verification.
 
 - [ ] **Step 1: Create a fresh test token**
 
-In Supabase SQL Editor:
-
-```sql
-insert into submissions (token) values ('e2e-test-token');
-```
+In the Firebase Console (Realtime Database > Data), add key `submissions/e2e-test-token` with value `{ "token": "e2e-test-token" }`.
 
 - [ ] **Step 2: Submit a sprite via the public portal**
 
@@ -1912,7 +1896,7 @@ Visit `https://gszep.com/mosaic/submit/?token=e2e-test-token`.
 2. Enter a name (e.g., "Test User").
 3. Draw a recognizable sprite (e.g., a smiley face).
 4. Click Save.
-5. Verify in Supabase dashboard that the row has name and sprite_data.
+5. Verify in Firebase Console (Realtime Database > Data) that the `submissions/e2e-test-token` entry has `name` and `spriteData`.
 
 - [ ] **Step 3: View the sprite in the public game**
 
