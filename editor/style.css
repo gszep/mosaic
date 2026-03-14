@@ -120,26 +120,21 @@ body {
 }
 
 #side-panels {
-  width: 160px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   border-left: 1px solid #373737;
   flex-shrink: 0;
 }
 
 #maps-panel, #layers-panel {
+  width: 120px;
   background: #300A24;
   padding: 8px;
   overflow-y: auto;
 }
 
-#maps-panel {
-  flex-shrink: 0;
-  border-bottom: 1px solid #373737;
-}
-
 #layers-panel {
-  flex: 1;
+  border-left: 1px solid #373737;
 }
 
 #maps-panel h3, #layers-panel h3 { font: inherit; color: #888888; margin-bottom: 6px; }
