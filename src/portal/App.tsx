@@ -1,10 +1,10 @@
 import { PasswordGate } from "./components/PasswordGate";
+import { SubmissionForm } from "./components/SubmissionForm";
 
 export function App() {
   return (
     <PasswordGate>
-      <h1>Welcome to Mosaic</h1>
-      <p>Submission form will go here.</p>
+      <SubmissionForm />
     </PasswordGate>
   );
 }
