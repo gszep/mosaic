@@ -62,7 +62,7 @@ This is a non-commercial birthday gift. All selected asset packs must permit non
 | **Ninja Adventure** | pixel-boy | CC0 (public domain) | Massive top-down pack: terrain, buildings, interiors, items, UI, NPC sprites. Sole tileset and palette source. |
 | **Kevin MacLeod** | Kevin MacLeod | CC BY 3.0 (requires attribution) | Royalty-free ambient and cozy music tracks for scene backgrounds. |
 
-**Asset strategy**: Ninja Adventure is the single art source for both tiles and palette. Friend character sprites created via the submission portal are constrained to the pack's color palette, ensuring visual consistency. The portal provides example assets and a background reference image so friends can see the target aesthetic before creating their sprite.
+**Asset strategy**: Ninja Adventure is the single art source for both tiles and palette. Friend character sprites created via the submission portal are constrained to the pack's color palette, ensuring visual consistency.
 
 ### 2.5 Aesthetic Influences
 
@@ -230,7 +230,7 @@ An **invitation-only** web app where friends contribute their characters. The po
 
 A small database (e.g., Supabase, PlanetScale, or a simple SQLite via Turso) stores friend submissions. Each friend receives an invite link containing a **unique token in the query parameters** (e.g., `gszep.com/mosaic/submit?token=abc123`). The token uniquely identifies the friend and their submission.
 
-**Access control**: Two-layer gate. First, a client-side password prompt protects the portal from bots and casual unauthorized access. After the password is accepted, the portal reads the unique token from the URL to identify the friend and load their submission. Both the password and a valid token are required -- the password alone grants no access, and a token without the password is blocked at the gate. The password is shared with friends alongside their invite link.
+**Access control**: Two-layer gate. First, a client-side password prompt protects the portal from bots and casual unauthorized access. The password is a single shared secret distributed to friends alongside their invite link; the client stores only a hashed form and validates input against it. After the password is accepted, the portal reads the unique token from the URL to identify the friend and load their submission. Both the password and a valid token are required -- the password alone grants no access, and a token without the password is blocked at the gate.
 
 Submissions include:
 - Friend's display name
@@ -293,8 +293,6 @@ Friends record short "dialogue noises" (1-3 seconds) via their microphone. Each 
 
 Friends can launch the full game in its current state at any time from the portal. The game loads the latest submissions from the database, so friends see their character in the world, test their dialogue, and hear their audio blip. If a friend updates their submission, they reload the game to see the changes.
 
-The portal provides example assets and a background reference image of the game environment, so friends can evaluate whether their character visually fits the world. If something clashes, they can iterate on their sprite before finalizing.
-
 The submit link is only shared with friends once the core loop is working. This is the first milestone, scoped as follows:
 
 **Milestone 1: Submission → Playtest Loop (plumbing)**
@@ -306,7 +304,7 @@ The submit link is only shared with friends once the core loop is working. This 
 Priority after Milestone 1. Build out the dialogue tree editor (nested outline UI) and audio recording pipeline in the portal. Add dialogue rendering and audio blip playback to the game. Friends can test their dialogue trees and hear their character's voice. This must work before the invite goes out.
 
 **Milestone 3: Playable Game**
-Player sprite, collision, NPC interaction, map expansion, and progressive asset loading. Friends receive the invite link and collaborate on their submissions while the game world is built out around them.
+Player sprite, collision, NPC interaction, and iterative map expansion (the world grows larger and more detailed over time). Friends receive the invite link and collaborate on their submissions while the game world is built out around them.
 
 ---
 
@@ -329,9 +327,9 @@ Player sprite, collision, NPC interaction, map expansion, and progressive asset 
 
 `@pixi/tilemap` provides optimized batch rendering of rectangular tilemaps. The custom loader reads Tiled layers (terrain, collision, object/NPC spawn points) and translates them into `Tilemap.tile()` calls. This avoids depending on third-party Tiled integration libraries with uncertain maintenance.
 
-**Hot reload**: TMJ map files are imported as JSON assets through Vite. The map loader module uses `import.meta.hot.accept` to detect changes, reload the TMJ data, and rebuild the tilemap without losing player position or game state. This enables real-time map iteration in Tiled with sub-second feedback in the browser. **NPC spawns are re-read from the updated TMJ on hot reload** -- spawn points on the `spawns` layer are re-parsed and NPC positions are updated in the game state, preserving interaction flags and other character data. This means moving an NPC in Tiled is instantly reflected in the running game.
+**Hot reload**: TMJ map files are imported as JSON assets through Vite. The map loader module uses `import.meta.hot.accept` to detect changes, reload the TMJ data, and rebuild the tilemap without losing player position or game state. This enables real-time map iteration in Tiled with sub-second feedback in the browser. On hot reload, all spawn positions are rebuilt from the updated TMJ and runtime flags (e.g., `interacted`) are preserved by `npcId` key. This is a development-only feature -- production loads the map once.
 
-**Reconciliation strategy**: On hot reload, the loader diffs the old and new spawn layers using `npcId` as the stable key. Tiled-sourced fields (position, scene) are overwritten; runtime state (interaction flags, dialogue progress) is preserved. New `npcId` values are initialized with fresh state. Removed `npcId` values trigger a console warning but their state is retained in memory (the developer may be temporarily reorganizing the map). This is a development-only feature -- production loads the map once.
+**NPC ID sync**: A **pre-commit hook** validates that every `npcId` on the TMJ `spawns` layer has a matching database record, and every database NPC record has a corresponding spawn point. The commit is rejected on mismatch, catching typos and forgotten placements before they reach the running game.
 
 **Layer convention in Tiled**:
 - `ground`: Base terrain (grass, paths, floors)
@@ -379,8 +377,8 @@ Music sourced from **Kevin MacLeod's royalty-free library** (incompetech.com). C
 
 The project name is **Mosaic**. It is hosted via **GitHub Pages** from the `mosaic` repository.
 
-- **Game URL**: `http://gszep.com/mosaic` -- the main game entry point.
-- **Portal URL**: `http://gszep.com/mosaic/submit` -- the friend submission portal.
+- **Game URL**: `https://gszep.com/mosaic` -- the main game entry point.
+- **Portal URL**: `https://gszep.com/mosaic/submit` -- the friend submission portal.
 - **Database**: Small managed database (Supabase, Turso, or PlanetScale free tier) for friend submissions.
 - **AI dialogue**: Direct client-side calls to the Gemini API.
 - **Build structure**: Vite multi-entry-point build. The game and portal are separate entry points with independent bundles, sharing common code (palette, database types, sprite templates). Vite `base: '/mosaic/'` ensures correct asset paths under GitHub Pages.
@@ -395,8 +393,8 @@ dist/
 
 - **Local development**: Uses the live database so developers and friends share the same view of submitted assets.
 - **Playtesting**: Friends access the game at the same URL. The game always loads the latest submissions from the database, so friends see their character as soon as they submit.
-- **Final lockdown**: Before the birthday, the database is switched to **read-only mode** (write access removed). No static bake step -- the game still fetches from the live database at startup. This accepts the risk of database downtime in exchange for simpler code with a single data path.
-- **Total payload**: Tileset sprites + music + game code. Target: under 5MB initial load (excluding friend data fetched from database).
+- **Final lockdown**: Before the birthday, the database is switched to **read-only mode** (write access removed). The game fetches from the live database at startup, accepting the risk of database downtime in exchange for simpler code with a single data path.
+- **Total payload**: Tileset sprites + music + game code + friend data fetched from database. Target: under 5MB total initial load.
 
 ---
 
