@@ -25,7 +25,7 @@ Development is driven by **Microsoft Amplifier** and **Claude Code**, using a cu
 | 4K (3840x2160) | 8x | Pixel-perfect |
 | 720p (1280x720) | 2.67x | Nearest-neighbor with letterboxing |
 
-**Viewport policy**: The game accepts any viewport size and orientation on both mobile and desktop -- no forced orientation locks, rotation prompts, or landscape/portrait bias. The 480×270 internal resolution is rendered at the largest integer scale that fits the viewport, centered with letterboxing on all sides. Dialogue boxes and UI elements are positioned relative to the internal resolution, so they render correctly at any aspect ratio. In portrait orientation the visible world is narrower (~17 tiles wide vs ~30 in landscape), but the game remains fully playable.
+**Viewport policy**: The game accepts any viewport size and orientation on both mobile and desktop -- no forced orientation locks, rotation prompts, or landscape/portrait bias. The 480×270 internal resolution is fixed and always shows 30×17 tiles. It is rendered at the largest integer scale that fits the viewport, centered with letterboxing on all sides. Portrait viewports see the same world with more vertical letterboxing. Dialogue boxes and UI elements are positioned relative to the internal resolution, so they render correctly at any aspect ratio.
 
 **Tile size: 16x16 pixels**, the dominant standard across classic and modern pixel RPGs (Pokemon GBC/GBA, Stardew Valley, Final Fantasy, EarthBound). This yields a viewport of ~30x17 tiles, providing generous world visibility while maintaining the chunky pixel aesthetic of handheld games.
 
@@ -60,6 +60,7 @@ This is a non-commercial birthday gift. All selected asset packs must permit non
 | Asset Pack | Author | License | Content |
 |---|---|---|---|
 | **Ninja Adventure** | pixel-boy | CC0 (public domain) | Massive top-down pack: terrain, buildings, interiors, items, UI, NPC sprites. Sole tileset and palette source. |
+| **Kevin MacLeod** | Kevin MacLeod | CC BY 3.0 (requires attribution) | Royalty-free ambient and cozy music tracks for scene backgrounds. |
 
 **Asset strategy**: Ninja Adventure is the single art source for both tiles and palette. Friend character sprites created via the submission portal are constrained to the pack's color palette, ensuring visual consistency. The portal provides example assets and a background reference image so friends can see the target aesthetic before creating their sprite.
 
@@ -137,14 +138,14 @@ This approach eliminates the need for sub-tile AABB collision, corner-sliding ed
 
 Each NPC uses **one** dialogue mode, chosen by the friend during portal submission:
 
-**Mode A: Hardcoded dialogue tree.** The friend authors a full dialogue tree during submission: NPC lines, player response choices, branching follow-ups, and conversation endpoints. Trees can be arbitrary in structure -- linear, branching, or even looping (e.g., an NPC that keeps redirecting the conversation back to an earlier node to mess with the player). The only constraint is that every path through the tree must have at least one reachable leaf that ends the conversation and gives the gift. No AI involvement.
+**Mode A: Hardcoded dialogue tree.** The friend authors a full dialogue tree during submission: NPC lines, player response choices, branching follow-ups, and conversation endpoints. Trees can be arbitrary in structure -- linear, branching, or even looping (e.g., an NPC that keeps redirecting the conversation back to an earlier node to mess with the player). The only constraint is that at least one path through the tree must reach a leaf that ends the conversation and gives the gift. No AI involvement.
 
 **Mode B: AI-generated dialogue.** The friend provides personality traits and a personality prompt during submission. At runtime, the interaction follows a fixed 3-turn structure:
 
 1. Player interacts with the NPC.
-2. The LLM generates an initial greeting and 3 possible player responses.
+2. The Gemini API generates an initial greeting and 3 possible player responses.
 3. The player selects one of the 3 responses.
-4. The LLM generates a final response based on the selected option.
+4. The Gemini API generates a final response based on the selected option.
 5. The conversation ends and the NPC gives their gift.
 
 Hardcoded dialogue data format:
@@ -264,7 +265,7 @@ Simple form-based:
 
 ### 6.4 Retro Audio Recording
 
-Friends record short "dialogue noises" (1-3 seconds) via their microphone. Each recording is given a **name** by the friend (e.g., "excited", "hmm", "laugh"). Friends can record multiple named blips to give their character a richer voice. The recording and processing are separated for maximum browser compatibility:
+Friends record short "dialogue noises" (1-3 seconds) via their microphone. Each recording is given a **name** by the friend (e.g., "excited", "hmm", "laugh"). Friends can record multiple named blips to give their character a richer voice. The recording and processing are separated into distinct steps:
 
 1. **Recording**: The **MediaRecorder API** captures a short audio clip as a blob.
 2. **Processing**: After recording, an **OfflineAudioContext** applies bitcrushing (reduced sample rate and bit depth for lo-fi Game Boy texture) and pitch shifting (creating character-specific blips in the Animal Crossing / Undertale style). No AudioWorklet required.
@@ -324,7 +325,7 @@ The submit link is only shared with friends once the core loop is working: a fri
 | Outside (village, daytime) | Bright, upbeat village theme | More instruments, livelier feel |
 | Evening (village square) | Warm, mellow evening theme | Acoustic feel, lantern ambiance |
 
-Music crossfades on scene transitions. Loops seamlessly.
+Music sourced from **Kevin MacLeod's royalty-free library** (incompetech.com). Crossfades on scene transitions. Loops seamlessly. Attribution included in the game's credits/end screen as required by CC BY 3.0.
 
 ### 8.2 Sound Effects
 
