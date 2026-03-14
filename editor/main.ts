@@ -67,7 +67,8 @@ const tilesetSelect = document.getElementById("tileset-select") as HTMLSelectEle
 const tileInfo = document.getElementById("selected-tile-info")!;
 const tooltip = document.getElementById("inspector-tooltip")!;
 const canvasWrap = document.getElementById("canvas-wrap")!;
-const mapSelect = document.getElementById("map-select") as HTMLSelectElement;
+const mapListEl = document.getElementById("map-list")!;
+const MAP_NAMES = ["village", "home", "bedroom"];
 
 // --- Build tileset definitions with firstgid ---
 
@@ -137,10 +138,41 @@ async function init() {
     tilesetSelect.appendChild(opt);
   });
 
+  buildMapList();
   buildLayerList();
   redrawMap();
   redrawPalette();
   bindEvents();
+}
+
+// --- Map list ---
+
+function buildMapList() {
+  mapListEl.innerHTML = "";
+  for (const name of MAP_NAMES) {
+    const li = document.createElement("li");
+    li.className = name === currentMapName ? "active" : "";
+    li.textContent = name;
+    li.addEventListener("click", () => switchMap(name));
+    mapListEl.appendChild(li);
+  }
+}
+
+async function switchMap(name: string) {
+  currentMapName = name;
+  const tilesets = buildTilesetDefs();
+  const loaded = await loadMapFromServer(name);
+  map = loaded ?? createEmptyMap(40, 30, TILE_SIZE, tilesets, DEFAULT_LAYERS);
+  activeLayer = map.layers.find((l) => l.type === "tilelayer")?.name ?? "";
+  opts.activeLayer = activeLayer;
+  opts.visibleLayers = new Set(
+    map.layers.filter((l) => l.type === "tilelayer").map((l) => l.name)
+  );
+  mapScale = Math.min(MAX_SCALE, Math.max(mapScale, getMinMapScale()));
+  opts.scale = mapScale;
+  buildMapList();
+  buildLayerList();
+  redrawMap();
 }
 
 // --- Layer list ---
@@ -308,23 +340,6 @@ function bindEvents() {
   // Save TMJ.
   document.getElementById("save-tmj")!.addEventListener("click", () => {
     downloadTMJ(map, `${currentMapName}.tmj`);
-  });
-
-  // Map selector.
-  mapSelect.addEventListener("change", async () => {
-    currentMapName = mapSelect.value;
-    const tilesets = buildTilesetDefs();
-    const loaded = await loadMapFromServer(currentMapName);
-    map = loaded ?? createEmptyMap(40, 30, TILE_SIZE, tilesets, DEFAULT_LAYERS);
-    activeLayer = map.layers.find((l) => l.type === "tilelayer")?.name ?? "";
-    opts.activeLayer = activeLayer;
-    opts.visibleLayers = new Set(
-      map.layers.filter((l) => l.type === "tilelayer").map((l) => l.name)
-    );
-    mapScale = Math.min(MAX_SCALE, Math.max(mapScale, getMinMapScale()));
-    opts.scale = mapScale;
-    buildLayerList();
-    redrawMap();
   });
 
   // Recalculate min zoom on resize.

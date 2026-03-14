@@ -11,11 +11,6 @@
 </head>
 <body>
   <div id="toolbar">
-    <select id="map-select">
-      <option value="village">village</option>
-      <option value="home">home</option>
-      <option value="bedroom">bedroom</option>
-    </select>
     <button id="save-tmj">Save</button>
     <span class="sep"></span>
     <button id="tool-paint" class="tool active" data-tool="paint">Paint</button>
@@ -43,9 +38,15 @@
         </div>
       </div>
 
-      <div id="layers-panel">
-        <h3>Layers</h3>
-        <ul id="layer-list"></ul>
+      <div id="side-panels">
+        <div id="maps-panel">
+          <h3>Maps</h3>
+          <ul id="map-list"></ul>
+        </div>
+        <div id="layers-panel">
+          <h3>Layers</h3>
+          <ul id="layer-list"></ul>
+        </div>
       </div>
     </div>
   </div>
