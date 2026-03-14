@@ -10,31 +10,6 @@ body {
   overflow: hidden;
 }
 
-#toolbar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  background: #300A24;
-  border-bottom: 1px solid #373737;
-  flex-shrink: 0;
-}
-
-#toolbar button {
-  padding: 4px 10px;
-  background: #373737;
-  color: #EEEEEC;
-  border: 1px solid #300A24;
-  border-radius: 3px;
-  cursor: pointer;
-  font: inherit;
-}
-
-#toolbar button:hover { background: #4a4a4a; }
-#toolbar button.tool.active { background: #E95420; border-color: #E95420; color: #FFFFFF; }
-
-.sep { width: 1px; height: 20px; background: #373737; }
-
 #workspace {
   display: flex;
   flex-direction: column;
@@ -126,21 +101,25 @@ body {
   flex-shrink: 0;
 }
 
-#maps-panel, #layers-panel {
+#maps-panel, #layers-panel, #tools-panel {
   width: 120px;
   background: #300A24;
   padding: 8px;
   overflow-y: auto;
 }
 
-#layers-panel {
+#layers-panel, #tools-panel {
   border-left: 1px solid #373737;
 }
 
-#maps-panel h3, #layers-panel h3 { font: inherit; color: #888888; margin-bottom: 6px; }
+#maps-panel h3, #layers-panel h3, #tools-panel h3 {
+  font: inherit;
+  color: #888888;
+  margin-bottom: 6px;
+}
 
-#map-list, #layer-list { list-style: none; }
-#map-list li, #layer-list li {
+#map-list, #layer-list, #tool-list { list-style: none; }
+#map-list li, #layer-list li, #tool-list li {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -149,6 +128,6 @@ body {
   cursor: pointer;
   font: inherit;
 }
-#map-list li:hover, #layer-list li:hover { background: #373737; }
-#map-list li.active, #layer-list li.active { background: #E95420; color: #FFFFFF; }
+#map-list li:hover, #layer-list li:hover, #tool-list li:hover { background: #373737; }
+#map-list li.active, #layer-list li.active, #tool-list li.active { background: #E95420; color: #FFFFFF; }
 .check { cursor: pointer; }

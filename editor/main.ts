@@ -50,7 +50,7 @@ let currentMapName = "village";
 
 const opts: RenderOptions = {
   showGrid: true,
-  showCollision: false,
+  showCollision: true,
   visibleLayers: new Set(DEFAULT_LAYERS),
   activeLayer: null,
   scale: mapScale,
@@ -244,31 +244,15 @@ function redrawPalette() {
 // --- Events ---
 
 function bindEvents() {
-  // Tool buttons.
-  document.querySelectorAll<HTMLButtonElement>(".tool").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      document.querySelectorAll(".tool").forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-      tool = btn.dataset.tool as typeof tool;
+  // Tool list items.
+  document.querySelectorAll<HTMLLIElement>("#tool-list .tool").forEach((li) => {
+    li.addEventListener("click", () => {
+      document.querySelectorAll("#tool-list .tool").forEach((el) => el.classList.remove("active"));
+      li.classList.add("active");
+      tool = li.dataset.tool as typeof tool;
       mapCanvas.style.cursor =
         tool === "inspect" ? "help" : tool === "erase" ? "not-allowed" : "crosshair";
     });
-  });
-
-  // Grid toggle.
-  const gridToggle = document.getElementById("toggle-grid")!;
-  gridToggle.addEventListener("click", () => {
-    opts.showGrid = !opts.showGrid;
-    gridToggle.textContent = opts.showGrid ? "[x] Grid" : "[ ] Grid";
-    redrawMap();
-  });
-
-  // Collision toggle.
-  const collToggle = document.getElementById("toggle-collision")!;
-  collToggle.addEventListener("click", () => {
-    opts.showCollision = !opts.showCollision;
-    collToggle.textContent = opts.showCollision ? "[x] Collision" : "[ ] Collision";
-    redrawMap();
   });
 
   // Tileset select.
