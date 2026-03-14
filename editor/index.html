@@ -11,11 +11,12 @@
 </head>
 <body>
   <div id="toolbar">
-    <label>
-      <input type="file" id="load-tmj" accept=".tmj,.json" />
-      Load TMJ
-    </label>
-    <button id="save-tmj">Save TMJ</button>
+    <select id="map-select">
+      <option value="village">village</option>
+      <option value="home">home</option>
+      <option value="bedroom">bedroom</option>
+    </select>
+    <button id="save-tmj">Save</button>
     <span class="sep"></span>
     <button id="tool-paint" class="tool active" data-tool="paint">Paint</button>
     <button id="tool-erase" class="tool" data-tool="erase">Erase</button>

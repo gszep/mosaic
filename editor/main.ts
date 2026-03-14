@@ -46,6 +46,7 @@ let selectedGid: number | null = null;
 let activeTilesetIndex = 0;
 let tool: "paint" | "erase" | "inspect" = "paint";
 let painting = false;
+let currentMapName = "village";
 
 const opts: RenderOptions = {
   showGrid: true,
@@ -65,8 +66,8 @@ const layerList = document.getElementById("layer-list")!;
 const tilesetSelect = document.getElementById("tileset-select") as HTMLSelectElement;
 const tileInfo = document.getElementById("selected-tile-info")!;
 const tooltip = document.getElementById("inspector-tooltip")!;
-const loadInput = document.getElementById("load-tmj") as HTMLInputElement;
 const canvasWrap = document.getElementById("canvas-wrap")!;
+const mapSelect = document.getElementById("map-select") as HTMLSelectElement;
 
 // --- Build tileset definitions with firstgid ---
 
@@ -96,6 +97,16 @@ function getMinMapScale(): number {
   return canvasWrap.clientWidth / (map.width * map.tilewidth);
 }
 
+async function loadMapFromServer(name: string): Promise<TMJMap | null> {
+  try {
+    const resp = await fetch(`${BASE}maps/${name}.tmj`);
+    if (!resp.ok) return null;
+    return await resp.json();
+  } catch {
+    return null;
+  }
+}
+
 // --- Init ---
 
 async function init() {
@@ -107,7 +118,13 @@ async function init() {
   );
 
   // Create default empty map.
-  map = createEmptyMap(30, 20, TILE_SIZE, tilesets, DEFAULT_LAYERS);
+  map = createEmptyMap(40, 30, TILE_SIZE, tilesets, DEFAULT_LAYERS);
+
+  // Try to load existing map from server.
+  const loaded = await loadMapFromServer(currentMapName);
+  if (loaded) {
+    map = loaded;
+  }
 
   mapScale = Math.min(MAX_SCALE, Math.max(mapScale, getMinMapScale()));
   opts.scale = mapScale;
@@ -288,13 +305,17 @@ function bindEvents() {
     paletteScroll.scrollTop = ry * ratio - cy;
   }, { passive: false });
 
-  // Load TMJ.
-  loadInput.addEventListener("change", async () => {
-    const file = loadInput.files?.[0];
-    if (!file) return;
-    const text = await file.text();
-    map = JSON.parse(text);
-    // Rebuild layers UI and re-render.
+  // Save TMJ.
+  document.getElementById("save-tmj")!.addEventListener("click", () => {
+    downloadTMJ(map, `${currentMapName}.tmj`);
+  });
+
+  // Map selector.
+  mapSelect.addEventListener("change", async () => {
+    currentMapName = mapSelect.value;
+    const tilesets = buildTilesetDefs();
+    const loaded = await loadMapFromServer(currentMapName);
+    map = loaded ?? createEmptyMap(40, 30, TILE_SIZE, tilesets, DEFAULT_LAYERS);
     activeLayer = map.layers.find((l) => l.type === "tilelayer")?.name ?? "";
     opts.activeLayer = activeLayer;
     opts.visibleLayers = new Set(
@@ -304,11 +325,6 @@ function bindEvents() {
     opts.scale = mapScale;
     buildLayerList();
     redrawMap();
-  });
-
-  // Save TMJ.
-  document.getElementById("save-tmj")!.addEventListener("click", () => {
-    downloadTMJ(map, "map.tmj");
   });
 
   // Recalculate min zoom on resize.
