@@ -296,9 +296,14 @@ Loved ones can launch the full game in its current state at any time from the po
 The invite link is shared with loved ones after Milestone 2, once the portal supports sprite creation, dialogue, and audio. The milestones are scoped as follows:
 
 **Milestone 1: Submission → Playtest Loop (plumbing)**
-1. **Portal (minimal)**: Name field + freeform pixel editor only (the canvas editor from §6.2 phase 2, shipped first because it has no template art dependency -- 16x32 grid, Ninja Adventure palette). No template assembly, no dialogue builder, no audio recording, no gift field yet. Loved ones can draw anything.
-2. **Game (minimal)**: A village square tilemap. All submitted loved-one sprites are rendered in a grid layout in the square. An invisible, non-colliding player position moves with arrow keys; the camera follows it. No visible player sprite, no collision, no NPC interaction. The game fetches submissions from the database at startup and displays them.
-3. **Loop**: A loved one submits a sprite via the portal, reloads the game, and sees their sprite in the village square. They edit the sprite, reload, and see the update. This loop working end-to-end validates the submission pipeline.
+1. **Project scaffolding**: Vite multi-entry build (game at `/mosaic/`, portal at `/mosaic/submit/`), TypeScript, React (portal), PixiJS v8 (game), shared types between entry points.
+2. **Database**: Schema designed for the full game (loved-one name, sprite data, dialogue tree, audio blips, personality traits, gift object) with M2/M3 fields nullable. Only name + sprite data are written in M1.
+3. **Portal access control**: Shared password gate (client-side hash check) + unique token in URL query params to identify each loved one and load their submission.
+4. **Ninja Adventure palette extraction**: Extract the color palette from the asset pack into a fixed swatch set used by the pixel editor and (later) the template assembly system.
+5. **Portal (minimal)**: Name field + freeform pixel editor only (the canvas editor from §6.2 phase 2, shipped first because it has no template art dependency -- 16x32 grid, Ninja Adventure palette swatches). No template assembly, no dialogue builder, no audio recording, no gift field yet. Loved ones can draw anything.
+6. **Game (minimal)**: A village square tilemap. All submitted loved-one sprites are rendered in a grid layout in the square. An invisible, non-colliding player position moves with arrow keys; the camera follows it. No visible player sprite, no collision, no NPC interaction. The game fetches submissions from the database at startup and displays them.
+7. **Deployment**: GitHub Pages from the `mosaic` repo. Vite `base: '/mosaic/'` for correct asset paths. The game and portal are accessible at their public URLs.
+8. **Loop**: A loved one submits a sprite via the portal, reloads the game, and sees their sprite in the village square. They edit the sprite, reload, and see the update. This loop working end-to-end at the public URL validates the submission pipeline.
 
 **Milestone 2: Dialogue and Audio**
 Priority after Milestone 1. Build out the dialogue tree editor (nested outline UI) and audio recording pipeline in the portal. Add dialogue rendering and audio blip playback to the game. Loved ones can test their dialogue trees and hear their character's voice. This milestone gates the invite link (see §6.5).
