@@ -38,7 +38,11 @@ async function extractColors(): Promise<Set<string>> {
   return colors;
 }
 
-const colors = await extractColors();
-const sorted = [...colors].sort();
-console.log(JSON.stringify(sorted, null, 2));
-console.error(`Extracted ${sorted.length} unique colors.`);
+async function main() {
+  const colors = await extractColors();
+  const sorted = [...colors].sort();
+  console.log(JSON.stringify(sorted, null, 2));
+  console.error(`Extracted ${sorted.length} unique colors.`);
+}
+
+main();
