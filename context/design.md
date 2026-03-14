@@ -81,7 +81,7 @@ The visual direction blends three eras of handheld history with modern indie pol
 ### 3.1 Story Arc
 
 1. **Wake up** -- Black screen with "Wake up" text. Any player interaction (tap/click/key) fades the black out, revealing the player's bedroom.
-2. **Go downstairs** -- Parents wish happy birthday. First dialogue interaction.
+2. **Go downstairs** -- Parents wish happy birthday. First dialogue interaction. Parents submit through the portal like any other friend -- they are standard NPCs with their own sprite, dialogue, and gift.
 3. **Exit house** -- Village overworld opens up. Music changes.
 4. **Fetch quest** -- Visit friends scattered around the village. Each friend has a short dialogue exchange and gives a present (a gift object chosen by the friend via the portal). Friends control their character's appearance, dialogue, audio, and gift object. Some friends are in the village square, others are inside houses or shops. The developer controls all NPC placement via Tiled.
 5. **All presents collected** -- Time of day shifts to evening. The village square transforms: lanterns glow, a fire pit with marshmallows appears. Everyone gathers. Birthday cake. End screen.
@@ -99,11 +99,8 @@ gameState = {
   currentScene: "bedroom",
   player: { tileX, tileY, direction, inventory: [] },
   flags: {
-    talkedToMom: false,
-    talkedToDad: false,
     presentCount: 0,
     totalPresents: N,  // 5-15, driven by friend submissions
-    // one flag per friend interaction
   },
   npcs: [
     // tileX, tileY, scene are loaded from Tiled spawns layer at startup, not stored in DB
@@ -233,7 +230,7 @@ An **invitation-only** web app where friends contribute their characters. The po
 
 A small database (e.g., Supabase, PlanetScale, or a simple SQLite via Turso) stores friend submissions. Each friend receives an invite link containing a **unique token in the query parameters** (e.g., `gszep.com/mosaic/submit?token=abc123`). The token uniquely identifies the friend and their submission.
 
-**Access control**: A simple client-side password gate protects the portal from bots and casual unauthorized access. The password is shared with friends alongside their invite link.
+**Access control**: Two-layer gate. First, a client-side password prompt protects the portal from bots and casual unauthorized access. After the password is accepted, the portal reads the unique token from the URL to identify the friend and load their submission. Both the password and a valid token are required -- the password alone grants no access, and a token without the password is blocked at the gate. The password is shared with friends alongside their invite link.
 
 Submissions include:
 - Friend's display name
@@ -264,6 +261,8 @@ Each layer uses **only colors from the Ninja Adventure asset pack**. The color p
 
 **Phase 2: Freeform editing (optional).** The assembled template is flattened into a **Dotting**-based pixel editor (React component, `npm install dotting`) where the friend can make final touches -- adding details, tweaking individual pixels, or customizing beyond what the templates offer. The editor is locked to the 16x32 grid with the palette restricted to Ninja Adventure colors.
 
+**State persistence**: Template selections (body type, skin tone, hairstyle, clothing, accessories, and their palette choices) are stored in the database alongside the flattened sprite data. If a friend returns to template editing after making freeform pixel edits, the freeform edits are discarded and the editor restores the last saved template state. This is a one-way door communicated clearly in the UI -- freeform edits are refinements, not a parallel track.
+
 **Style reference**: The portal displays example character sprites and a background reference image showing the game's village environment, so friends can see the target aesthetic before creating their sprite.
 
 **Tech stack**: React + Dotting component.
@@ -276,7 +275,7 @@ Simple form-based:
 - **Dialogue mode toggle**: Hardcoded or AI-generated
 - **If hardcoded**: A **nested outline editor** (zero external dependencies -- a recursive React component). The editor displays the conversation as an indented tree: NPC lines are text blocks, player responses are indented beneath them, and each response can have a child NPC reply. An "Add player response" button appears beneath each NPC block; an "Add NPC reply" button appears beneath each player response. Leaf nodes (no child responses) end the conversation and give the gift. Loop-backs are supported via a "Redirect to..." option that lets a response point to an ancestor NPC node by label (displayed as the first few words of the NPC's line). Constraints enforced by the editor: max depth 4, max 3 responses per NPC line, max 2 loop-back references. The portal validates that at least one path reaches a leaf. The editor outputs nested JSON matching the hardcoded dialogue data format (§5.1).
 - **If AI**: 3-5 personality traits (dropdown/tag selection: cheerful, sarcastic, shy, nerdy, etc.) and a personality prompt text field. The friend can review and edit the generated prompt before confirming.
-- **Gift object**: Text field describing what their character gives the birthday boy (e.g., "a tiny telescope", "homemade cookies"). The developer creates the corresponding pixel art asset.
+- **Gift object**: Text field describing what their character gives Fraser (e.g., "a tiny telescope", "homemade cookies"). The developer creates the corresponding pixel art asset.
 
 ### 6.4 Retro Audio Recording
 
@@ -288,7 +287,7 @@ Friends record short "dialogue noises" (1-3 seconds) via their microphone. Each 
 
 **Fallback**: If microphone access is denied or unavailable, the friend selects from **5-6 preset voice textures** (high chirp, low hum, breathy, nasal, etc.) and names each one. Pitch-shifted by name hash. Still personalized, zero hardware requirement.
 
-**Browser support**: The portal requires Chrome, Firefox, or Edge. If Safari is detected, the portal displays an error message directing the user to open the link in a supported browser. Safari's incomplete support for OfflineAudioContext and other Web Audio features makes it unreliable for the audio recording pipeline.
+**Browser support**: Chrome, Firefox, Edge, and Safari. Audio processing results (bitcrushing, pitch shifting) may vary slightly across browsers due to differences in `OfflineAudioContext` implementations -- this inconsistency is accepted as part of the lo-fi aesthetic. Safari's Web Audio support has improved sufficiently for the recording pipeline, and excluding Safari would lock out most iPhone users, which is unacceptable for a birthday gift shared with a small friend group.
 
 ### 6.5 Playtesting
 
@@ -315,7 +314,7 @@ Player sprite, collision, NPC interaction, map expansion, and progressive asset 
 
 ### 7.1 Renderer
 
-**PixiJS v8** with **WebGL2** as the sole rendering backend. No WebGPU -- simplifies the shader pipeline. Target browsers: Chrome, Firefox, and Edge. Safari is not supported.
+**PixiJS v8** with **WebGL2** as the sole rendering backend. No WebGPU -- simplifies the shader pipeline. Target browsers: Chrome, Firefox, Edge, and Safari (Safari 15+, which supports WebGL2).
 
 ### 7.2 Rendering Features
 
@@ -331,6 +330,8 @@ Player sprite, collision, NPC interaction, map expansion, and progressive asset 
 `@pixi/tilemap` provides optimized batch rendering of rectangular tilemaps. The custom loader reads Tiled layers (terrain, collision, object/NPC spawn points) and translates them into `Tilemap.tile()` calls. This avoids depending on third-party Tiled integration libraries with uncertain maintenance.
 
 **Hot reload**: TMJ map files are imported as JSON assets through Vite. The map loader module uses `import.meta.hot.accept` to detect changes, reload the TMJ data, and rebuild the tilemap without losing player position or game state. This enables real-time map iteration in Tiled with sub-second feedback in the browser. **NPC spawns are re-read from the updated TMJ on hot reload** -- spawn points on the `spawns` layer are re-parsed and NPC positions are updated in the game state, preserving interaction flags and other character data. This means moving an NPC in Tiled is instantly reflected in the running game.
+
+**Reconciliation strategy**: On hot reload, the loader diffs the old and new spawn layers using `npcId` as the stable key. Tiled-sourced fields (position, scene) are overwritten; runtime state (interaction flags, dialogue progress) is preserved. New `npcId` values are initialized with fresh state. Removed `npcId` values trigger a console warning but their state is retained in memory (the developer may be temporarily reorganizing the map). This is a development-only feature -- production loads the map once.
 
 **Layer convention in Tiled**:
 - `ground`: Base terrain (grass, paths, floors)
