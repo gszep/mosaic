@@ -25,7 +25,7 @@ Development is driven by **Microsoft Amplifier** and **Claude Code**, using a cu
 | 4K (3840x2160) | 8x | Pixel-perfect |
 | 720p (1280x720) | 2.67x | Nearest-neighbor with letterboxing |
 
-**Viewport policy**: The game accepts any viewport size and orientation on both mobile and desktop -- no forced orientation locks, rotation prompts, or landscape/portrait bias. The 480×270 internal resolution is fixed and always shows 30×17 tiles. It is rendered at the largest integer scale that fits the viewport, centered with letterboxing on all sides. Portrait viewports see the same world with more vertical letterboxing. Dialogue boxes and UI elements are positioned relative to the internal resolution, so they render correctly at any aspect ratio.
+**Viewport policy**: The game accepts any viewport size and orientation on both mobile and desktop -- no forced orientation locks, rotation prompts, or landscape/portrait bias. The 480×270 internal resolution is fixed and shows ~30×17 tiles (30×16.875 exactly; the bottom tile row is partially clipped). It is rendered at the largest integer scale that fits the viewport, centered with letterboxing on all sides. Portrait viewports see the same world with more vertical letterboxing. Dialogue boxes and UI elements are positioned relative to the internal resolution, so they render correctly at any aspect ratio.
 
 **Tile size: 16x16 pixels**, the dominant standard across classic and modern pixel RPGs (Pokemon GBC/GBA, Stardew Valley, Final Fantasy, EarthBound). This yields a viewport of ~30x17 tiles, providing generous world visibility while maintaining the chunky pixel aesthetic of handheld games.
 
@@ -66,7 +66,7 @@ This is a non-commercial birthday gift. All selected asset packs must permit non
 
 ### 2.5 Aesthetic Influences
 
-The visual direction blends three eras of handheld history with modern indie polish:
+The visual direction blends three eras of handheld history with two modern indie influences:
 
 * **GBC (Gen 2)**: High-saturation palettes and extreme economy of detail.
 * **GBA (Gen 3)**: Clean tiling systems and refined character outlines (Pokemon Emerald).
@@ -97,7 +97,7 @@ A full ECS is overkill for a 10-minute game with ~10-30 entities. Use a **simple
 ```
 gameState = {
   currentScene: "bedroom",
-  player: { tileX, tileY, direction, inventory: [] },
+  player: { tileX, tileY, direction },
   flags: {
     presentCount: 0,
     totalPresents: N,  // 5-15, driven by loved-one submissions
@@ -234,7 +234,7 @@ A small database (e.g., Supabase, PlanetScale, or a simple SQLite via Turso) sto
 
 Submissions include:
 - Loved one's display name
-- Character sprite data (layers + colors, or raw pixel data for freeform editors)
+- Character sprite data (layers + colors, or raw pixel data from the freeform editor)
 - Dialogue mode choice (hardcoded lines or AI personality prompt + traits)
 - Gift object name (text description; developer creates the pixel art asset)
 - Named audio blip recordings (or preset selections)
@@ -291,17 +291,17 @@ Loved ones record short "dialogue noises" (1-3 seconds) via their microphone. Ea
 
 ### 6.5 Playtesting
 
-Loved ones can launch the full game in its current state at any time from the portal. The game loads the latest submissions from the database, so loved ones see their character in the world, test their dialogue, and hear their audio blip. If a loved one updates their submission, they reload the game to see the changes.
+Loved ones can launch the full game in its current state at any time from the portal. The game loads the latest submissions from the database, so loved ones see their character in the world. What's testable grows with each milestone: M1 shows sprites in the village square, M2 adds dialogue and audio playback, M3 adds full gameplay. If a loved one updates their submission, they reload the game to see the changes.
 
 The invite link is shared with loved ones after Milestone 2, once the portal supports sprite creation, dialogue, and audio. The milestones are scoped as follows:
 
 **Milestone 1: Submission → Playtest Loop (plumbing)**
-1. **Portal (minimal)**: Name field + freeform pixel editor only (phase 2 of the character creator -- 16x32 grid, Ninja Adventure palette). No dialogue builder, no audio recording, no gift field yet. Loved ones can draw anything.
+1. **Portal (minimal)**: Name field + freeform pixel editor only (the canvas editor from §6.2 phase 2, shipped first because it has no template art dependency -- 16x32 grid, Ninja Adventure palette). No template assembly, no dialogue builder, no audio recording, no gift field yet. Loved ones can draw anything.
 2. **Game (minimal)**: A village square tilemap. All submitted loved-one sprites are rendered in a grid layout in the square. An invisible, non-colliding player position moves with arrow keys; the camera follows it. No visible player sprite, no collision, no NPC interaction. The game fetches submissions from the database at startup and displays them.
 3. **Loop**: A loved one submits a sprite via the portal, reloads the game, and sees their sprite in the village square. They edit the sprite, reload, and see the update. This loop working end-to-end validates the submission pipeline.
 
 **Milestone 2: Dialogue and Audio**
-Priority after Milestone 1. Build out the dialogue tree editor (nested outline UI) and audio recording pipeline in the portal. Add dialogue rendering and audio blip playback to the game. Loved ones can test their dialogue trees and hear their character's voice. **The invite link is shared with loved ones after this milestone** -- the portal must support sprite, dialogue, and audio submission before anyone sees it.
+Priority after Milestone 1. Build out the dialogue tree editor (nested outline UI) and audio recording pipeline in the portal. Add dialogue rendering and audio blip playback to the game. Loved ones can test their dialogue trees and hear their character's voice. This milestone gates the invite link (see §6.5).
 
 **Milestone 3: Playable Game**
 Player sprite, collision, NPC interaction, and iterative map expansion (the world grows larger and more detailed over time). Loved ones collaborate on their submissions while the game world is built out around them.
