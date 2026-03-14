@@ -83,10 +83,12 @@ The visual direction blends three eras of handheld history with modern indie pol
 1. **Wake up** -- Black screen with "Wake up" text. Any player interaction (tap/click/key) fades the black out, revealing the player's bedroom.
 2. **Go downstairs** -- Parents wish happy birthday. First dialogue interaction.
 3. **Exit house** -- Village overworld opens up. Music changes.
-4. **Fetch quest** -- Visit friends scattered around the village. Each friend has a short dialogue exchange and gives a present (a gift object chosen by the friend via the portal). Friends control their character's appearance, dialogue, audio, and gift object. All friends spawn in the village square by default (see below); the developer may reposition individual NPCs as the map matures.
+4. **Fetch quest** -- Visit friends scattered around the village. Each friend has a short dialogue exchange and gives a present (a gift object chosen by the friend via the portal). Friends control their character's appearance, dialogue, audio, and gift object. Some friends are in the village square, others are inside houses or shops. The developer controls all NPC placement via Tiled.
 5. **All presents collected** -- Time of day shifts to evening. The village square transforms: lanterns glow, a fire pit with marshmallows appears. Everyone gathers. Birthday cake. End screen.
 
-**Default NPC placement**: All friends spawn in the village square in a grid layout by default. The developer can manually reposition individual NPCs to other locations as the map matures.
+**NPC placement**: The Tiled `spawns` object layer is the sole source of truth for NPC coordinates. Each spawn point has a custom property `npcId` matching a database record. The database holds character data (sprite, dialogue, audio, gift) but never coordinates. By default, all friends are placed in the village square; the developer repositions NPCs in Tiled as the map matures. A `locationDescription` field in the database (developer-editable only, shown read-only to friends in the portal) communicates where their character lives -- e.g., "Near the fountain in the village square" or "Inside the bakery on the east side."
+
+**Walk cycles (stretch goal)**: Tiled polyline objects on the spawns layer, linked by the same `npcId`. The NPC patrols the polyline path. Since coordinates live entirely in Tiled, adding pathing requires no database schema changes.
 
 ### 3.2 Game State Architecture
 
@@ -104,6 +106,7 @@ gameState = {
     // one flag per friend interaction
   },
   npcs: [
+    // tileX, tileY, scene are loaded from Tiled spawns layer at startup, not stored in DB
     { id, tileX, tileY, scene, dialogueKey, interacted: false, givesPresent: true, giftObject: "..." },
     ...
   ]
@@ -127,12 +130,12 @@ gameState = {
 - Player position is tracked as a tile coordinate `(tileX, tileY)` for collision purposes. Movement input queues a target tile.
 - Before moving, check if the target tile is solid (collision layer from Tiled) or occupied by an NPC.
 - Animate the sprite sliding smoothly from current position to target position over ~150-200ms.
-- NPC interaction: player faces an adjacent tile containing an NPC and presses interact.
+- NPC interaction: pressing interact (keyboard) or double-tapping (mobile) triggers interaction with any NPC within 2 tiles of the player. NPCs must be placed far enough apart in Tiled to prevent ambiguous interactions.
 - Walking animation plays during the slide; idle animation when stationary.
 
 This approach eliminates the need for sub-tile AABB collision, corner-sliding edge cases, and precise hitbox tuning, while still producing visually smooth movement that pairs well with environmental animation (swaying grass, water ripples).
 
-**Mobile input**: Tap and hold to move in the direction of the hold position relative to screen center. Double tap to interact with a facing NPC. No virtual d-pad or on-screen buttons.
+**Mobile input**: Tap and hold to move in the direction of the hold position relative to screen center. Double tap to interact with the nearest NPC within 2 tiles. No virtual d-pad or on-screen buttons.
 
 ---
 
@@ -158,11 +161,13 @@ Hardcoded dialogue data format:
   "speaker": "FriendName",
   "mode": "hardcoded",
   "tree": {
+    "id": "root",
     "text": "Happy birthday!",
     "responses": [
       {
         "option": "Thanks! What did you get me?",
         "next": {
+          "id": "gift_eager",
           "text": "Something you'll love.",
           "responses": null
         }
@@ -170,9 +175,14 @@ Hardcoded dialogue data format:
       {
         "option": "Do I know you?",
         "next": {
+          "id": "gift_funny",
           "text": "Very funny. Here, just take your present.",
           "responses": null
         }
+      },
+      {
+        "option": "Wait, say that again?",
+        "goto": "root"
       }
     ]
   },
@@ -201,7 +211,7 @@ AI dialogue calls the **Gemini API directly from the client** using a Google AI 
 
 A **$5-10 monthly spending cap** is set on the Google AI Studio billing account. Even if the API key is extracted from client code, spending is hard-capped. This is acceptable because the game is invite-only, shared with ~15 trusted friends.
 
-**Architecture**: The game client calls the Gemini API directly with the NPC's personality prompt + the player's selected response. Responses are cached in IndexedDB on the client so replaying the same interaction doesn't burn additional requests. If the API is unreachable, the game falls back to a generic "Happy birthday!" greeting for AI-mode NPCs.
+**Architecture**: The game client calls the Gemini API directly with the NPC's personality prompt + the player's selected response. No client-side caching -- Gemini is cheap enough that fresh requests on every interaction are fine. If the API is unreachable, the game falls back to a generic "Happy birthday!" greeting for AI-mode NPCs.
 
 **Content safety**: The personality prompt constrains tone and topic. The API call includes a system instruction enforcing birthday-appropriate, wholesome responses. Responses are length-capped (max ~100 tokens per exchange). This is an invite-only game shared with a known group of friends.
 
@@ -231,6 +241,7 @@ Submissions include:
 - Dialogue mode choice (hardcoded lines or AI personality prompt + traits)
 - Gift object name (text description; developer creates the pixel art asset)
 - Named audio blip recordings (or preset selections)
+- `locationDescription` (developer-editable only, shown read-only to friends): a text description of where their character is placed in the game world, e.g., "Inside the bakery on the east side." Defaults to "In the village square."
 
 When a friend opens their invite link, the portal checks for an existing submission under that token. If one exists, all previously saved data is loaded into the portal so the friend can continue editing where they left off. If no submission exists, the portal starts with a blank state.
 
@@ -263,7 +274,7 @@ Simple form-based:
 
 - **Name**: Friend's display name (used as the NPC's speaker name)
 - **Dialogue mode toggle**: Hardcoded or AI-generated
-- **If hardcoded**: A visual node-based dialogue tree editor built with **React Flow** (`@xyflow/react`) and **dagre** for automatic tree layout. Nodes are text boxes containing the NPC's dialogue line. Edges represent the player's response choices, each labeled with the player's text. Leaf nodes (no outgoing edges) end the conversation and give the gift. Constraints enforced by the editor: max depth 4, max 3 children per node, max 2 loop-back edges (edges pointing to an ancestor node). The portal validates that at least one path reaches a leaf.
+- **If hardcoded**: A **nested outline editor** (zero external dependencies -- a recursive React component). The editor displays the conversation as an indented tree: NPC lines are text blocks, player responses are indented beneath them, and each response can have a child NPC reply. An "Add player response" button appears beneath each NPC block; an "Add NPC reply" button appears beneath each player response. Leaf nodes (no child responses) end the conversation and give the gift. Loop-backs are supported via a "Redirect to..." option that lets a response point to an ancestor NPC node by label (displayed as the first few words of the NPC's line). Constraints enforced by the editor: max depth 4, max 3 responses per NPC line, max 2 loop-back references. The portal validates that at least one path reaches a leaf. The editor outputs nested JSON matching the hardcoded dialogue data format (§5.1).
 - **If AI**: 3-5 personality traits (dropdown/tag selection: cheerful, sarcastic, shy, nerdy, etc.) and a personality prompt text field. The friend can review and edit the generated prompt before confirming.
 - **Gift object**: Text field describing what their character gives the birthday boy (e.g., "a tiny telescope", "homemade cookies"). The developer creates the corresponding pixel art asset.
 
@@ -277,6 +288,8 @@ Friends record short "dialogue noises" (1-3 seconds) via their microphone. Each 
 
 **Fallback**: If microphone access is denied or unavailable, the friend selects from **5-6 preset voice textures** (high chirp, low hum, breathy, nasal, etc.) and names each one. Pitch-shifted by name hash. Still personalized, zero hardware requirement.
 
+**Browser support**: The portal requires Chrome, Firefox, or Edge. If Safari is detected, the portal displays an error message directing the user to open the link in a supported browser. Safari's incomplete support for OfflineAudioContext and other Web Audio features makes it unreliable for the audio recording pipeline.
+
 ### 6.5 Playtesting
 
 Friends can launch the full game in its current state at any time from the portal. The game loads the latest submissions from the database, so friends see their character in the world, test their dialogue, and hear their audio blip. If a friend updates their submission, they reload the game to see the changes.
@@ -285,10 +298,16 @@ The portal provides example assets and a background reference image of the game 
 
 The submit link is only shared with friends once the core loop is working. This is the first milestone, scoped as follows:
 
-**Milestone 1: Submission → Playtest Loop**
+**Milestone 1: Submission → Playtest Loop (plumbing)**
 1. **Portal (minimal)**: Name field + freeform pixel editor only (phase 2 of the character creator -- Dotting component, 16x32 grid, Ninja Adventure palette). No dialogue builder, no audio recording, no gift field yet. Friends can draw anything.
 2. **Game (minimal)**: A village square tilemap. All submitted friend sprites are rendered in a grid layout in the square. No player sprite, no collision, no interaction -- just arrow keys to pan the camera. The game fetches submissions from the database at startup and displays them.
 3. **Loop**: A friend submits a sprite via the portal, reloads the game, and sees their sprite in the village square. They edit the sprite, reload, and see the update. This loop working end-to-end is the gate for sharing the portal link with friends.
+
+**Milestone 2: Dialogue and Audio**
+Priority after Milestone 1. Build out the dialogue tree editor (nested outline UI) and audio recording pipeline in the portal. Add dialogue rendering and audio blip playback to the game. Friends can test their dialogue trees and hear their character's voice. This must work before the invite goes out.
+
+**Milestone 3: Playable Game**
+Player sprite, collision, NPC interaction, map expansion, and progressive asset loading. Friends receive the invite link and collaborate on their submissions while the game world is built out around them.
 
 ---
 
@@ -311,7 +330,7 @@ The submit link is only shared with friends once the core loop is working. This 
 
 `@pixi/tilemap` provides optimized batch rendering of rectangular tilemaps. The custom loader reads Tiled layers (terrain, collision, object/NPC spawn points) and translates them into `Tilemap.tile()` calls. This avoids depending on third-party Tiled integration libraries with uncertain maintenance.
 
-**Hot reload**: TMJ map files are imported as JSON assets through Vite. The map loader module uses `import.meta.hot.accept` to detect changes, reload the TMJ data, and rebuild the tilemap without losing player position or game state. This enables real-time map iteration in Tiled with sub-second feedback in the browser.
+**Hot reload**: TMJ map files are imported as JSON assets through Vite. The map loader module uses `import.meta.hot.accept` to detect changes, reload the TMJ data, and rebuild the tilemap without losing player position or game state. This enables real-time map iteration in Tiled with sub-second feedback in the browser. **NPC spawns are re-read from the updated TMJ on hot reload** -- spawn points on the `spawns` layer are re-parsed and NPC positions are updated in the game state, preserving interaction flags and other character data. This means moving an NPC in Tiled is instantly reflected in the running game.
 
 **Layer convention in Tiled**:
 - `ground`: Base terrain (grass, paths, floors)
