@@ -225,13 +225,15 @@ Submissions include:
 - Character sprite data (layers + colors, or raw pixel data for freeform editors)
 - Dialogue mode choice (hardcoded lines or AI personality prompt + traits)
 - Gift object name (text description; developer creates the pixel art asset)
-- Audio blip recording (or preset selection)
+- Named audio blip recordings (or preset selections)
 
 The game client fetches friend data from this database at load time, making the game always reflect the latest submissions. Local development uses the same live database to maintain a shared view of assets.
 
-### 6.2 Character Creator (Template-Based)
+### 6.2 Character Creator (Two-Phase)
 
-**A layered "paper doll" system** -- not a blank canvas. Friends select from pre-drawn options:
+The character creator has two phases. The friend can submit after phase 1 without entering phase 2.
+
+**Phase 1: Template assembly.** A layered "paper doll" system where friends select from pre-drawn options to establish the overall shape, clothing, and style:
 
 - **Base body**: 2-3 body type templates (all 16x32, pre-drawn to the project's pixel style)
 - **Skin tone**: Palette ramp selection (3-4 colors per ramp: base, shadow, highlight)
@@ -242,7 +244,7 @@ The game client fetches friend data from this database at load time, making the 
 
 Each layer uses **only colors from the Ninja Adventure asset pack**. The color picker shows **only palette swatches extracted from the pack** -- no color wheel, no hex input. This guarantees visual coherence with the game world and colorblind safety.
 
-**Freeform mode** (optional): Opens a **Dotting**-based pixel editor (React component, `npm install dotting`) for friends who want full creative control. The editor is locked to the 16x32 grid with the palette restricted to Ninja Adventure colors. Templates can be loaded as a starting point.
+**Phase 2: Freeform editing (optional).** The assembled template is flattened into a **Dotting**-based pixel editor (React component, `npm install dotting`) where the friend can make final touches -- adding details, tweaking individual pixels, or customizing beyond what the templates offer. The editor is locked to the 16x32 grid with the palette restricted to Ninja Adventure colors.
 
 **Style reference**: The portal displays example character sprites and a background reference image showing the game's village environment, so friends can see the target aesthetic before creating their sprite.
 
@@ -260,13 +262,13 @@ Simple form-based:
 
 ### 6.4 Retro Audio Recording
 
-Friends record short "dialogue noises" (1-3 seconds) via their microphone. The recording and processing are separated for maximum browser compatibility:
+Friends record short "dialogue noises" (1-3 seconds) via their microphone. Each recording is given a **name** by the friend (e.g., "excited", "hmm", "laugh"). Friends can record multiple named blips to give their character a richer voice. The recording and processing are separated for maximum browser compatibility:
 
 1. **Recording**: The **MediaRecorder API** captures a short audio clip as a blob. MediaRecorder has near-universal browser support, including mobile Safari.
 2. **Processing**: After recording, an **OfflineAudioContext** applies bitcrushing (reduced sample rate and bit depth for lo-fi Game Boy texture) and pitch shifting (creating character-specific blips in the Animal Crossing / Undertale style). No AudioWorklet required.
 3. **Preview**: The friend hears the processed result before submitting.
 
-**Fallback**: If microphone access is denied or unavailable, the friend selects from **5-6 preset voice textures** (high chirp, low hum, breathy, nasal, etc.) that are pitch-shifted by name hash. Still personalized, zero hardware requirement.
+**Fallback**: If microphone access is denied or unavailable, the friend selects from **5-6 preset voice textures** (high chirp, low hum, breathy, nasal, etc.) and names each one. Pitch-shifted by name hash. Still personalized, zero hardware requirement.
 
 ### 6.5 Playtesting
 
