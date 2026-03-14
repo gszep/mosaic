@@ -227,6 +227,8 @@ Submissions include:
 - Gift object name (text description; developer creates the pixel art asset)
 - Named audio blip recordings (or preset selections)
 
+When a friend opens their invite link, the portal checks for an existing submission under that token. If one exists, all previously saved data is loaded into the portal so the friend can continue editing where they left off. If no submission exists, the portal starts with a blank state.
+
 The game client fetches friend data from this database at load time, making the game always reflect the latest submissions. Local development uses the same live database to maintain a shared view of assets.
 
 ### 6.2 Character Creator (Two-Phase)
