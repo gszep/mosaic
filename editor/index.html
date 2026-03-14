@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mosaic — Map Editor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
@@ -18,31 +21,30 @@
     <button id="tool-erase" class="tool" data-tool="erase">Erase</button>
     <button id="tool-inspect" class="tool" data-tool="inspect">Inspect</button>
     <span class="sep"></span>
-    <label><input type="checkbox" id="toggle-grid" checked /> Grid</label>
-    <label><input type="checkbox" id="toggle-collision" /> Collision</label>
+    <span id="toggle-grid" class="check checked">[x] Grid</span>
+    <span id="toggle-collision" class="check">[ ] Collision</span>
   </div>
 
   <div id="workspace">
-    <div id="main-area">
+    <div id="canvas-wrap">
+      <canvas id="map-canvas"></canvas>
+      <div id="inspector-tooltip"></div>
+    </div>
+
+    <div id="bottom-panel">
+      <div id="palette-panel">
+        <div id="palette-header">
+          <select id="tileset-select"></select>
+          <div id="selected-tile-info"></div>
+        </div>
+        <div id="palette-scroll">
+          <canvas id="palette-canvas"></canvas>
+        </div>
+      </div>
+
       <div id="layers-panel">
         <h3>Layers</h3>
         <ul id="layer-list"></ul>
-      </div>
-
-      <div id="canvas-wrap">
-        <canvas id="map-canvas"></canvas>
-        <div id="inspector-tooltip"></div>
-      </div>
-    </div>
-
-    <div id="palette-panel">
-      <div id="palette-header">
-        <h3>Tileset</h3>
-        <select id="tileset-select"></select>
-        <div id="selected-tile-info"></div>
-      </div>
-      <div id="palette-scroll">
-        <canvas id="palette-canvas"></canvas>
       </div>
     </div>
   </div>

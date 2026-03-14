@@ -46,7 +46,7 @@ export function renderMap(
   // Draw checkerboard background for empty areas.
   for (let y = 0; y < map.height; y++) {
     for (let x = 0; x < map.width; x++) {
-      ctx.fillStyle = (x + y) % 2 === 0 ? "#0d0d1a" : "#252545";
+      ctx.fillStyle = (x + y) % 2 === 0 ? "#252525" : "#333333";
       ctx.fillRect(x * tw * s, y * th * s, tw * s, th * s);
     }
   }
@@ -62,12 +62,12 @@ export function renderMap(
     if (dimmed) ctx.globalAlpha = 0.35;
 
     if (layer.name === "collision") {
-      // Render collision as a red overlay.
+      // Render collision as a purple overlay.
       for (let i = 0; i < layer.data.length; i++) {
         if (layer.data[i] === 0) continue;
         const x = (i % map.width) * tw * s;
         const y = Math.floor(i / map.width) * th * s;
-        ctx.fillStyle = "rgba(233, 69, 96, 0.4)";
+        ctx.fillStyle = "rgba(187, 154, 247, 0.4)";
         ctx.fillRect(x, y, tw * s, th * s);
       }
     } else {
@@ -83,7 +83,7 @@ export function renderMap(
 
   // Grid overlay.
   if (opts.showGrid) {
-    ctx.strokeStyle = "rgba(255,255,255,0.2)";
+    ctx.strokeStyle = "rgba(238,238,236,0.15)";
     ctx.lineWidth = 1;
     for (let x = 0; x <= map.width; x++) {
       const px = x * tw * s;
@@ -160,7 +160,7 @@ export function renderPalette(
   ctx.drawImage(tsi.img, 0, 0, ts.imagewidth, ts.imageheight, 0, 0, w, h);
 
   // Grid.
-  ctx.strokeStyle = "rgba(255,255,255,0.15)";
+  ctx.strokeStyle = "rgba(238,238,236,0.12)";
   ctx.lineWidth = 1;
   for (let x = 0; x <= cols; x++) {
     const px = x * ts.tilewidth * scale;
@@ -183,7 +183,7 @@ export function renderPalette(
     if (localId >= 0 && localId < ts.tilecount) {
       const sx = (localId % cols) * ts.tilewidth * scale;
       const sy = Math.floor(localId / cols) * ts.tileheight * scale;
-      ctx.strokeStyle = "#e94560";
+      ctx.strokeStyle = "#E95420";
       ctx.lineWidth = 2;
       ctx.strokeRect(sx + 1, sy + 1, ts.tilewidth * scale - 2, ts.tileheight * scale - 2);
     }

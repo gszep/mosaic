@@ -10,7 +10,6 @@ import {
 
 const BASE = import.meta.env.BASE_URL;
 const TILE_SIZE = 16;
-const MIN_SCALE = 1;
 const MAX_SCALE = 16;
 let mapScale = 4;
 let paletteScale = 8;
@@ -67,6 +66,7 @@ const tilesetSelect = document.getElementById("tileset-select") as HTMLSelectEle
 const tileInfo = document.getElementById("selected-tile-info")!;
 const tooltip = document.getElementById("inspector-tooltip")!;
 const loadInput = document.getElementById("load-tmj") as HTMLInputElement;
+const canvasWrap = document.getElementById("canvas-wrap")!;
 
 // --- Build tileset definitions with firstgid ---
 
@@ -92,6 +92,10 @@ function buildTilesetDefs() {
   });
 }
 
+function getMinMapScale(): number {
+  return canvasWrap.clientWidth / (map.width * map.tilewidth);
+}
+
 // --- Init ---
 
 async function init() {
@@ -104,6 +108,9 @@ async function init() {
 
   // Create default empty map.
   map = createEmptyMap(30, 20, TILE_SIZE, tilesets, DEFAULT_LAYERS);
+
+  mapScale = Math.min(MAX_SCALE, Math.max(mapScale, getMinMapScale()));
+  opts.scale = mapScale;
 
   // Populate tileset dropdown.
   tilesetImages.forEach((tsi, i) => {
@@ -128,20 +135,23 @@ function buildLayerList() {
     const li = document.createElement("li");
     li.className = layer.name === activeLayer ? "active" : "";
 
-    const cb = document.createElement("input");
-    cb.type = "checkbox";
-    cb.checked = opts.visibleLayers.has(layer.name);
-    cb.addEventListener("change", () => {
-      if (cb.checked) opts.visibleLayers.add(layer.name);
+    let visible = opts.visibleLayers.has(layer.name);
+    const cb = document.createElement("span");
+    cb.className = "check";
+    cb.textContent = visible ? "[x]" : "[ ]";
+    cb.addEventListener("click", (e) => {
+      e.stopPropagation();
+      visible = !visible;
+      if (visible) opts.visibleLayers.add(layer.name);
       else opts.visibleLayers.delete(layer.name);
+      cb.textContent = visible ? "[x]" : "[ ]";
       redrawMap();
     });
 
     const span = document.createElement("span");
     span.textContent = layer.name;
 
-    li.addEventListener("click", (e) => {
-      if (e.target === cb) return;
+    li.addEventListener("click", () => {
       activeLayer = layer.name;
       opts.activeLayer = activeLayer;
       buildLayerList();
@@ -181,14 +191,18 @@ function bindEvents() {
   });
 
   // Grid toggle.
-  document.getElementById("toggle-grid")!.addEventListener("change", (e) => {
-    opts.showGrid = (e.target as HTMLInputElement).checked;
+  const gridToggle = document.getElementById("toggle-grid")!;
+  gridToggle.addEventListener("click", () => {
+    opts.showGrid = !opts.showGrid;
+    gridToggle.textContent = opts.showGrid ? "[x] Grid" : "[ ] Grid";
     redrawMap();
   });
 
   // Collision toggle.
-  document.getElementById("toggle-collision")!.addEventListener("change", (e) => {
-    opts.showCollision = (e.target as HTMLInputElement).checked;
+  const collToggle = document.getElementById("toggle-collision")!;
+  collToggle.addEventListener("click", () => {
+    opts.showCollision = !opts.showCollision;
+    collToggle.textContent = opts.showCollision ? "[x] Collision" : "[ ] Collision";
     redrawMap();
   });
 
@@ -237,12 +251,11 @@ function bindEvents() {
   });
 
   // Zoom: ctrl+scroll on map canvas.
-  const canvasWrap = document.getElementById("canvas-wrap")!;
   canvasWrap.addEventListener("wheel", (e) => {
     if (!e.ctrlKey && !e.metaKey) return;
     e.preventDefault();
     const prev = mapScale;
-    mapScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, mapScale + (e.deltaY < 0 ? 1 : -1)));
+    mapScale = Math.min(MAX_SCALE, Math.max(getMinMapScale(), mapScale + (e.deltaY < 0 ? 1 : -1)));
     if (mapScale === prev) return;
     opts.scale = mapScale;
     const rect = canvasWrap.getBoundingClientRect();
@@ -262,7 +275,7 @@ function bindEvents() {
     if (!e.ctrlKey && !e.metaKey) return;
     e.preventDefault();
     const prev = paletteScale;
-    paletteScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, paletteScale + (e.deltaY < 0 ? 1 : -1)));
+    paletteScale = Math.min(MAX_SCALE, Math.max(1, paletteScale + (e.deltaY < 0 ? 1 : -1)));
     if (paletteScale === prev) return;
     const rect = paletteScroll.getBoundingClientRect();
     const cx = e.clientX - rect.left;
@@ -287,6 +300,8 @@ function bindEvents() {
     opts.visibleLayers = new Set(
       map.layers.filter((l) => l.type === "tilelayer").map((l) => l.name)
     );
+    mapScale = Math.min(MAX_SCALE, Math.max(mapScale, getMinMapScale()));
+    opts.scale = mapScale;
     buildLayerList();
     redrawMap();
   });
@@ -294,6 +309,16 @@ function bindEvents() {
   // Save TMJ.
   document.getElementById("save-tmj")!.addEventListener("click", () => {
     downloadTMJ(map, "map.tmj");
+  });
+
+  // Recalculate min zoom on resize.
+  window.addEventListener("resize", () => {
+    const min = getMinMapScale();
+    if (mapScale < min) {
+      mapScale = Math.min(MAX_SCALE, min);
+      opts.scale = mapScale;
+      redrawMap();
+    }
   });
 }
 
