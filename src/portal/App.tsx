@@ -1,3 +1,10 @@
+import { PasswordGate } from "./components/PasswordGate";
+
 export function App() {
-  return <h1>Portal entry point loaded.</h1>;
+  return (
+    <PasswordGate>
+      <h1>Welcome to Mosaic</h1>
+      <p>Submission form will go here.</p>
+    </PasswordGate>
+  );
 }
