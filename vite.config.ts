@@ -10,6 +10,7 @@ export default defineConfig({
       input: {
         game: resolve(__dirname, "index.html"),
         portal: resolve(__dirname, "submit/index.html"),
+        editor: resolve(__dirname, "editor/index.html"),
       },
     },
   },

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mosaic — Map Editor</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div id="toolbar">
+    <label>
+      <input type="file" id="load-tmj" accept=".tmj,.json" />
+      Load TMJ
+    </label>
+    <button id="save-tmj">Save TMJ</button>
+    <span class="sep"></span>
+    <button id="tool-paint" class="tool active" data-tool="paint">Paint</button>
+    <button id="tool-erase" class="tool" data-tool="erase">Erase</button>
+    <button id="tool-inspect" class="tool" data-tool="inspect">Inspect</button>
+    <span class="sep"></span>
+    <label><input type="checkbox" id="toggle-grid" checked /> Grid</label>
+    <label><input type="checkbox" id="toggle-collision" /> Collision</label>
+  </div>
+
+  <div id="workspace">
+    <div id="main-area">
+      <div id="layers-panel">
+        <h3>Layers</h3>
+        <ul id="layer-list"></ul>
+      </div>
+
+      <div id="canvas-wrap">
+        <canvas id="map-canvas"></canvas>
+        <div id="inspector-tooltip"></div>
+      </div>
+    </div>
+
+    <div id="palette-panel">
+      <div id="palette-header">
+        <h3>Tileset</h3>
+        <select id="tileset-select"></select>
+        <div id="selected-tile-info"></div>
+      </div>
+      <div id="palette-scroll">
+        <canvas id="palette-canvas"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./main.ts"></script>
+</body>
+</html>

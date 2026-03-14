@@ -1,0 +1,367 @@
+import type { TMJMap } from "./tmj";
+import { createEmptyMap, downloadTMJ } from "./tmj";
+import {
+  loadTilesetImage,
+  renderMap,
+  renderPalette,
+  type TilesetImage,
+  type RenderOptions,
+} from "./renderer";
+
+const BASE = import.meta.env.BASE_URL;
+const TILE_SIZE = 16;
+const MIN_SCALE = 1;
+const MAX_SCALE = 16;
+let mapScale = 4;
+let paletteScale = 8;
+const DEFAULT_LAYERS = ["ground", "buildings", "decoration", "collision"];
+const TILESET_DEFS = [
+  { name: "TilesetFloor", image: "TilesetFloor.png", imagewidth: 352, imageheight: 417 },
+  { name: "TilesetFloorB", image: "TilesetFloorB.png", imagewidth: 176, imageheight: 112 },
+  { name: "TilesetFloorDetail", image: "TilesetFloorDetail.png", imagewidth: 256, imageheight: 80 },
+  { name: "TilesetNature", image: "TilesetNature.png", imagewidth: 384, imageheight: 336 },
+  { name: "TilesetHouse", image: "TilesetHouse.png", imagewidth: 528, imageheight: 368 },
+  { name: "TilesetElement", image: "TilesetElement.png", imagewidth: 256, imageheight: 240 },
+  { name: "TilesetWater", image: "TilesetWater.png", imagewidth: 448, imageheight: 272 },
+  { name: "TilesetRelief", image: "TilesetRelief.png", imagewidth: 320, imageheight: 192 },
+  { name: "TilesetReliefDetail", image: "TilesetReliefDetail.png", imagewidth: 192, imageheight: 192 },
+  { name: "TilesetTowers", image: "TilesetTowers.png", imagewidth: 384, imageheight: 96 },
+  { name: "TilesetField", image: "TilesetField.png", imagewidth: 80, imageheight: 240 },
+  { name: "TilesetDesert", image: "TilesetDesert.png", imagewidth: 320, imageheight: 192 },
+  { name: "TilesetDungeon", image: "TilesetDungeon.png", imagewidth: 192, imageheight: 64 },
+  { name: "TilesetHole", image: "TilesetHole.png", imagewidth: 176, imageheight: 80 },
+  { name: "TilesetLogic", image: "TilesetLogic.png", imagewidth: 128, imageheight: 160 },
+  { name: "TilesetVillageAbandoned", image: "TilesetVillageAbandoned.png", imagewidth: 320, imageheight: 192 },
+  { name: "TilesetInterior", image: "TilesetInterior.png", imagewidth: 256, imageheight: 320 },
+  { name: "TilesetInteriorFloor", image: "TilesetInteriorFloor.png", imagewidth: 352, imageheight: 272 },
+  { name: "TilesetWallSimple", image: "TilesetWallSimple.png", imagewidth: 160, imageheight: 176 },
+  { name: "Elements", image: "Elements.png", imagewidth: 144, imageheight: 48 },
+];
+
+// --- State ---
+
+let map: TMJMap;
+let tilesetImages: TilesetImage[] = [];
+let activeLayer = DEFAULT_LAYERS[0];
+let selectedGid: number | null = null;
+let activeTilesetIndex = 0;
+let tool: "paint" | "erase" | "inspect" = "paint";
+let painting = false;
+
+const opts: RenderOptions = {
+  showGrid: true,
+  showCollision: false,
+  visibleLayers: new Set(DEFAULT_LAYERS),
+  activeLayer: null,
+  scale: mapScale,
+};
+
+// --- DOM refs ---
+
+const mapCanvas = document.getElementById("map-canvas") as HTMLCanvasElement;
+const mapCtx = mapCanvas.getContext("2d")!;
+const paletteCanvas = document.getElementById("palette-canvas") as HTMLCanvasElement;
+const paletteCtx = paletteCanvas.getContext("2d")!;
+const layerList = document.getElementById("layer-list")!;
+const tilesetSelect = document.getElementById("tileset-select") as HTMLSelectElement;
+const tileInfo = document.getElementById("selected-tile-info")!;
+const tooltip = document.getElementById("inspector-tooltip")!;
+const loadInput = document.getElementById("load-tmj") as HTMLInputElement;
+
+// --- Build tileset definitions with firstgid ---
+
+function buildTilesetDefs() {
+  let gid = 1;
+  return TILESET_DEFS.map((def) => {
+    const cols = Math.floor(def.imagewidth / TILE_SIZE);
+    const rows = Math.floor(def.imageheight / TILE_SIZE);
+    const tilecount = cols * rows;
+    const ts = {
+      firstgid: gid,
+      image: def.image,
+      name: def.name,
+      tilewidth: TILE_SIZE,
+      tileheight: TILE_SIZE,
+      imagewidth: def.imagewidth,
+      imageheight: def.imageheight,
+      columns: cols,
+      tilecount,
+    };
+    gid += tilecount;
+    return ts;
+  });
+}
+
+// --- Init ---
+
+async function init() {
+  const tilesets = buildTilesetDefs();
+
+  // Load tileset images.
+  tilesetImages = await Promise.all(
+    tilesets.map((ts) => loadTilesetImage(ts, `${BASE}tilesets`))
+  );
+
+  // Create default empty map.
+  map = createEmptyMap(30, 20, TILE_SIZE, tilesets, DEFAULT_LAYERS);
+
+  // Populate tileset dropdown.
+  tilesetImages.forEach((tsi, i) => {
+    const opt = document.createElement("option");
+    opt.value = String(i);
+    opt.textContent = `${tsi.tileset.name} (GID ${tsi.tileset.firstgid})`;
+    tilesetSelect.appendChild(opt);
+  });
+
+  buildLayerList();
+  redrawMap();
+  redrawPalette();
+  bindEvents();
+}
+
+// --- Layer list ---
+
+function buildLayerList() {
+  layerList.innerHTML = "";
+  for (const layer of map.layers) {
+    if (layer.type !== "tilelayer") continue;
+    const li = document.createElement("li");
+    li.className = layer.name === activeLayer ? "active" : "";
+
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.checked = opts.visibleLayers.has(layer.name);
+    cb.addEventListener("change", () => {
+      if (cb.checked) opts.visibleLayers.add(layer.name);
+      else opts.visibleLayers.delete(layer.name);
+      redrawMap();
+    });
+
+    const span = document.createElement("span");
+    span.textContent = layer.name;
+
+    li.addEventListener("click", (e) => {
+      if (e.target === cb) return;
+      activeLayer = layer.name;
+      opts.activeLayer = activeLayer;
+      buildLayerList();
+      redrawMap();
+    });
+
+    li.appendChild(cb);
+    li.appendChild(span);
+    layerList.appendChild(li);
+  }
+}
+
+// --- Drawing ---
+
+function redrawMap() {
+  renderMap(mapCtx, map, tilesetImages, opts);
+}
+
+function redrawPalette() {
+  const tsi = tilesetImages[activeTilesetIndex];
+  if (!tsi) return;
+  renderPalette(paletteCtx, tsi, selectedGid, paletteScale);
+}
+
+// --- Events ---
+
+function bindEvents() {
+  // Tool buttons.
+  document.querySelectorAll<HTMLButtonElement>(".tool").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".tool").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      tool = btn.dataset.tool as typeof tool;
+      mapCanvas.style.cursor =
+        tool === "inspect" ? "help" : tool === "erase" ? "not-allowed" : "crosshair";
+    });
+  });
+
+  // Grid toggle.
+  document.getElementById("toggle-grid")!.addEventListener("change", (e) => {
+    opts.showGrid = (e.target as HTMLInputElement).checked;
+    redrawMap();
+  });
+
+  // Collision toggle.
+  document.getElementById("toggle-collision")!.addEventListener("change", (e) => {
+    opts.showCollision = (e.target as HTMLInputElement).checked;
+    redrawMap();
+  });
+
+  // Tileset select.
+  tilesetSelect.addEventListener("change", () => {
+    activeTilesetIndex = Number(tilesetSelect.value);
+    selectedGid = null;
+    redrawPalette();
+    tileInfo.textContent = "";
+  });
+
+  // Palette click.
+  paletteCanvas.addEventListener("click", (e) => {
+    const tsi = tilesetImages[activeTilesetIndex];
+    if (!tsi) return;
+    const rect = paletteCanvas.getBoundingClientRect();
+    const scaleX = paletteCanvas.width / rect.width;
+    const px = (e.clientX - rect.left) * scaleX;
+    const py = (e.clientY - rect.top) * scaleX;
+    const col = Math.floor(px / (tsi.tileset.tilewidth * paletteScale));
+    const row = Math.floor(py / (tsi.tileset.tileheight * paletteScale));
+    const localId = row * tsi.tileset.columns + col;
+    if (localId >= tsi.tileset.tilecount) return;
+    selectedGid = tsi.tileset.firstgid + localId;
+    tileInfo.textContent = `GID ${selectedGid} | ${tsi.tileset.name} [${col}, ${row}]`;
+    redrawPalette();
+  });
+
+  // Map canvas — painting / erasing / inspecting.
+  mapCanvas.addEventListener("mousedown", (e) => {
+    if (tool === "inspect") return;
+    painting = true;
+    applyTool(e);
+  });
+  mapCanvas.addEventListener("mousemove", (e) => {
+    if (tool === "inspect") {
+      showInspector(e);
+    } else if (painting) {
+      applyTool(e);
+    }
+  });
+  mapCanvas.addEventListener("mouseup", () => { painting = false; });
+  mapCanvas.addEventListener("mouseleave", () => {
+    painting = false;
+    tooltip.style.display = "none";
+  });
+
+  // Zoom: ctrl+scroll on map canvas.
+  const canvasWrap = document.getElementById("canvas-wrap")!;
+  canvasWrap.addEventListener("wheel", (e) => {
+    if (!e.ctrlKey && !e.metaKey) return;
+    e.preventDefault();
+    const prev = mapScale;
+    mapScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, mapScale + (e.deltaY < 0 ? 1 : -1)));
+    if (mapScale === prev) return;
+    opts.scale = mapScale;
+    const rect = canvasWrap.getBoundingClientRect();
+    const cx = e.clientX - rect.left;
+    const cy = e.clientY - rect.top;
+    const rx = canvasWrap.scrollLeft + cx;
+    const ry = canvasWrap.scrollTop + cy;
+    const ratio = mapScale / prev;
+    redrawMap();
+    canvasWrap.scrollLeft = rx * ratio - cx;
+    canvasWrap.scrollTop = ry * ratio - cy;
+  }, { passive: false });
+
+  // Zoom: ctrl+scroll on palette.
+  const paletteScroll = document.getElementById("palette-scroll")!;
+  paletteScroll.addEventListener("wheel", (e) => {
+    if (!e.ctrlKey && !e.metaKey) return;
+    e.preventDefault();
+    const prev = paletteScale;
+    paletteScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, paletteScale + (e.deltaY < 0 ? 1 : -1)));
+    if (paletteScale === prev) return;
+    const rect = paletteScroll.getBoundingClientRect();
+    const cx = e.clientX - rect.left;
+    const cy = e.clientY - rect.top;
+    const rx = paletteScroll.scrollLeft + cx;
+    const ry = paletteScroll.scrollTop + cy;
+    const ratio = paletteScale / prev;
+    redrawPalette();
+    paletteScroll.scrollLeft = rx * ratio - cx;
+    paletteScroll.scrollTop = ry * ratio - cy;
+  }, { passive: false });
+
+  // Load TMJ.
+  loadInput.addEventListener("change", async () => {
+    const file = loadInput.files?.[0];
+    if (!file) return;
+    const text = await file.text();
+    map = JSON.parse(text);
+    // Rebuild layers UI and re-render.
+    activeLayer = map.layers.find((l) => l.type === "tilelayer")?.name ?? "";
+    opts.activeLayer = activeLayer;
+    opts.visibleLayers = new Set(
+      map.layers.filter((l) => l.type === "tilelayer").map((l) => l.name)
+    );
+    buildLayerList();
+    redrawMap();
+  });
+
+  // Save TMJ.
+  document.getElementById("save-tmj")!.addEventListener("click", () => {
+    downloadTMJ(map, "map.tmj");
+  });
+}
+
+// --- Tool application ---
+
+function getTileIndex(e: MouseEvent): number | null {
+  const rect = mapCanvas.getBoundingClientRect();
+  const scaleX = mapCanvas.width / rect.width;
+  const scaleY = mapCanvas.height / rect.height;
+  const px = (e.clientX - rect.left) * scaleX;
+  const py = (e.clientY - rect.top) * scaleY;
+  const col = Math.floor(px / (map.tilewidth * opts.scale));
+  const row = Math.floor(py / (map.tileheight * opts.scale));
+  if (col < 0 || col >= map.width || row < 0 || row >= map.height) return null;
+  return row * map.width + col;
+}
+
+function applyTool(e: MouseEvent) {
+  const idx = getTileIndex(e);
+  if (idx === null) return;
+
+  const layer = map.layers.find((l) => l.name === activeLayer);
+  if (!layer?.data) return;
+
+  if (tool === "paint" && selectedGid !== null) {
+    layer.data[idx] = selectedGid;
+  } else if (tool === "erase") {
+    layer.data[idx] = 0;
+  }
+
+  redrawMap();
+}
+
+function showInspector(e: MouseEvent) {
+  const idx = getTileIndex(e);
+  if (idx === null) {
+    tooltip.style.display = "none";
+    return;
+  }
+
+  const col = idx % map.width;
+  const row = Math.floor(idx / map.width);
+
+  const lines: string[] = [`tile [${col}, ${row}]  index ${idx}`];
+  for (const layer of map.layers) {
+    if (layer.type !== "tilelayer" || !layer.data) continue;
+    const gid = layer.data[idx];
+    if (gid > 0) {
+      const tsName = findTilesetName(gid);
+      lines.push(`  ${layer.name}: GID ${gid} (${tsName})`);
+    }
+  }
+
+  tooltip.textContent = lines.join("\n");
+  tooltip.style.display = "block";
+  tooltip.style.left = `${e.clientX + 14}px`;
+  tooltip.style.top = `${e.clientY + 14}px`;
+}
+
+function findTilesetName(gid: number): string {
+  for (let i = tilesetImages.length - 1; i >= 0; i--) {
+    if (gid >= tilesetImages[i].tileset.firstgid) {
+      return tilesetImages[i].tileset.name;
+    }
+  }
+  return "?";
+}
+
+// --- Boot ---
+
+init();
