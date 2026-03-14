@@ -1,0 +1,10 @@
+{
+  "rules": {
+    "submissions": {
+      ".read": true,
+      "$token": {
+        ".write": true
+      }
+    }
+  }
+}
