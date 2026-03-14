@@ -1,5 +1,5 @@
 import type { TMJMap } from "./tmj";
-import { createEmptyMap, downloadTMJ } from "./tmj";
+import { createEmptyMap } from "./tmj";
 import {
   loadTilesetImage,
   renderMap,
@@ -96,6 +96,22 @@ function buildTilesetDefs() {
 
 function getMinMapScale(): number {
   return canvasWrap.clientWidth / (map.width * map.tilewidth);
+}
+
+// --- Auto-save (debounced) ---
+
+let saveTimer: ReturnType<typeof setTimeout> | null = null;
+
+function scheduleSave() {
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    const json = JSON.stringify(map, null, 2);
+    fetch(`/api/save-map/${currentMapName}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: json,
+    }).catch(() => {});
+  }, 300);
 }
 
 async function loadMapFromServer(name: string): Promise<TMJMap | null> {
@@ -337,11 +353,6 @@ function bindEvents() {
     paletteScroll.scrollTop = ry * ratio - cy;
   }, { passive: false });
 
-  // Save TMJ.
-  document.getElementById("save-tmj")!.addEventListener("click", () => {
-    downloadTMJ(map, `${currentMapName}.tmj`);
-  });
-
   // Recalculate min zoom on resize.
   window.addEventListener("resize", () => {
     const min = getMinMapScale();
@@ -381,6 +392,7 @@ function applyTool(e: MouseEvent) {
   }
 
   redrawMap();
+  scheduleSave();
 }
 
 function showInspector(e: MouseEvent) {
