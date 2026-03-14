@@ -17,7 +17,7 @@ Development is driven by **Microsoft Amplifier** and **Claude Code**, using a cu
 
 ### 2.1 Internal Resolution and Viewport
 
-**480x270** internal resolution, optimized for **landscape** aspect ratios. This matches Stardew Valley's effective rendering resolution at default zoom.
+**480x270** internal resolution. This matches Stardew Valley's effective rendering resolution at default zoom.
 
 | Target Display | Scale Factor | Result |
 |---|---|---|
@@ -188,7 +188,7 @@ AI dialogue data format:
 
 ### 5.2 AI Dialogue Backend
 
-AI dialogue calls the **Gemini API directly from the client** using a Google AI Studio API key. No serverless proxy.
+AI dialogue calls the **Gemini API directly from the client** using a Google AI Studio API key.
 
 | Model | Pricing | Use Case |
 |---|---|---|
@@ -266,7 +266,7 @@ Simple form-based:
 
 Friends record short "dialogue noises" (1-3 seconds) via their microphone. Each recording is given a **name** by the friend (e.g., "excited", "hmm", "laugh"). Friends can record multiple named blips to give their character a richer voice. The recording and processing are separated for maximum browser compatibility:
 
-1. **Recording**: The **MediaRecorder API** captures a short audio clip as a blob. MediaRecorder has near-universal browser support, including mobile Safari.
+1. **Recording**: The **MediaRecorder API** captures a short audio clip as a blob.
 2. **Processing**: After recording, an **OfflineAudioContext** applies bitcrushing (reduced sample rate and bit depth for lo-fi Game Boy texture) and pitch shifting (creating character-specific blips in the Animal Crossing / Undertale style). No AudioWorklet required.
 3. **Preview**: The friend hears the processed result before submitting.
 
@@ -354,7 +354,7 @@ The project name is **Mosaic**. It is hosted via **GitHub Pages** from the `mosa
 - **Game URL**: `http://gszep.com/mosaic` -- the main game entry point.
 - **Portal URL**: `http://gszep.com/mosaic/submit` -- the friend submission portal.
 - **Database**: Small managed database (Supabase, Turso, or PlanetScale free tier) for friend submissions.
-- **AI dialogue**: Direct client-side calls to the Gemini API (no serverless proxy).
+- **AI dialogue**: Direct client-side calls to the Gemini API.
 - **Build structure**: Vite multi-entry-point build. The game and portal are separate entry points with independent bundles, sharing common code (palette, database types, sprite templates). Vite `base: '/mosaic/'` ensures correct asset paths under GitHub Pages.
 
 ```
