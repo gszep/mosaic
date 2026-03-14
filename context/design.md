@@ -83,8 +83,10 @@ The visual direction blends three eras of handheld history with modern indie pol
 1. **Wake up** -- Black screen with "Wake up" text. Any player interaction (tap/click/key) fades the black out, revealing the player's bedroom.
 2. **Go downstairs** -- Parents wish happy birthday. First dialogue interaction.
 3. **Exit house** -- Village overworld opens up. Music changes.
-4. **Fetch quest** -- Visit friends scattered around the village. Each friend has a short dialogue exchange and gives a present (a gift object chosen by the friend via the portal). The developer decides each friend's location and the environment around them; friends control their character's appearance, dialogue, audio, and gift object. The majority of friends are placed in the open village, with a few placed in the two interior maps (a friend's home and a shop/market).
+4. **Fetch quest** -- Visit friends scattered around the village. Each friend has a short dialogue exchange and gives a present (a gift object chosen by the friend via the portal). Friends control their character's appearance, dialogue, audio, and gift object. All friends spawn in the village square by default (see below); the developer may reposition individual NPCs as the map matures.
 5. **All presents collected** -- Time of day shifts to evening. The village square transforms: lanterns glow, a fire pit with marshmallows appears. Everyone gathers. Birthday cake. End screen.
+
+**Default NPC placement**: All friends spawn in the village square in a grid layout by default. The developer can manually reposition individual NPCs to other locations as the map matures.
 
 ### 3.2 Game State Architecture
 
@@ -112,7 +114,7 @@ gameState = {
 
 **Save system**: Not needed. The game is short enough to play in one sitting.
 
-**Database dependency**: The game fetches all friend data from the database **once at startup**. All assets, dialogue, and NPC data are loaded into memory before gameplay begins. After startup, the game has no further database dependency -- a database outage mid-session cannot affect the player. If the database is unavailable at startup, the game does not load. For the final birthday play, a static build bakes all submissions into the bundle, eliminating even the startup dependency (see Section 10).
+**Database dependency**: The game fetches all friend data from the database **once at startup**. All assets, dialogue, and NPC data are loaded into memory before gameplay begins. After startup, the game has no further database dependency -- a database outage mid-session cannot affect the player. If the database is unavailable at startup, the game does not load.
 
 ---
 
@@ -129,6 +131,8 @@ gameState = {
 - Walking animation plays during the slide; idle animation when stationary.
 
 This approach eliminates the need for sub-tile AABB collision, corner-sliding edge cases, and precise hitbox tuning, while still producing visually smooth movement that pairs well with environmental animation (swaying grass, water ripples).
+
+**Mobile input**: Tap and hold to move in the direction of the hold position relative to screen center. Double tap to interact with a facing NPC. No virtual d-pad or on-screen buttons.
 
 ---
 
@@ -259,7 +263,7 @@ Simple form-based:
 
 - **Name**: Friend's display name (used as the NPC's speaker name)
 - **Dialogue mode toggle**: Hardcoded or AI-generated
-- **If hardcoded**: A dialogue tree builder where the friend writes NPC lines, adds player response choices that branch to different follow-ups, and marks conversation-ending leaves. Trees can loop or branch freely; the portal validates that at least one ending is reachable.
+- **If hardcoded**: A visual node-based dialogue tree editor built with **React Flow** (`@xyflow/react`) and **dagre** for automatic tree layout. Nodes are text boxes containing the NPC's dialogue line. Edges represent the player's response choices, each labeled with the player's text. Leaf nodes (no outgoing edges) end the conversation and give the gift. Constraints enforced by the editor: max depth 4, max 3 children per node, max 2 loop-back edges (edges pointing to an ancestor node). The portal validates that at least one path reaches a leaf.
 - **If AI**: 3-5 personality traits (dropdown/tag selection: cheerful, sarcastic, shy, nerdy, etc.) and a personality prompt text field. The friend can review and edit the generated prompt before confirming.
 - **Gift object**: Text field describing what their character gives the birthday boy (e.g., "a tiny telescope", "homemade cookies"). The developer creates the corresponding pixel art asset.
 
@@ -273,15 +277,18 @@ Friends record short "dialogue noises" (1-3 seconds) via their microphone. Each 
 
 **Fallback**: If microphone access is denied or unavailable, the friend selects from **5-6 preset voice textures** (high chirp, low hum, breathy, nasal, etc.) and names each one. Pitch-shifted by name hash. Still personalized, zero hardware requirement.
 
-**Browser support**: Audio recording requires the MediaRecorder API and OfflineAudioContext, which have unreliable behavior on Safari (codec issues, blob handling quirks, audio context inconsistencies). The portal detects Safari and disables the audio recording feature with a message: "Audio recording is not supported in Safari. Please use Chrome or Firefox." The rest of the portal (character creator, dialogue builder, form fields) works normally in Safari. The game itself (PixiJS + WebGL2) runs fine on all modern browsers including Safari.
-
 ### 6.5 Playtesting
 
 Friends can launch the full game in its current state at any time from the portal. The game loads the latest submissions from the database, so friends see their character in the world, test their dialogue, and hear their audio blip. If a friend updates their submission, they reload the game to see the changes.
 
 The portal provides example assets and a background reference image of the game environment, so friends can evaluate whether their character visually fits the world. If something clashes, they can iterate on their sprite before finalizing.
 
-The submit link is only shared with friends once the core loop is working: a friend submits assets via the portal, sees them loaded into the game, updates the assets, and sees the update after reloading. This is the first milestone.
+The submit link is only shared with friends once the core loop is working. This is the first milestone, scoped as follows:
+
+**Milestone 1: Submission → Playtest Loop**
+1. **Portal (minimal)**: Name field + freeform pixel editor only (phase 2 of the character creator -- Dotting component, 16x32 grid, Ninja Adventure palette). No dialogue builder, no audio recording, no gift field yet. Friends can draw anything.
+2. **Game (minimal)**: A village square tilemap. All submitted friend sprites are rendered in a grid layout in the square. No player sprite, no collision, no interaction -- just arrow keys to pan the camera. The game fetches submissions from the database at startup and displays them.
+3. **Loop**: A friend submits a sprite via the portal, reloads the game, and sees their sprite in the village square. They edit the sprite, reload, and see the update. This loop working end-to-end is the gate for sharing the portal link with friends.
 
 ---
 
@@ -289,7 +296,7 @@ The submit link is only shared with friends once the core loop is working: a fri
 
 ### 7.1 Renderer
 
-**PixiJS v8** with **WebGL2** as the sole rendering backend. No WebGPU -- simplifies the shader pipeline and guarantees compatibility across all modern browsers (Chrome, Firefox, Safari, Edge).
+**PixiJS v8** with **WebGL2** as the sole rendering backend. No WebGPU -- simplifies the shader pipeline. Target browsers: Chrome, Firefox, and Edge. Safari is not supported.
 
 ### 7.2 Rendering Features
 
@@ -342,7 +349,7 @@ Music sourced from **Kevin MacLeod's royalty-free library** (incompetech.com). C
 ## 9. Loading and Boot Sequence
 
 1. **Minimal HTML shell** loads immediately with a black background.
-2. **All assets are preloaded**: tilesets, spritesheets, music, sound effects, friend data from the database (or from the static bundle in the final build). A simple progress bar or percentage text is shown during loading.
+2. **All assets are preloaded**: tilesets, spritesheets, music, sound effects, friend data from the database. A **loading bar** tracks progress. The game does not start until every asset has loaded successfully. If any asset fails to load, the loading bar stalls and an error message is shown -- no partial failures are accepted.
 3. **"Wake up" text** appears centered on the black screen once loading is complete.
 4. **Any player interaction** (click, tap, or keypress) triggers a fade-out of the black overlay, revealing the bedroom scene. This interaction also satisfies the browser's user-gesture requirement for audio playback.
 
@@ -368,16 +375,15 @@ dist/
 
 - **Local development**: Uses the live database so developers and friends share the same view of submitted assets.
 - **Playtesting**: Friends access the game at the same URL. The game always loads the latest submissions from the database, so friends see their character as soon as they submit.
-- **Data access layer**: The game accesses friend data through a single interface (e.g., `getFriendSubmissions()`). At dev/playtest time, this function fetches from the live database. In the static bake, the same function detects the bundled JSON file and returns it directly. One code path, two data sources, zero branching in game logic.
-- **Static bake (final build)**: Once all friend submissions are locked in before the birthday, a build step fetches all data from the database and writes it to a JSON file bundled into the build. This eliminates the database dependency at runtime -- no network requests for friend data. The Gemini API is still called live for AI-mode dialogue. This ensures the birthday play session is resilient to database outages while keeping AI dialogue functional.
-- **Total payload**: Tileset sprites + music + game code. Target: under 5MB initial load (excluding friend data fetched from database; included in static bake).
+- **Final lockdown**: Before the birthday, the database is switched to **read-only mode** (write access removed). No static bake step -- the game still fetches from the live database at startup. This accepts the risk of database downtime in exchange for simpler code with a single data path.
+- **Total payload**: Tileset sprites + music + game code. Target: under 5MB initial load (excluding friend data fetched from database).
 
 ---
 
 ## 11. Accessibility
 
 - **Colorblind-safe palette**: All game-critical information uses the Ninja Adventure pack palette with strong value contrast. No color-only indicators.
-- **Keyboard navigation**: Full keyboard support (arrow keys + spacebar/enter for interaction). Touch controls for mobile.
+- **Keyboard navigation**: Full keyboard support (arrow keys + spacebar/enter for interaction). Mobile: tap-and-hold to move (direction relative to screen center), double-tap to interact.
 - **Font scaling**: BitmapFont rendered at integer multiples for crisp text at all display sizes.
 - **Screen reader**: Not a primary target for a visual pixel art game, but dialogue text is stored as accessible strings for potential future integration.
 
