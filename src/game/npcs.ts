@@ -4,9 +4,6 @@ import type { Submission, SpriteData } from "../shared/types";
 
 const TILE = 16;
 
-/**
- * Convert a SpriteData pixel array into a PixiJS Texture.
- */
 function spriteDataToTexture(data: SpriteData): Texture {
   const canvas = document.createElement("canvas");
   canvas.width = data.width;
@@ -18,7 +15,6 @@ function spriteDataToTexture(data: SpriteData): Texture {
     const hex = data.pixels[i];
     const offset = i * 4;
     if (!hex) {
-      // Transparent.
       imageData.data[offset + 3] = 0;
       continue;
     }
@@ -32,10 +28,6 @@ function spriteDataToTexture(data: SpriteData): Texture {
   return Texture.from(canvas);
 }
 
-/**
- * Fetch all submissions with sprite data and render them as sprites.
- * For M1, sprites are arranged in a grid near the center of the map.
- */
 export async function loadNpcSprites(
   mapWidth: number,
   mapHeight: number
@@ -49,7 +41,6 @@ export async function loadNpcSprites(
     const all = snapshot.val() as Record<string, Submission>;
     const submissions = Object.values(all).filter((s) => s.spriteData != null);
 
-    // Grid layout: center of map, 3 tiles apart.
     const cols = Math.ceil(Math.sqrt(submissions.length));
     const startX = Math.floor(mapWidth / 2 / TILE - cols) * TILE;
     const startY = Math.floor(mapHeight / 2 / TILE - 2) * TILE;

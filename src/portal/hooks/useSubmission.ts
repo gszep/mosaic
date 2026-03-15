@@ -25,7 +25,6 @@ export function useSubmission() {
     spriteData: null,
   });
 
-  // Load existing submission on mount.
   useEffect(() => {
     const token = getToken();
     if (!token) {

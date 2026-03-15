@@ -28,11 +28,9 @@ async function boot() {
   const npcContainer = await loadNpcSprites(mapWidth, mapHeight);
   app.stage.addChild(npcContainer);
 
-  // Camera.
   initInput();
   const camera = createCamera();
 
-  // Center camera on map initially.
   camera.x = Math.max(0, (mapWidth - 480) / 2);
   camera.y = Math.max(0, (mapHeight - 270) / 2);
 

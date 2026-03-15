@@ -4,11 +4,6 @@ import type { TMJMap } from "../shared/tmj";
 
 const RENDER_LAYERS = ["ground", "buildings", "decoration"];
 
-/**
- * Load and render a Tiled TMJ map using @pixi/tilemap for batch rendering.
- * Returns a Container with all visible tile layers and a Set of solid tile
- * indices from the collision layer.
- */
 export async function loadTilemap(
   mapUrl: string,
   tilesetBasePath: string
@@ -17,7 +12,6 @@ export async function loadTilemap(
   const container = new Container();
   const collision = new Set<number>();
 
-  // Load tileset textures and pre-slice every tile.
   const tileTextures = new Map<number, Texture>();
 
   for (const ts of map.tilesets) {
@@ -45,7 +39,6 @@ export async function loadTilemap(
     }
   }
 
-  // Render each layer.
   for (const layer of map.layers) {
     if (layer.type !== "tilelayer" || !layer.data) continue;
 

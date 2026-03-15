@@ -37,8 +37,6 @@ const TILESET_DEFS = [
   { name: "Elements", image: "Elements.png", imagewidth: 144, imageheight: 48 },
 ];
 
-// --- State ---
-
 let map: TMJMap;
 let tilesetImages: TilesetImage[] = [];
 let activeLayer = DEFAULT_LAYERS[0];
@@ -56,8 +54,6 @@ const opts: RenderOptions = {
   scale: mapScale,
 };
 
-// --- DOM refs ---
-
 const mapCanvas = document.getElementById("map-canvas") as HTMLCanvasElement;
 const mapCtx = mapCanvas.getContext("2d")!;
 const paletteCanvas = document.getElementById("palette-canvas") as HTMLCanvasElement;
@@ -69,8 +65,6 @@ const tooltip = document.getElementById("inspector-tooltip")!;
 const canvasWrap = document.getElementById("canvas-wrap")!;
 const mapListEl = document.getElementById("map-list")!;
 const MAP_NAMES = ["village", "home", "bedroom"];
-
-// --- Build tileset definitions with firstgid ---
 
 function buildTilesetDefs() {
   let gid = 1;
@@ -98,8 +92,6 @@ function getMinMapScale(): number {
   return canvasWrap.clientWidth / (map.width * map.tilewidth);
 }
 
-// --- Auto-save (debounced) ---
-
 let saveTimer: ReturnType<typeof setTimeout> | null = null;
 
 function scheduleSave() {
@@ -124,20 +116,15 @@ async function loadMapFromServer(name: string): Promise<TMJMap | null> {
   }
 }
 
-// --- Init ---
-
 async function init() {
   const tilesets = buildTilesetDefs();
 
-  // Load tileset images.
   tilesetImages = await Promise.all(
     tilesets.map((ts) => loadTilesetImage(ts, `${BASE}tilesets`))
   );
 
-  // Create default empty map.
   map = createEmptyMap(40, 30, TILE_SIZE, tilesets, DEFAULT_LAYERS);
 
-  // Try to load existing map from server.
   const loaded = await loadMapFromServer(currentMapName);
   if (loaded) {
     map = loaded;
@@ -146,7 +133,6 @@ async function init() {
   mapScale = getMinMapScale();
   opts.scale = mapScale;
 
-  // Populate tileset dropdown.
   tilesetImages.forEach((tsi, i) => {
     const opt = document.createElement("option");
     opt.value = String(i);
@@ -160,7 +146,6 @@ async function init() {
   redrawPalette();
   bindEvents();
 
-  // Hot-reload maps when files change on disk.
   if (import.meta.hot) {
     import.meta.hot.on("map-update", async (data: { name: string }) => {
       if (data.name === currentMapName) {
@@ -173,8 +158,6 @@ async function init() {
     });
   }
 }
-
-// --- Map list ---
 
 function buildMapList() {
   mapListEl.innerHTML = "";
@@ -203,8 +186,6 @@ async function switchMap(name: string) {
   buildLayerList();
   redrawMap();
 }
-
-// --- Layer list ---
 
 function buildLayerList() {
   layerList.innerHTML = "";
@@ -242,8 +223,6 @@ function buildLayerList() {
   }
 }
 
-// --- Drawing ---
-
 function redrawMap() {
   renderMap(mapCtx, map, tilesetImages, opts);
 }
@@ -254,10 +233,7 @@ function redrawPalette() {
   renderPalette(paletteCtx, tsi, selectedGid, paletteScale);
 }
 
-// --- GID selection (shared by palette click + keyboard) ---
-
 function selectGid(gid: number) {
-  // Find which tileset contains this GID.
   let tsiIndex = -1;
   for (let i = tilesetImages.length - 1; i >= 0; i--) {
     const ts = tilesetImages[i].tileset;
@@ -271,7 +247,6 @@ function selectGid(gid: number) {
   const tsi = tilesetImages[tsiIndex];
   selectedGid = gid;
 
-  // Switch tileset dropdown if needed.
   if (activeTilesetIndex !== tsiIndex) {
     activeTilesetIndex = tsiIndex;
     tilesetSelect.value = String(tsiIndex);
@@ -280,7 +255,6 @@ function selectGid(gid: number) {
   tileInfo.textContent = `GID ${gid} | ${tsi.tileset.name} [${(gid - tsi.tileset.firstgid) % tsi.tileset.columns}, ${Math.floor((gid - tsi.tileset.firstgid) / tsi.tileset.columns)}]`;
   redrawPalette();
 
-  // Scroll palette to show the selected tile.
   const localId = gid - tsi.tileset.firstgid;
   const row = Math.floor(localId / tsi.tileset.columns);
   const tileY = row * tsi.tileset.tileheight * paletteScale;
@@ -289,16 +263,11 @@ function selectGid(gid: number) {
   paletteScroll.scrollTop = Math.max(0, scrollTop);
 }
 
-// --- Keyboard GID input ---
-
 let gidBuffer = "";
 let gidTimer: ReturnType<typeof setTimeout> | null = null;
 const GID_TIMEOUT = 600; // ms to wait for more digits
 
-// --- Events ---
-
 function bindEvents() {
-  // Tool list items.
   document.querySelectorAll<HTMLLIElement>("#tool-list .tool").forEach((li) => {
     li.addEventListener("click", () => {
       document.querySelectorAll("#tool-list .tool").forEach((el) => el.classList.remove("active"));
@@ -309,7 +278,6 @@ function bindEvents() {
     });
   });
 
-  // Tileset select.
   tilesetSelect.addEventListener("change", () => {
     activeTilesetIndex = Number(tilesetSelect.value);
     selectedGid = null;
@@ -317,7 +285,6 @@ function bindEvents() {
     tileInfo.textContent = "";
   });
 
-  // Palette click.
   paletteCanvas.addEventListener("click", (e) => {
     const tsi = tilesetImages[activeTilesetIndex];
     if (!tsi) return;
@@ -332,7 +299,6 @@ function bindEvents() {
     selectGid(tsi.tileset.firstgid + localId);
   });
 
-  // Keyboard GID input: type digits rapidly to jump to a tile by GID.
   window.addEventListener("keydown", (e) => {
     if (e.key >= "0" && e.key <= "9") {
       e.preventDefault();
@@ -347,7 +313,6 @@ function bindEvents() {
     }
   });
 
-  // Map canvas — painting / erasing / inspecting.
   mapCanvas.addEventListener("mousedown", (e) => {
     if (tool === "inspect") return;
     painting = true;
@@ -366,7 +331,6 @@ function bindEvents() {
     tooltip.style.display = "none";
   });
 
-  // Zoom: ctrl+scroll on map canvas.
   canvasWrap.addEventListener("wheel", (e) => {
     if (!e.ctrlKey && !e.metaKey) return;
     e.preventDefault();
@@ -385,7 +349,6 @@ function bindEvents() {
     canvasWrap.scrollTop = ry * ratio - cy;
   }, { passive: false });
 
-  // Zoom: ctrl+scroll on palette.
   const paletteScroll = document.getElementById("palette-scroll")!;
   paletteScroll.addEventListener("wheel", (e) => {
     if (!e.ctrlKey && !e.metaKey) return;
@@ -404,7 +367,6 @@ function bindEvents() {
     paletteScroll.scrollTop = ry * ratio - cy;
   }, { passive: false });
 
-  // Recalculate min zoom on resize.
   window.addEventListener("resize", () => {
     const min = getMinMapScale();
     if (mapScale < min) {
@@ -414,8 +376,6 @@ function bindEvents() {
     }
   });
 }
-
-// --- Tool application ---
 
 function getTileIndex(e: MouseEvent): number | null {
   const rect = mapCanvas.getBoundingClientRect();
@@ -480,7 +440,5 @@ function findTilesetName(gid: number): string {
   }
   return "?";
 }
-
-// --- Boot ---
 
 init();

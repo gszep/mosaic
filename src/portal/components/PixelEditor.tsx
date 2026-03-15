@@ -12,15 +12,11 @@ const W = 16;
 const H = 32;
 const CELL_COUNT = W * H;
 
-/** Scale factor: each pixel cell renders as SCALE x SCALE screen pixels. */
 const SCALE = 16;
 
 interface PixelEditorProps {
-  /** Initial pixel data. If null, starts blank. */
   initial: SpriteData | null;
-  /** Called on every paint stroke with the full current grid. */
   onChange: (data: SpriteData) => void;
-  /** The color to paint with. */
   color: string;
 }
 
@@ -38,12 +34,10 @@ export function PixelEditor({ initial, onChange, color }: PixelEditorProps) {
   const isPainting = useRef(false);
   const preStrokeSnapshot = useRef<string[] | null>(null);
 
-  // Redraw canvas whenever pixels change.
   useEffect(() => {
     const ctx = canvasRef.current?.getContext("2d");
     if (!ctx) return;
 
-    // Checkerboard background for transparent cells.
     for (let y = 0; y < H; y++) {
       for (let x = 0; x < W; x++) {
         const i = y * W + x;
@@ -57,7 +51,6 @@ export function PixelEditor({ initial, onChange, color }: PixelEditorProps) {
       }
     }
 
-    // Grid lines.
     ctx.strokeStyle = "rgba(0,0,0,0.15)";
     ctx.lineWidth = 1;
     for (let x = 0; x <= W; x++) {

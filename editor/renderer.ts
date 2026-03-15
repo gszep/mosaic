@@ -43,7 +43,6 @@ export function renderMap(
   ctx.imageSmoothingEnabled = false;
   ctx.clearRect(0, 0, pw, ph);
 
-  // Draw checkerboard background for empty areas.
   for (let y = 0; y < map.height; y++) {
     for (let x = 0; x < map.width; x++) {
       ctx.fillStyle = (x + y) % 2 === 0 ? "#252525" : "#333333";
@@ -51,7 +50,6 @@ export function renderMap(
     }
   }
 
-  // Render tile layers.
   for (const layer of map.layers) {
     if (layer.type !== "tilelayer" || !layer.data) continue;
     if (!opts.visibleLayers.has(layer.name)) continue;
@@ -110,7 +108,6 @@ function drawTile(
   tilesetImages: TilesetImage[],
   scale: number
 ) {
-  // Find the tileset this GID belongs to.
   let matched: TilesetImage | null = null;
   for (let t = tilesetImages.length - 1; t >= 0; t--) {
     if (gid >= tilesetImages[t].tileset.firstgid) {
