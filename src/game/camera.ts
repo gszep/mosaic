@@ -41,6 +41,9 @@ export function updateCamera(
 }
 
 export function applyCamera(stage: Container, camera: CameraState): void {
-  stage.x = -camera.x;
-  stage.y = -camera.y;
+  const tx = -camera.x;
+  const ty = -camera.y;
+  if (stage.x === tx && stage.y === ty) return;
+  stage.x = tx;
+  stage.y = ty;
 }

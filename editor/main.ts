@@ -63,6 +63,7 @@ const tilesetSelect = document.getElementById("tileset-select") as HTMLSelectEle
 const tileInfo = document.getElementById("selected-tile-info")!;
 const tooltip = document.getElementById("inspector-tooltip")!;
 const canvasWrap = document.getElementById("canvas-wrap")!;
+const paletteScroll = document.getElementById("palette-scroll")!;
 const mapListEl = document.getElementById("map-list")!;
 const MAP_NAMES = ["village", "home", "bedroom"];
 
@@ -117,13 +118,11 @@ async function loadMapFromServer(name: string): Promise<TMJMap | null> {
 }
 
 async function init() {
-  const tilesets = buildTilesetDefs();
-
   tilesetImages = await Promise.all(
-    tilesets.map((ts) => loadTilesetImage(ts, `${BASE}tilesets`))
+    tilesetDefs.map((ts) => loadTilesetImage(ts, `${BASE}tilesets`))
   );
 
-  map = createEmptyMap(40, 30, TILE_SIZE, tilesets, DEFAULT_LAYERS);
+  map = createEmptyMap(40, 30, TILE_SIZE, tilesetDefs, DEFAULT_LAYERS);
 
   const loaded = await loadMapFromServer(currentMapName);
   if (loaded) {
@@ -170,11 +169,12 @@ function buildMapList() {
   }
 }
 
+const tilesetDefs = buildTilesetDefs();
+
 async function switchMap(name: string) {
   currentMapName = name;
-  const tilesets = buildTilesetDefs();
   const loaded = await loadMapFromServer(name);
-  map = loaded ?? createEmptyMap(40, 30, TILE_SIZE, tilesets, DEFAULT_LAYERS);
+  map = loaded ?? createEmptyMap(40, 30, TILE_SIZE, tilesetDefs, DEFAULT_LAYERS);
   activeLayer = map.layers.find((l) => l.type === "tilelayer")?.name ?? "";
   opts.activeLayer = activeLayer;
   opts.visibleLayers = new Set(
@@ -258,7 +258,6 @@ function selectGid(gid: number) {
   const localId = gid - tsi.tileset.firstgid;
   const row = Math.floor(localId / tsi.tileset.columns);
   const tileY = row * tsi.tileset.tileheight * paletteScale;
-  const paletteScroll = document.getElementById("palette-scroll")!;
   const scrollTop = tileY - paletteScroll.clientHeight / 2;
   paletteScroll.scrollTop = Math.max(0, scrollTop);
 }
@@ -349,7 +348,6 @@ function bindEvents() {
     canvasWrap.scrollTop = ry * ratio - cy;
   }, { passive: false });
 
-  const paletteScroll = document.getElementById("palette-scroll")!;
   paletteScroll.addEventListener("wheel", (e) => {
     if (!e.ctrlKey && !e.metaKey) return;
     e.preventDefault();

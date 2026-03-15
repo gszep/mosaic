@@ -10,6 +10,7 @@ Personalized birthday RPG inspired by Stardew Valley. Loved ones submit custom c
 - **Editor**: Vanilla Canvas-based Tiled map editor (dev-only)
 - **Backend**: Firebase Realtime Database (public read, token-gated write)
 - **Tests**: Vitest 4
+- **Browser automation**: Playwright MCP (`@playwright/mcp`) for visual debugging
 - **Deploy**: GitHub Pages via `.github/workflows/deploy.yml`
 
 ## Project Structure
@@ -145,6 +146,23 @@ These are also set as GitHub Actions secrets for the deploy workflow.
   }
 }
 ```
+
+## Browser Automation (Playwright MCP)
+
+Configured in `.mcp.json`. Provides orchestrator-agnostic browser automation via `@playwright/mcp` — works with Claude Code, Amplifier, VS Code, Cursor, or any MCP client.
+
+```bash
+# The MCP server launches Chrome at 960x540 (2x the 480x270 game viewport).
+# Tools available: browser_navigate, browser_click, browser_type,
+# browser_snapshot, browser_console_messages, browser_evaluate, etc.
+```
+
+### Visual debugging workflow
+1. Start the dev server: `npx vite`
+2. Use `browser_navigate` to open `http://localhost:5173/mosaic/` (game), `/mosaic/editor/` (editor), or `/mosaic/submit/?token=...` (portal)
+3. Use `browser_snapshot` to inspect the accessibility tree
+4. Use `browser_evaluate` to run JS (e.g. read console, modify game state)
+5. Use `browser_console_messages` to check for errors
 
 ## Design Reference
 

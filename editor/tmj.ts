@@ -33,14 +33,3 @@ export function createEmptyMap(
     })),
   };
 }
-
-export function downloadTMJ(map: TMJMap, filename: string) {
-  const json = JSON.stringify(map, null, 2);
-  const blob = new Blob([json], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
-}

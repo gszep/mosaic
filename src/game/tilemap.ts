@@ -14,11 +14,17 @@ export async function loadTilemap(
 
   const tileTextures = new Map<number, Texture>();
 
-  for (const ts of map.tilesets) {
-    const texturePath = `${tilesetBasePath}/${ts.image.split("/").pop()}`;
-    const baseTexture = await Assets.load(texturePath);
+  const textureEntries = await Promise.all(
+    map.tilesets.map(async (ts) => {
+      const texturePath = `${tilesetBasePath}/${ts.image.split("/").pop()}`;
+      const baseTexture = await Assets.load(texturePath);
+      return { ts, baseTexture };
+    })
+  );
+
+  for (const { ts, baseTexture } of textureEntries) {
     const cols = ts.columns;
-    const totalTiles = (ts.imagewidth / ts.tilewidth) * (ts.imageheight / ts.tileheight);
+    const totalTiles = ts.tilecount;
 
     for (let localId = 0; localId < totalTiles; localId++) {
       const gid = ts.firstgid + localId;

@@ -83,20 +83,18 @@ export function renderMap(
   if (opts.showGrid) {
     ctx.strokeStyle = "rgba(238,238,236,0.15)";
     ctx.lineWidth = 1;
+    ctx.beginPath();
     for (let x = 0; x <= map.width; x++) {
       const px = x * tw * s;
-      ctx.beginPath();
       ctx.moveTo(px + 0.5, 0);
       ctx.lineTo(px + 0.5, ph);
-      ctx.stroke();
     }
     for (let y = 0; y <= map.height; y++) {
       const py = y * th * s;
-      ctx.beginPath();
       ctx.moveTo(0, py + 0.5);
       ctx.lineTo(pw, py + 0.5);
-      ctx.stroke();
     }
+    ctx.stroke();
   }
 }
 
@@ -159,20 +157,18 @@ export function renderPalette(
   // Grid.
   ctx.strokeStyle = "rgba(238,238,236,0.12)";
   ctx.lineWidth = 1;
+  ctx.beginPath();
   for (let x = 0; x <= cols; x++) {
     const px = x * ts.tilewidth * scale;
-    ctx.beginPath();
     ctx.moveTo(px + 0.5, 0);
     ctx.lineTo(px + 0.5, h);
-    ctx.stroke();
   }
   for (let y = 0; y <= rows; y++) {
     const py = y * ts.tileheight * scale;
-    ctx.beginPath();
     ctx.moveTo(0, py + 0.5);
     ctx.lineTo(w, py + 0.5);
-    ctx.stroke();
   }
+  ctx.stroke();
 
   // Highlight selected tile.
   if (selectedGid !== null) {

@@ -53,18 +53,16 @@ export function PixelEditor({ initial, onChange, color }: PixelEditorProps) {
 
     ctx.strokeStyle = "rgba(0,0,0,0.15)";
     ctx.lineWidth = 1;
+    ctx.beginPath();
     for (let x = 0; x <= W; x++) {
-      ctx.beginPath();
       ctx.moveTo(x * SCALE + 0.5, 0);
       ctx.lineTo(x * SCALE + 0.5, H * SCALE);
-      ctx.stroke();
     }
     for (let y = 0; y <= H; y++) {
-      ctx.beginPath();
       ctx.moveTo(0, y * SCALE + 0.5);
       ctx.lineTo(W * SCALE, y * SCALE + 0.5);
-      ctx.stroke();
     }
+    ctx.stroke();
   }, [pixels]);
 
   const cellFromPointer = useCallback(
@@ -124,31 +122,37 @@ export function PixelEditor({ initial, onChange, color }: PixelEditorProps) {
     setUndoStack((prev) => {
       if (prev.length === 0) return prev;
       const snapshot = prev[prev.length - 1];
-      setRedoStack((r) => [...r, pixels]);
-      setPixels(snapshot);
-      onChange({ width: W as 16, height: H as 32, pixels: snapshot });
+      setPixels((current) => {
+        setRedoStack((r) => [...r, current]);
+        onChange({ width: W as 16, height: H as 32, pixels: snapshot });
+        return snapshot;
+      });
       return prev.slice(0, -1);
     });
-  }, [pixels, onChange]);
+  }, [onChange]);
 
   const redo = useCallback(() => {
     setRedoStack((prev) => {
       if (prev.length === 0) return prev;
       const snapshot = prev[prev.length - 1];
-      setUndoStack((u) => [...u, pixels]);
-      setPixels(snapshot);
-      onChange({ width: W as 16, height: H as 32, pixels: snapshot });
+      setPixels((current) => {
+        setUndoStack((u) => [...u, current]);
+        onChange({ width: W as 16, height: H as 32, pixels: snapshot });
+        return snapshot;
+      });
       return prev.slice(0, -1);
     });
-  }, [pixels, onChange]);
+  }, [onChange]);
 
   const clear = useCallback(() => {
-    setUndoStack((prev) => [...prev, pixels]);
-    setRedoStack([]);
-    const blank = createBlank();
-    setPixels(blank);
-    onChange({ width: W as 16, height: H as 32, pixels: blank });
-  }, [pixels, onChange]);
+    setPixels((current) => {
+      setUndoStack((prev) => [...prev, current]);
+      setRedoStack([]);
+      const blank = createBlank();
+      onChange({ width: W as 16, height: H as 32, pixels: blank });
+      return blank;
+    });
+  }, [onChange]);
 
   return (
     <div>

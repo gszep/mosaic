@@ -47,9 +47,8 @@ export async function loadNpcSprites(
 
     for (let i = 0; i < submissions.length; i++) {
       const sub = submissions[i];
-      if (!sub.spriteData) continue;
 
-      const texture = spriteDataToTexture(sub.spriteData);
+      const texture = spriteDataToTexture(sub.spriteData!);
       const sprite = new Sprite(texture);
       const col = i % cols;
       const row = Math.floor(i / cols);
