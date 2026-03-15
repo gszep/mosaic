@@ -320,8 +320,31 @@ function buildCatalogTree() {
   };
 
   let html = det("fill", "fill");
+  const groups = new Map<string, [string, number[]][]>();
   for (const [name, terrain] of Object.entries(catalog!.terrains)) {
-    html += row(name, terrain.fill.map(g => tile(g)).join(""));
+    const parts = name.split("_");
+    if (parts.length >= 2) {
+      const prefix = parts[0];
+      const rest = parts.slice(1).join("_");
+      if (!groups.has(prefix)) groups.set(prefix, []);
+      groups.get(prefix)!.push([rest, terrain.fill]);
+    } else {
+      if (!groups.has(name)) groups.set(name, []);
+      groups.get(name)!.push(["", terrain.fill]);
+    }
+  }
+  for (const [group, entries] of groups) {
+    if (entries.length === 1 && entries[0][0] === "") {
+      html += row(group, entries[0][1].map(g => tile(g)).join(""));
+    } else if (entries.length === 1) {
+      html += row(`${group}_${entries[0][0]}`, entries[0][1].map(g => tile(g)).join(""));
+    } else {
+      html += det(`f-${group}`, group);
+      for (const [sub, fills] of entries) {
+        html += row(sub, fills.map(g => tile(g)).join(""));
+      }
+      html += "</details>";
+    }
   }
   html += "</details>";
 

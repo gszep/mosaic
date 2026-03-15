@@ -1,6 +1,6 @@
 {
   "terrains": {
-    "dark_sand": {
+    "grass_orange": {
       "fill": [
         70,
         111,
@@ -11,43 +11,7 @@
       ],
       "description": "Warm orange sand with texture — rows 0-5 left of TilesetFloor"
     },
-    "light_sand": {
-      "fill": [
-        19,
-        20,
-        24,
-        31,
-        35,
-        42,
-        53,
-        54,
-        55,
-        61,
-        62,
-        64,
-        65,
-        66,
-        76,
-        77,
-        84,
-        86,
-        87,
-        88,
-        89,
-        90,
-        94,
-        95,
-        97,
-        100,
-        101,
-        105,
-        106,
-        107,
-        108
-      ],
-      "description": "Smooth light orange sand — rows 0-5 left of TilesetFloor"
-    },
-    "light_grass": {
+    "grass_lime": {
       "fill": [
         224,
         245,
@@ -60,99 +24,19 @@
       ],
       "description": "Light/lime green grass — rows 7-13 left half of TilesetFloor"
     },
-    "light_earth": {
-      "fill": [
-        178,
-        185,
-        207,
-        208,
-        209,
-        230,
-        231,
-        243,
-        244,
-        248,
-        249,
-        251
-      ],
-      "description": "Light brown earth — pairs with light_grass in transitions"
-    },
-    "grey_stone": {
+    "grass_white": {
       "fill": [
         378,
         419,
         420,
         421,
         422,
-        423
+        423,
+        585
       ],
       "description": "Grey cobblestone — rows 14-19 left of TilesetFloor"
     },
-    "snow": {
-      "fill": [
-        332,
-        339,
-        361,
-        362,
-        363,
-        384,
-        385,
-        397,
-        398,
-        400,
-        402,
-        403,
-        405,
-        521,
-        540,
-        551,
-        573,
-        575,
-        576,
-        577,
-        580,
-        585,
-        595,
-        597,
-        598,
-        606,
-        608,
-        609
-      ],
-      "description": "White/off-white snow ground — shared secondary terrain for stone, ice, and wet earth"
-    },
-    "dark_earth": {
-      "fill": [
-        343,
-        350,
-        372,
-        373,
-        374,
-        394,
-        395,
-        396,
-        408,
-        409,
-        411,
-        413,
-        414,
-        416
-      ],
-      "description": "Warm brown earth — rows 14-19 right fill of TilesetFloor"
-    },
-    "ice": {
-      "fill": [
-        486
-      ],
-      "description": "Light blue ice — rows 20-25 left of TilesetFloor"
-    },
-    "wet_earth": {
-      "fill": [
-        497
-      ],
-      "description": "Dark wet earth (melted ice) — rows 20-25 right of TilesetFloor"
-    },
-    "dark_grass": {
+    "grass_green": {
       "fill": [
         235,
         276,
@@ -163,25 +47,7 @@
       ],
       "description": "Dark green grass — rows 7-13 right half of TilesetFloor"
     },
-    "brown_dirt": {
-      "fill": [
-        189,
-        196,
-        218,
-        219,
-        220,
-        241,
-        242,
-        254,
-        255,
-        257,
-        259,
-        260,
-        262
-      ],
-      "description": "Dark brown dirt — pairs with dark_grass in transitions"
-    },
-    "peach": {
+    "grass_pink": {
       "fill": [
         122,
         124,
@@ -190,7 +56,7 @@
       ],
       "description": "Warm peach/salmon terrain — rows 0-5 right of TilesetFloor"
     },
-    "grey_earth": {
+    "grass_grey": {
       "fill": [
         430,
         432,
@@ -198,14 +64,73 @@
         434
       ],
       "description": "Grey earth — rows 14-19 right base of TilesetFloor"
+    },
+    "earth_dark": {
+      "fill": [
+        343,
+        408,
+        409,
+        411
+      ],
+      "description": "Warm brown earth — rows 14-19 right fill of TilesetFloor"
+    },
+    "earth_brown": {
+      "fill": [
+        189,
+        254,
+        255,
+        257
+      ],
+      "description": "Dark brown dirt — pairs with dark_grass in transitions"
+    },
+    "earth_light": {
+      "fill": [
+        178,
+        243,
+        244
+      ],
+      "description": "Light brown earth — pairs with light_grass in transitions"
+    },
+    "earth_wet": {
+      "fill": [
+        497
+      ],
+      "description": "Dark wet earth (melted ice) — rows 20-25 right of TilesetFloor"
+    },
+    "sand": {
+      "fill": [
+        24,
+        35,
+        89,
+        90,
+        100,
+        101
+      ],
+      "description": "Smooth light orange sand — rows 0-5 left of TilesetFloor"
+    },
+    "snow": {
+      "fill": [
+        332,
+        397,
+        398,
+        400,
+        551
+      ],
+      "description": "White/off-white snow ground — shared secondary terrain for stone, ice, and wet earth"
+    },
+    "ice": {
+      "fill": [
+        486
+      ],
+      "description": "Light blue ice — rows 20-25 left of TilesetFloor"
     }
   },
   "transitions": {
-    "dark_sand_to_light_sand": {
-      "description": "Edges/corners where dark orange sand meets smooth light sand",
+    "grass_orange_to_sand": {
+      "description": "Edges/corners where dark orange sand meets smooth sand",
       "key": {
-        "D": "dark_sand",
-        "L": "light_sand"
+        "D": "grass_orange",
+        "L": "sand"
       },
       "patterns": {
         "DDDDDDLD": [
@@ -251,6 +176,18 @@
         "DLDDDDLD": [
           26
         ],
+        "DLDLDLDL": [
+          97
+        ],
+        "DLDLDLLL": [
+          55
+        ],
+        "DLDLLLDL": [
+          54
+        ],
+        "DLDLLLLL": [
+          53
+        ],
         "DLLDLDDD": [
           71
         ],
@@ -260,8 +197,14 @@
           49,
           93
         ],
+        "DLLLDLDL": [
+          76
+        ],
         "DLLLLDDD": [
           73
+        ],
+        "DLLLLLDL": [
+          95
         ],
         "DLLLLLLD": [
           32
@@ -283,14 +226,23 @@
         "LLDLDDDD": [
           74
         ],
+        "LLDLDLDL": [
+          77
+        ],
         "LLDLDLLD": [
           96
+        ],
+        "LLDLDLLL": [
+          94
         ],
         "LLDLLDDD": [
           72
         ],
         "LLDLLLLL": [
           50
+        ],
+        "LLLLDLDL": [
+          31
         ],
         "LLLLLDDD": [
           46,
@@ -304,11 +256,11 @@
         ]
       }
     },
-    "light_grass_to_light_earth": {
-      "description": "Edges/corners where light green grass meets light earth",
+    "grass_lime_to_earth_light": {
+      "description": "Edges/corners where light grass green meets earth light",
       "key": {
-        "G": "light_grass",
-        "D": "light_earth"
+        "G": "grass_lime",
+        "D": "earth_light"
       },
       "patterns": {
         "DDDDDDGD": [
@@ -323,6 +275,9 @@
         "DDDDGDDD": [
           182
         ],
+        "DDDDGDGD": [
+          185
+        ],
         "DDDDGGGD": [
           200
         ],
@@ -336,7 +291,11 @@
           164
         ],
         "DDGDGDDD": [
-          250
+          250,
+          248
+        ],
+        "DDGDGDGD": [
+          231
         ],
         "DDGDGDGG": [
           202
@@ -359,6 +318,9 @@
         "GDDDDDDG": [
           247
         ],
+        "GDDDDDGD": [
+          249
+        ],
         "GDDDDDGG": [
           177,
           181,
@@ -370,6 +332,9 @@
         "GDDDGDDD": [
           186
         ],
+        "GDDDGDGD": [
+          230
+        ],
         "GDDDGGGD": [
           227
         ],
@@ -377,10 +342,14 @@
           199
         ],
         "GDGDDDDD": [
-          163
+          163,
+          207
         ],
         "GDGDDDDG": [
           159
+        ],
+        "GDGDDDGD": [
+          208
         ],
         "GDGDDGGD": [
           222
@@ -389,11 +358,15 @@
           221
         ],
         "GDGDGDDD": [
-          162
+          162,
+          209
         ],
         "GDGDGDDG": [
           158,
           180
+        ],
+        "GDGDGDGD": [
+          251
         ],
         "GDGGGGDD": [
           223
@@ -412,10 +385,10 @@
         ]
       }
     },
-    "grey_stone_to_snow": {
-      "description": "Edges/corners where grey cobblestone meets snow ground",
+    "grass_white_to_snow": {
+      "description": "Edges/corners where grey cobblestone meets orange snow ground",
       "key": {
-        "G": "grey_stone",
+        "G": "grass_white",
         "S": "snow"
       },
       "patterns": {
@@ -462,6 +435,18 @@
         "GSGGGGSG": [
           334
         ],
+        "GSGSGSGS": [
+          405
+        ],
+        "GSGSGSSS": [
+          363
+        ],
+        "GSGSSSGS": [
+          362
+        ],
+        "GSGSSSSS": [
+          361
+        ],
         "GSSGSGGG": [
           379
         ],
@@ -474,8 +459,14 @@
         "GSSSGGGG": [
           381
         ],
+        "GSSSGSGS": [
+          384
+        ],
         "GSSSGSSG": [
           340
+        ],
+        "GSSSSSGS": [
+          403
         ],
         "GSSSSSSS": [
           359
@@ -497,14 +488,23 @@
         "SSGSGGGG": [
           382
         ],
+        "SSGSGSGS": [
+          385
+        ],
         "SSGSGSSG": [
           404
+        ],
+        "SSGSGSSS": [
+          402
         ],
         "SSGSSGGG": [
           380
         ],
         "SSSSGGGG": [
           354
+        ],
+        "SSSSGSGS": [
+          339
         ],
         "SSSSGSSG": [
           336
@@ -517,15 +517,18 @@
         ]
       }
     },
-    "dark_earth_to_grey_earth": {
-      "description": "Edges/corners where warm brown earth meets grey earth",
+    "earth_dark_to_grass_grey": {
+      "description": "Edges/corners where warm brown earth meets grass grey",
       "key": {
-        "D": "dark_earth",
-        "L": "grey_earth"
+        "D": "earth_dark",
+        "L": "grass_grey"
       },
       "patterns": {
         "DDDDDDLD": [
           456
+        ],
+        "DDDDLDLD": [
+          350
         ],
         "DDDDLDLL": [
           320
@@ -537,6 +540,12 @@
           321,
           325,
           326
+        ],
+        "DDLDLDDD": [
+          413
+        ],
+        "DDLDLDLD": [
+          396
         ],
         "DLDDLLLD": [
           323
@@ -577,11 +586,30 @@
         "LDDDDDDL": [
           412
         ],
+        "LDDDDDLD": [
+          414
+        ],
         "LDDDDLLL": [
           455
         ],
+        "LDDDLDLD": [
+          395
+        ],
         "LDDLLLLL": [
           452
+        ],
+        "LDLDDDDD": [
+          372
+        ],
+        "LDLDDDLD": [
+          373
+        ],
+        "LDLDLDDD": [
+          374,
+          394
+        ],
+        "LDLDLDLD": [
+          416
         ],
         "LLDLDDDD": [
           366
@@ -628,7 +656,7 @@
       }
     },
     "ice_to_snow": {
-      "description": "Edges/corners where blue ice meets snow ground",
+      "description": "Edges/corners where blue ice meets orange snow ground",
       "key": {
         "I": "ice",
         "S": "snow"
@@ -798,7 +826,8 @@
           488
         ],
         "SISSSSSS": [
-          510
+          510,
+          521
         ],
         "SSISIISI": [
           591
@@ -847,7 +876,8 @@
           470
         ],
         "SSSISSSS": [
-          531
+          531,
+          540
         ],
         "SSSSISII": [
           463
@@ -875,10 +905,10 @@
         ]
       }
     },
-    "wet_earth_to_snow": {
-      "description": "Edges/corners where wet earth meets snow ground",
+    "earth_wet_to_snow": {
+      "description": "Edges/corners where earth wet meets orange snow ground",
       "key": {
-        "W": "wet_earth",
+        "W": "earth_wet",
         "S": "snow"
       },
       "patterns": {
@@ -1013,11 +1043,11 @@
         ]
       }
     },
-    "dark_grass_to_brown_dirt": {
-      "description": "Edges/corners where dark green grass meets brown dirt",
+    "grass_green_to_earth_brown": {
+      "description": "Edges/corners where dark grass green meets earth brown",
       "key": {
-        "G": "dark_grass",
-        "D": "brown_dirt"
+        "G": "grass_green",
+        "D": "earth_brown"
       },
       "patterns": {
         "DDDDDDDG": [
@@ -1032,6 +1062,9 @@
         "DDDDDGGG": [
           211
         ],
+        "DDDDGDGD": [
+          196
+        ],
         "DDGDDDDD": [
           215
         ],
@@ -1045,10 +1078,16 @@
           239,
           237
         ],
+        "DDGDGDDD": [
+          259
+        ],
         "DDGDGDDG": [
           190,
           195,
           217
+        ],
+        "DDGDGDGD": [
+          242
         ],
         "DDGDGGGG": [
           212
@@ -1060,8 +1099,14 @@
           197,
           258
         ],
+        "GDDDDDGD": [
+          260
+        ],
         "GDDDDGGG": [
           238
+        ],
+        "GDDDGDGD": [
+          241
         ],
         "GDDGDGDD": [
           188,
@@ -1073,6 +1118,18 @@
         ],
         "GDDGDGGG": [
           210
+        ],
+        "GDGDDDDD": [
+          218
+        ],
+        "GDGDDDGD": [
+          219
+        ],
+        "GDGDGDDD": [
+          220
+        ],
+        "GDGDGDGD": [
+          262
         ],
         "GDGGDDDG": [
           191
@@ -1114,11 +1171,11 @@
         ]
       }
     },
-    "dark_grass_to_light_grass": {
-      "description": "Edges/corners where dark green grass meets light green grass",
+    "grass_green_to_grass_lime": {
+      "description": "Edges/corners where dark grass green meets light grass green",
       "key": {
-        "D": "dark_grass",
-        "L": "light_grass"
+        "D": "grass_green",
+        "L": "grass_lime"
       },
       "patterns": {
         "DDDDDLDD": [
@@ -1139,11 +1196,11 @@
         ]
       }
     },
-    "dark_grass_to_dark_sand": {
-      "description": "Edges/corners where dark green grass meets dark_sand",
+    "grass_green_to_grass_orange": {
+      "description": "Edges/corners where dark grass green meets dark_sand",
       "key": {
-        "G": "dark_grass",
-        "S": "dark_sand"
+        "G": "grass_green",
+        "S": "grass_orange"
       },
       "patterns": {
         "GGGGGSGG": [
@@ -1157,11 +1214,11 @@
         ]
       }
     },
-    "light_grass_to_dark_sand": {
-      "description": "Edges/corners where light green grass meets dark_sand",
+    "grass_lime_to_grass_orange": {
+      "description": "Edges/corners where light grass green meets dark_sand",
       "key": {
-        "G": "light_grass",
-        "S": "dark_sand"
+        "G": "grass_lime",
+        "S": "grass_orange"
       },
       "patterns": {
         "GGGGGGSS": [
@@ -1184,11 +1241,11 @@
         ]
       }
     },
-    "peach_to_light_sand": {
-      "description": "Edges/corners where peach meets light sand",
+    "grass_pink_to_sand": {
+      "description": "Edges/corners where grass pink meets orange sand",
       "key": {
-        "P": "peach",
-        "L": "light_sand"
+        "P": "grass_pink",
+        "L": "sand"
       },
       "patterns": {
         "LLLLLLLP": [
@@ -1211,6 +1268,9 @@
           43,
           80
         ],
+        "LLLLPLPL": [
+          42
+        ],
         "LLLPPLLL": [
           36,
           41,
@@ -1218,6 +1278,16 @@
         ],
         "LLLPPPPL": [
           58
+        ],
+        "LLPLLLLL": [
+          61,
+          107
+        ],
+        "LLPLPLLL": [
+          105
+        ],
+        "LLPLPLPL": [
+          88
         ],
         "LPPLLLLL": [
           13,
@@ -1230,7 +1300,9 @@
         "PLLLLLLL": [
           34,
           38,
-          60
+          60,
+          20,
+          62
         ],
         "PLLLLLLP": [
           15,
@@ -1238,7 +1310,8 @@
           104
         ],
         "PLLLLLPL": [
-          81
+          81,
+          106
         ],
         "PLLLLPLP": [
           82
@@ -1246,19 +1319,41 @@
         "PLLLLPPP": [
           56
         ],
+        "PLLLPLPL": [
+          87
+        ],
+        "PLLLPPPL": [
+          84
+        ],
+        "PLPLLLLL": [
+          19,
+          64
+        ],
         "PLPLLLLP": [
           12
+        ],
+        "PLPLLPLL": [
+          65
+        ],
+        "PLPLPLLL": [
+          66
+        ],
+        "PLPLPLPL": [
+          108
+        ],
+        "PLPLPPPL": [
+          86
         ],
         "PPPLPPPL": [
           123
         ]
       }
     },
-    "peach_to_dark_grass": {
-      "description": "Edges/corners where peach meets dark grass",
+    "grass_pink_to_grass_green": {
+      "description": "Edges/corners where grass pink meets grass green",
       "key": {
-        "P": "peach",
-        "D": "dark_grass"
+        "P": "grass_pink",
+        "D": "grass_green"
       },
       "patterns": {
         "DDDDDDPP": [
@@ -1275,10 +1370,10 @@
         ]
       }
     },
-    "grey_stone_to_ice": {
-      "description": "Edges/corners where grey stone meets ice",
+    "grass_white_to_ice": {
+      "description": "Edges/corners where grass white meets orange ice",
       "key": {
-        "G": "grey_stone",
+        "G": "grass_white",
         "I": "ice"
       },
       "patterns": {
@@ -2916,6 +3011,25 @@
         1120,
         1142,
         1143
+      ]
+    },
+    "ice_detail_overlay": {
+      "description": "Ice edge overlays on transparent background (TilesetFloorB)",
+      "category": "ground",
+      "tileset": "TilesetFloorB",
+      "layer": "decoration",
+      "tiles": [
+        573,
+        575,
+        576,
+        577,
+        580,
+        595,
+        597,
+        598,
+        606,
+        608,
+        609
       ]
     }
   }
