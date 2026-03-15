@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+> `.amplifier/AGENTS.md` is a symlink to this file. There is one set of instructions, not two.
+
 Personalized birthday RPG inspired by Stardew Valley. Loved ones submit custom character sprites via an invite link; the birthday person explores a village meeting them.
 
 ## Tech Stack
@@ -149,15 +151,22 @@ These are also set as GitHub Actions secrets for the deploy workflow.
 
 ## Browser Automation (Playwright CLI)
 
-Visual debugging via `@playwright/cli`. Run `playwright-cli --help` for full command reference. No MCP server needed — any agent with shell access can use it.
+Visual verification via `@playwright/cli`. Any agent with shell access can use it. Screenshots go in `screenshots/` (gitignored).
 
 ```bash
-playwright-cli open http://localhost:5173/mosaic/ --headed   # open game (visible browser)
-playwright-cli screenshot                                    # capture current page
-playwright-cli console                                       # show console output
-playwright-cli eval "document.title"                         # evaluate JS expression
-playwright-cli snapshot                                      # a11y snapshot (verbose)
-playwright-cli close                                         # close browser
+npx playwright-cli open http://localhost:5173/mosaic/              # open page (headless)
+npx playwright-cli screenshot --filename screenshots/game.png      # capture viewport
+npx playwright-cli console                                         # show JS console output
+npx playwright-cli eval "document.title"                           # evaluate JS expression
+npx playwright-cli snapshot                                        # a11y tree snapshot
+npx playwright-cli close                                           # close browser session
+```
+
+Console logs are auto-saved to `.playwright-cli/` (gitignored). The `open` command also captures an a11y snapshot and console log on each invocation.
+
+Prerequisite: Chrome must be available at `/opt/google/chrome/chrome`. If missing:
+```bash
+sudo mkdir -p /opt/google/chrome && sudo ln -sf /usr/bin/google-chrome /opt/google/chrome/chrome
 ```
 
 ## Design Reference

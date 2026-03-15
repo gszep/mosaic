@@ -2,3 +2,5 @@ node_modules/
 dist/
 .env.local
 asset_pack/
+screenshots/
+.playwright-cli/
