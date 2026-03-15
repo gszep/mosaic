@@ -13,7 +13,9 @@
     "light_sand": {
       "fill": [
         24,
-        89
+        35,
+        89,
+        100
       ],
       "description": "Smooth light orange sand \u2014 rows 0-5 left of TilesetFloor"
     },
@@ -87,16 +89,12 @@
     "brown_dirt": {
       "fill": [
         189,
-        254,
         257
       ],
       "description": "Dark brown dirt \u2014 pairs with dark_grass in transitions"
     },
     "peach": {
       "fill": [
-        35,
-        64,
-        100,
         122,
         126
       ],
@@ -180,9 +178,6 @@
         "LDDLLDLL": [
           10
         ],
-        "LDDLLLLL": [
-          50
-        ],
         "LLDDDDDD": [
           47
         ],
@@ -204,6 +199,9 @@
         ],
         "LLLLLLLD": [
           28
+        ],
+        "LLDLLLLL": [
+          50
         ]
       }
     },
@@ -2512,25 +2510,6 @@
         1031
       ]
     },
-    "bush_seasonal": {
-      "description": "Seasonal bush variants with berries/flowers (autumn, spring, winter)",
-      "category": "plant",
-      "tileset": "TilesetNature",
-      "layer": "decoration",
-      "tiles": [
-        1070,
-        1071,
-        1072,
-        1094,
-        1095,
-        1096,
-        1118,
-        1119,
-        1120,
-        1142,
-        1143
-      ]
-    },
     "clover": {
       "description": "Small clover and leaf patches",
       "category": "plant",
@@ -2670,6 +2649,25 @@
         1178,
         1179,
         1180
+      ]
+    },
+    "ore": {
+      "description": "Ore and mineral deposits",
+      "category": "item",
+      "tileset": "TilesetNature",
+      "layer": "decoration",
+      "tiles": [
+        1070,
+        1071,
+        1072,
+        1094,
+        1095,
+        1096,
+        1118,
+        1119,
+        1120,
+        1142,
+        1143
       ]
     }
   }
