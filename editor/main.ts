@@ -12,7 +12,7 @@ const BASE = import.meta.env.BASE_URL;
 const TILE_SIZE = 16;
 const MAX_SCALE = 16;
 let mapScale = 4;
-let paletteScale = 8;
+let paletteScale = 2;
 const DEFAULT_LAYERS = ["ground", "buildings", "decoration", "collision"];
 const TILESET_DEFS = [
   { name: "TilesetFloor", image: "TilesetFloor.png", imagewidth: 352, imageheight: 417 },
@@ -143,7 +143,7 @@ async function init() {
     map = loaded;
   }
 
-  mapScale = Math.min(MAX_SCALE, Math.max(mapScale, getMinMapScale()));
+  mapScale = getMinMapScale();
   opts.scale = mapScale;
 
   // Populate tileset dropdown.
@@ -159,6 +159,19 @@ async function init() {
   redrawMap();
   redrawPalette();
   bindEvents();
+
+  // Hot-reload maps when files change on disk.
+  if (import.meta.hot) {
+    import.meta.hot.on("map-update", async (data: { name: string }) => {
+      if (data.name === currentMapName) {
+        const loaded = await loadMapFromServer(data.name);
+        if (loaded) {
+          map = loaded;
+          redrawMap();
+        }
+      }
+    });
+  }
 }
 
 // --- Map list ---
@@ -184,7 +197,7 @@ async function switchMap(name: string) {
   opts.visibleLayers = new Set(
     map.layers.filter((l) => l.type === "tilelayer").map((l) => l.name)
   );
-  mapScale = Math.min(MAX_SCALE, Math.max(mapScale, getMinMapScale()));
+  mapScale = getMinMapScale();
   opts.scale = mapScale;
   buildMapList();
   buildLayerList();
@@ -241,6 +254,47 @@ function redrawPalette() {
   renderPalette(paletteCtx, tsi, selectedGid, paletteScale);
 }
 
+// --- GID selection (shared by palette click + keyboard) ---
+
+function selectGid(gid: number) {
+  // Find which tileset contains this GID.
+  let tsiIndex = -1;
+  for (let i = tilesetImages.length - 1; i >= 0; i--) {
+    const ts = tilesetImages[i].tileset;
+    if (gid >= ts.firstgid && gid < ts.firstgid + ts.tilecount) {
+      tsiIndex = i;
+      break;
+    }
+  }
+  if (tsiIndex < 0) return;
+
+  const tsi = tilesetImages[tsiIndex];
+  selectedGid = gid;
+
+  // Switch tileset dropdown if needed.
+  if (activeTilesetIndex !== tsiIndex) {
+    activeTilesetIndex = tsiIndex;
+    tilesetSelect.value = String(tsiIndex);
+  }
+
+  tileInfo.textContent = `GID ${gid} | ${tsi.tileset.name} [${(gid - tsi.tileset.firstgid) % tsi.tileset.columns}, ${Math.floor((gid - tsi.tileset.firstgid) / tsi.tileset.columns)}]`;
+  redrawPalette();
+
+  // Scroll palette to show the selected tile.
+  const localId = gid - tsi.tileset.firstgid;
+  const row = Math.floor(localId / tsi.tileset.columns);
+  const tileY = row * tsi.tileset.tileheight * paletteScale;
+  const paletteScroll = document.getElementById("palette-scroll")!;
+  const scrollTop = tileY - paletteScroll.clientHeight / 2;
+  paletteScroll.scrollTop = Math.max(0, scrollTop);
+}
+
+// --- Keyboard GID input ---
+
+let gidBuffer = "";
+let gidTimer: ReturnType<typeof setTimeout> | null = null;
+const GID_TIMEOUT = 600; // ms to wait for more digits
+
 // --- Events ---
 
 function bindEvents() {
@@ -275,9 +329,22 @@ function bindEvents() {
     const row = Math.floor(py / (tsi.tileset.tileheight * paletteScale));
     const localId = row * tsi.tileset.columns + col;
     if (localId >= tsi.tileset.tilecount) return;
-    selectedGid = tsi.tileset.firstgid + localId;
-    tileInfo.textContent = `GID ${selectedGid} | ${tsi.tileset.name} [${col}, ${row}]`;
-    redrawPalette();
+    selectGid(tsi.tileset.firstgid + localId);
+  });
+
+  // Keyboard GID input: type digits rapidly to jump to a tile by GID.
+  window.addEventListener("keydown", (e) => {
+    if (e.key >= "0" && e.key <= "9") {
+      e.preventDefault();
+      gidBuffer += e.key;
+      tileInfo.textContent = `GID ${gidBuffer}…`;
+      if (gidTimer) clearTimeout(gidTimer);
+      gidTimer = setTimeout(() => {
+        const gid = parseInt(gidBuffer, 10);
+        gidBuffer = "";
+        if (gid > 0) selectGid(gid);
+      }, GID_TIMEOUT);
+    }
   });
 
   // Map canvas — painting / erasing / inspecting.

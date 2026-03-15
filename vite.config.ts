@@ -2,12 +2,22 @@ import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import { resolve } from "path";
 import { writeFile, mkdir } from "fs/promises";
+import { watch } from "fs";
 
-/** Dev-only plugin: POST /api/save-map/:name writes to public/maps/:name.tmj */
+/** Dev-only plugin: POST /api/save-map/:name writes to public/maps/:name.tmj
+ *  Also watches public/maps/ and sends HMR events so the editor hot-reloads. */
 function mapWriterPlugin(): Plugin {
   return {
     name: "map-writer",
     configureServer(server) {
+      // Watch public/maps/ for changes and notify connected clients.
+      const mapsDir = resolve(__dirname, "public/maps");
+      watch(mapsDir, (_event, filename) => {
+        if (!filename?.endsWith(".tmj")) return;
+        const name = filename.replace(/\.tmj$/, "");
+        server.ws.send("map-update", { name });
+      });
+
       server.middlewares.use(async (req, res, next) => {
         const match = req.url?.match(/^\/api\/save-map\/([a-z]+)$/);
         if (req.method !== "POST" || !match) return next();
