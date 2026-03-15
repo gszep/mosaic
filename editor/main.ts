@@ -72,6 +72,33 @@ const paletteScroll = document.getElementById("palette-scroll")!;
 const mapListEl = document.getElementById("map-list")!;
 const MAP_NAMES = ["village", "home", "bedroom"];
 
+// --- Resize handle for bottom panel ---
+{
+  const handle = document.getElementById("resize-handle")!;
+  const bottomPanel = document.getElementById("bottom-panel")!;
+  let startY = 0;
+  let startH = 0;
+
+  handle.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    startY = e.clientY;
+    startH = bottomPanel.offsetHeight;
+    handle.classList.add("dragging");
+    handle.setPointerCapture(e.pointerId);
+  });
+
+  handle.addEventListener("pointermove", (e) => {
+    if (!handle.hasPointerCapture(e.pointerId)) return;
+    const newH = Math.max(80, startH - (e.clientY - startY));
+    bottomPanel.style.height = newH + "px";
+  });
+
+  handle.addEventListener("pointerup", (e) => {
+    handle.classList.remove("dragging");
+    handle.releasePointerCapture(e.pointerId);
+  });
+}
+
 function buildTilesetDefs() {
   let gid = 1;
   return TILESET_DEFS.map((def) => {
@@ -286,13 +313,19 @@ function buildCatalogTree() {
   const row = (label: string, tiles: string) =>
     `<div class="catalog-row"><span class="catalog-label">${label}</span><span class="catalog-tiles">${tiles}</span></div>`;
 
-  let html = "<details open><summary>fill</summary>";
+  const saved = JSON.parse(sessionStorage.getItem("catalog-open") || "{}") as Record<string, boolean>;
+  const det = (id: string, label: string) => {
+    const open = saved[id] !== undefined ? saved[id] : true;
+    return `<details data-cat-id="${id}"${open ? " open" : ""}><summary>${label}</summary>`;
+  };
+
+  let html = det("fill", "fill");
   for (const [name, terrain] of Object.entries(catalog!.terrains)) {
     html += row(name, terrain.fill.map(g => tile(g)).join(""));
   }
   html += "</details>";
 
-  html += "<details open><summary>transition</summary>";
+  html += det("transition", "transition");
   for (const [name, trans] of Object.entries(catalog!.transitions)) {
     const keys = Object.keys(trans.key);
     const secondary = keys[1];
@@ -305,7 +338,7 @@ function buildCatalogTree() {
       byCount.get(count)!.push({ pattern, gids });
     }
 
-    html += `<details open><summary>${name} (${keyLabel})</summary>`;
+    html += det(`t-${name}`, `${name} (${keyLabel})`);
     for (const count of [...byCount.keys()].sort((a, b) => b - a)) {
       const tiles = byCount.get(count)!
         .flatMap(({ pattern, gids }) => gids.map(g => tile(g, pattern)))
@@ -317,14 +350,14 @@ function buildCatalogTree() {
   html += "</details>";
 
   if (catalog!.details) {
-    html += "<details open><summary>detail</summary>";
+    html += det("detail", "detail");
     const byCategory = new Map<string, { name: string; tiles: number[] }[]>();
     for (const [name, detail] of Object.entries(catalog!.details)) {
       if (!byCategory.has(detail.category)) byCategory.set(detail.category, []);
       byCategory.get(detail.category)!.push({ name, tiles: detail.tiles });
     }
     for (const [category, entries] of byCategory) {
-      html += `<details open><summary>${category}</summary>`;
+      html += det(`d-${category}`, category);
       for (const { name, tiles } of entries) {
         html += row(name, tiles.map(g => tile(g)).join(""));
       }
@@ -333,7 +366,7 @@ function buildCatalogTree() {
     html += "</details>";
   }
 
-  html += "<details open><summary>stamp</summary>";
+  html += det("stamp", "stamp");
   for (const [name, stamp] of Object.entries(catalog!.stamps)) {
     html += `<div class="catalog-row catalog-row-stamp"><span class="catalog-label">${name}</span>`;
     html += `<div class="catalog-stamp-grid" style="grid-template-columns:repeat(${stamp.size[0]},${ts}px)">`;
@@ -386,6 +419,15 @@ function buildCatalogTree() {
     const wrap = (e.target as HTMLElement).closest(".catalog-tile-wrap") as HTMLElement | null;
     if (wrap) tileInfo.textContent = selectedGid !== null ? `GID ${selectedGid} (catalog)` : "";
   });
+
+  catalogTreeEl.addEventListener("toggle", (e) => {
+    const det = e.target as HTMLDetailsElement;
+    const id = det.dataset.catId;
+    if (!id) return;
+    const state = JSON.parse(sessionStorage.getItem("catalog-open") || "{}");
+    state[id] = det.open;
+    sessionStorage.setItem("catalog-open", JSON.stringify(state));
+  }, true);
 
   paletteScroll.appendChild(catalogTreeEl);
 }

@@ -43,11 +43,21 @@ body {
   z-index: 10;
 }
 
+#resize-handle {
+  height: 5px;
+  background: #373737;
+  cursor: ns-resize;
+  flex-shrink: 0;
+}
+#resize-handle:hover, #resize-handle.dragging {
+  background: #E95420;
+}
+
 #bottom-panel {
   height: 220px;
   display: flex;
-  border-top: 1px solid #373737;
   flex-shrink: 0;
+  overflow: hidden;
 }
 
 #palette-panel {

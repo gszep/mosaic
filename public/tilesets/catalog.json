@@ -2,25 +2,54 @@
   "terrains": {
     "dark_sand": {
       "fill": [
+        70,
         111,
         112,
         113,
         114,
         115
       ],
-      "description": "Warm orange sand with texture \u2014 rows 0-5 left of TilesetFloor"
+      "description": "Warm orange sand with texture — rows 0-5 left of TilesetFloor"
     },
     "light_sand": {
       "fill": [
+        19,
+        20,
         24,
+        31,
         35,
+        42,
+        53,
+        54,
+        55,
+        61,
+        62,
+        64,
+        65,
+        66,
+        76,
+        77,
+        84,
+        86,
+        87,
+        88,
         89,
-        100
+        90,
+        94,
+        95,
+        97,
+        100,
+        101,
+        105,
+        106,
+        107,
+        108
       ],
-      "description": "Smooth light orange sand \u2014 rows 0-5 left of TilesetFloor"
+      "description": "Smooth light orange sand — rows 0-5 left of TilesetFloor"
     },
     "light_grass": {
       "fill": [
+        224,
         245,
         246,
         265,
@@ -29,76 +58,146 @@
         268,
         269
       ],
-      "description": "Light/lime green grass \u2014 rows 7-13 left half of TilesetFloor"
+      "description": "Light/lime green grass — rows 7-13 left half of TilesetFloor"
     },
     "light_earth": {
       "fill": [
-        178
+        178,
+        185,
+        207,
+        208,
+        209,
+        230,
+        231,
+        243,
+        244,
+        248,
+        249,
+        251
       ],
-      "description": "Light brown earth \u2014 pairs with light_grass in transitions"
+      "description": "Light brown earth — pairs with light_grass in transitions"
     },
     "grey_stone": {
       "fill": [
+        378,
         419,
+        420,
+        421,
+        422,
         423
       ],
-      "description": "Grey cobblestone \u2014 rows 14-19 left of TilesetFloor"
+      "description": "Grey cobblestone — rows 14-19 left of TilesetFloor"
     },
-    "white": {
+    "snow": {
       "fill": [
         332,
+        339,
+        361,
+        362,
+        363,
+        384,
+        385,
+        397,
+        398,
         400,
-        551
+        402,
+        403,
+        405,
+        521,
+        540,
+        551,
+        573,
+        575,
+        576,
+        577,
+        580,
+        585,
+        595,
+        597,
+        598,
+        606,
+        608,
+        609
       ],
-      "description": "White/off-white ground \u2014 shared secondary terrain for stone, ice, and lava"
+      "description": "White/off-white snow ground — shared secondary terrain for stone, ice, and wet earth"
     },
     "dark_earth": {
       "fill": [
         343,
-        411
+        350,
+        372,
+        373,
+        374,
+        394,
+        395,
+        396,
+        408,
+        409,
+        411,
+        413,
+        414,
+        416
       ],
-      "description": "Warm brown earth \u2014 rows 14-19 right fill of TilesetFloor"
-    },
-    "light_earth_b": {
-      "fill": [
-        430,
-        432,
-        434
-      ],
-      "description": "Dark cool earth \u2014 rows 14-19 right base of TilesetFloor"
+      "description": "Warm brown earth — rows 14-19 right fill of TilesetFloor"
     },
     "ice": {
       "fill": [
         486
       ],
-      "description": "Light blue ice \u2014 rows 20-25 left of TilesetFloor"
+      "description": "Light blue ice — rows 20-25 left of TilesetFloor"
     },
-    "lava": {
+    "wet_earth": {
       "fill": [
         497
       ],
-      "description": "Orange lava/fire \u2014 rows 20-25 right of TilesetFloor"
+      "description": "Dark wet earth (melted ice) — rows 20-25 right of TilesetFloor"
     },
     "dark_grass": {
       "fill": [
+        235,
         276,
+        277,
+        278,
+        279,
         280
       ],
-      "description": "Dark green grass \u2014 rows 7-13 right half of TilesetFloor"
+      "description": "Dark green grass — rows 7-13 right half of TilesetFloor"
     },
     "brown_dirt": {
       "fill": [
         189,
-        257
+        196,
+        218,
+        219,
+        220,
+        241,
+        242,
+        254,
+        255,
+        257,
+        259,
+        260,
+        262
       ],
-      "description": "Dark brown dirt \u2014 pairs with dark_grass in transitions"
+      "description": "Dark brown dirt — pairs with dark_grass in transitions"
     },
     "peach": {
       "fill": [
         122,
+        124,
+        125,
         126
       ],
-      "description": "Warm peach/salmon terrain \u2014 rows 0-5 right of TilesetFloor"
+      "description": "Warm peach/salmon terrain — rows 0-5 right of TilesetFloor"
+    },
+    "grey_earth": {
+      "fill": [
+        430,
+        432,
+        433,
+        434
+      ],
+      "description": "Grey earth — rows 14-19 right base of TilesetFloor"
     }
   },
   "transitions": {
@@ -190,6 +289,9 @@
         "LLDLLDDD": [
           72
         ],
+        "LLDLLLLL": [
+          50
+        ],
         "LLLLLDDD": [
           46,
           75
@@ -199,229 +301,232 @@
         ],
         "LLLLLLLD": [
           28
-        ],
-        "LLDLLLLL": [
-          50
         ]
       }
     },
     "light_grass_to_light_earth": {
-      "description": "Edges/corners where light grass meets light brown earth",
+      "description": "Edges/corners where light green grass meets light earth",
       "key": {
         "G": "light_grass",
-        "E": "light_earth"
+        "D": "light_earth"
       },
       "patterns": {
-        "EEEEEEEG": [
-          182
-        ],
-        "EEEEEGEE": [
+        "DDDDDDGD": [
           183
         ],
-        "EEEEEGGE": [
+        "DDDDDDGG": [
+          288
+        ],
+        "DDDDDGGD": [
           229
         ],
-        "EEEEEGGG": [
+        "DDDDGDDD": [
+          182
+        ],
+        "DDDDGGGD": [
           200
         ],
-        "EEGEEEEE": [
+        "DDDDGGGG": [
+          201
+        ],
+        "DDGDDDDD": [
           204
         ],
-        "EEGEEEEG": [
-          250
-        ],
-        "EEGEEGEE": [
+        "DDGDDDGD": [
           164
         ],
-        "EEGEEGGG": [
+        "DDGDGDDD": [
+          250
+        ],
+        "DDGDGDGG": [
+          202
+        ],
+        "DDGDGGGD": [
           226,
           228
         ],
-        "EEGEGEEG": [
+        "DDGGGDDD": [
           179,
           184,
           206
         ],
-        "EEGGEGGG": [
-          202
+        "DGGDGDDG": [
+          157
         ],
-        "EEGGGGGG": [
-          201
-        ],
-        "GEEEEEEE": [
+        "GDDDDDDD": [
           205
         ],
-        "GEEEEEEG": [
-          186
-        ],
-        "GEEEEGGG": [
-          227
-        ],
-        "GEEGEEEE": [
+        "GDDDDDDG": [
           247
         ],
-        "GEEGEGEE": [
+        "GDDDDDGG": [
           177,
           181,
           203
         ],
-        "GEEGEGGE": [
+        "GDDDDGGG": [
           225
         ],
-        "GEGEEEEE": [
+        "GDDDGDDD": [
+          186
+        ],
+        "GDDDGGGD": [
+          227
+        ],
+        "GDDGDGGD": [
+          199
+        ],
+        "GDGDDDDD": [
           163
         ],
-        "GEGEEEEG": [
-          162
-        ],
-        "GEGEEGGE": [
-          222
-        ],
-        "GEGEGEGG": [
-          223
-        ],
-        "GEGGEEEE": [
+        "GDGDDDDG": [
           159
         ],
-        "GEGGEEEG": [
+        "GDGDDGGD": [
+          222
+        ],
+        "GDGDDGGG": [
+          221
+        ],
+        "GDGDGDDD": [
+          162
+        ],
+        "GDGDGDDG": [
           158,
           180
         ],
-        "GEGGEGGE": [
-          221
+        "GDGGGGDD": [
+          223
         ],
-        "GGEGEGGG": [
-          199
-        ],
-        "GGGEEEEE": [
+        "GGGDDDDD": [
           156
         ],
-        "GGGEEEEG": [
-          160
-        ],
-        "GGGEEGEE": [
+        "GGGDDDGD": [
           161
         ],
-        "GGGEGEGG": [
-          157
+        "GGGDGDDD": [
+          160
         ],
-        "GGGGGGEE": [
+        "GGGGDDDD": [
           155
         ]
       }
     },
-    "grey_stone_to_white": {
-      "description": "Edges/corners where grey cobblestone meets white ground",
+    "grey_stone_to_snow": {
+      "description": "Edges/corners where grey cobblestone meets snow ground",
       "key": {
         "G": "grey_stone",
-        "W": "white"
+        "S": "snow"
       },
       "patterns": {
-        "GGGGGGWG": [
+        "GGGGGGSG": [
           312
         ],
-        "GGGGGGWW": [
+        "GGGGGGSS": [
           309
         ],
-        "GGGGWGGG": [
+        "GGGGSGGG": [
           375
         ],
-        "GGGGWGWW": [
+        "GGGGSGSS": [
           313
         ],
-        "GGGWGGGG": [
+        "GGGSGGGG": [
           377
         ],
-        "GGGWGWGG": [
+        "GGGSGSGG": [
           311
         ],
-        "GGGWGWWG": [
+        "GGGSGSSG": [
           316
         ],
-        "GGGWWGGG": [
+        "GGGSSGGG": [
           376
         ],
-        "GGGWWGWW": [
+        "GGGSSGSS": [
           315
         ],
-        "GGGWWWWG": [
+        "GGGSSSSG": [
           314
         ],
-        "GGGWWWWW": [
+        "GGGSSSSS": [
           310,
           317
         ],
-        "GGWGWGGG": [
+        "GGSGSGGG": [
           353
         ],
-        "GWGGGGGG": [
+        "GSGGGGGG": [
           356
         ],
-        "GWGGGGWG": [
+        "GSGGGGSG": [
           334
         ],
-        "GWWGWGGG": [
+        "GSSGSGGG": [
           379
         ],
-        "GWWGWGWW": [
+        "GSSGSGSS": [
           331,
           335,
           357,
           401
         ],
-        "GWWWGGGG": [
+        "GSSSGGGG": [
           381
         ],
-        "GWWWGWWG": [
+        "GSSSGSSG": [
           340
         ],
-        "GWWWWWWW": [
+        "GSSSSSSS": [
           359
         ],
-        "WGGWGWWG": [
+        "SGGSGSSG": [
           333,
           338,
           360
         ],
-        "WGGWWGWW": [
+        "SGGSSGSS": [
           318
         ],
-        "WGGWWWWW": [
+        "SGGSSSSS": [
           358
         ],
-        "WWGGGGGG": [
+        "SSGGGGGG": [
           355
         ],
-        "WWGWGGGG": [
+        "SSGSGGGG": [
           382
         ],
-        "WWGWGWWG": [
+        "SSGSGSSG": [
           404
         ],
-        "WWGWWGGG": [
+        "SSGSSGGG": [
           380
         ],
-        "WWWWGGGG": [
+        "SSSSGGGG": [
           354
         ],
-        "WWWWGWWG": [
+        "SSSSGSSG": [
           336
         ],
-        "WWWWWGGG": [
+        "SSSSSGGG": [
           383
         ],
-        "WWWWWGWW": [
+        "SSSSSGSS": [
           337
         ]
       }
     },
-    "dark_earth_to_light_earth_b": {
-      "description": "Edges/corners where warm brown earth meets cool dark earth",
+    "dark_earth_to_grey_earth": {
+      "description": "Edges/corners where warm brown earth meets grey earth",
       "key": {
         "D": "dark_earth",
-        "L": "light_earth_b"
+        "L": "grey_earth"
       },
       "patterns": {
+        "DDDDDDLD": [
+          456
+        ],
         "DDDDLDLL": [
           320
         ],
@@ -446,6 +551,9 @@
         "DLLDLDDD": [
           364
         ],
+        "DLLDLDLD": [
+          453
+        ],
         "DLLDLDLL": [
           342,
           346,
@@ -465,6 +573,15 @@
           328,
           370,
           387
+        ],
+        "LDDDDDDL": [
+          412
+        ],
+        "LDDDDLLL": [
+          455
+        ],
+        "LDDLLLLL": [
+          452
         ],
         "LLDLDDDD": [
           366
@@ -491,384 +608,408 @@
         "LLLDLDLD": [
           367
         ],
+        "LLLDLLLD": [
+          431
+        ],
         "LLLLLDDD": [
           365
         ],
+        "LLLLLDDL": [
+          457
+        ],
         "LLLLLDLL": [
           348,
-          390
+          390,
+          454
         ],
         "LLLLLLLD": [
           347
         ]
       }
     },
-    "ice_to_white": {
-      "description": "Edges/corners where blue ice meets white ground",
+    "ice_to_snow": {
+      "description": "Edges/corners where blue ice meets snow ground",
       "key": {
         "I": "ice",
-        "W": "white"
+        "S": "snow"
       },
       "patterns": {
-        "IIIIIIIW": [
+        "IIIIIIIS": [
           490
         ],
-        "IIIIIWII": [
+        "IIIIISII": [
           491
         ],
-        "IIIIIWIW": [
+        "IIIIISIS": [
           493
         ],
-        "IIIIIWWW": [
+        "IIIIISSS": [
           508
         ],
-        "IIWIIIII": [
-          512
-        ],
-        "IIWIIIIW": [
-          556
-        ],
-        "IIWIIWII": [
-          472
-        ],
-        "IIWIIWWW": [
-          534
-        ],
-        "IIWIWIIW": [
-          487
-        ],
-        "IIWIWWIW": [
-          492
-        ],
-        "IIWIWWWW": [
-          509
-        ],
-        "WIIIIIII": [
-          513
-        ],
-        "WIIIIIIW": [
-          494
-        ],
-        "WIIIIWII": [
-          557
-        ],
-        "WIIIIWIW": [
-          538
-        ],
-        "WIIIIWWW": [
-          535
-        ],
-        "WIIWIWII": [
-          485
-        ],
-        "WIIWIWIW": [
-          489
-        ],
-        "WIIWIWWW": [
-          507
-        ],
-        "WIWIIIII": [
-          515
-        ],
-        "WIWIIWII": [
-          516
-        ],
-        "WIWIIWIW": [
-          559
-        ],
-        "WIWIIWWW": [
-          537
-        ],
-        "WIWIWIIW": [
-          514
-        ],
-        "WIWIWWIW": [
-          558
-        ],
-        "WIWIWWWW": [
-          536
-        ],
-        "WIWWIWII": [
-          511
-        ],
-        "WIWWIWIW": [
-          555
-        ],
-        "WIWWIWWW": [
-          533
-        ],
-        "WIWWWWIW": [
-          488
-        ],
-        "WIWWWWWW": [
-          510
-        ],
-        "WWWIIIII": [
-          464
-        ],
-        "WWWIIIIW": [
-          468
-        ],
-        "WWWIIWII": [
-          469
-        ],
-        "WWWIIWIW": [
-          471
-        ],
-        "WWWIIWWW": [
-          530
-        ],
-        "WWWIWIIW": [
-          465
-        ],
-        "WWWIWWIW": [
-          470
-        ],
-        "WWWIWWWW": [
-          531
-        ],
-        "WWWWIWII": [
-          463
-        ],
-        "WWWWIWIW": [
-          467
-        ],
-        "WWWWIWWW": [
-          529
-        ],
-        "WWWWWWIW": [
-          466
-        ],
-        "IIIWWWWW": [
-          574
-        ],
-        "IIIWWWWI": [
-          578
-        ],
-        "IIIWWIWW": [
-          579
-        ],
-        "IIIWWIWI": [
-          581
-        ],
-        "WWIWWIWW": [
-          582
-        ],
-        "IWWIWIWW": [
-          584
-        ],
-        "WWIWIWWI": [
-          586
-        ],
-        "IWIIIIWI": [
-          587
-        ],
-        "IWWIWIWI": [
-          588
-        ],
-        "WWWWWWWI": [
-          589
-        ],
-        "WWWWWIWW": [
-          590
-        ],
-        "WWIWIIWI": [
-          591
-        ],
-        "WWWWWIWI": [
-          592
-        ],
-        "IWWWWWWI": [
-          593
-        ],
-        "WWWWWIII": [
-          596
-        ],
-        "IWIIWIWW": [
-          599
-        ],
-        "WWIWWWWW": [
-          600
-        ],
-        "IWWWWWWW": [
-          601
-        ],
-        "IWIWIWWI": [
-          602
-        ],
-        "IWIWWWWW": [
-          603
-        ],
-        "IWIWWIWW": [
-          604
-        ],
-        "IWIWWWWI": [
-          605
-        ],
-        "IIIWWIII": [
+        "IIISSIII": [
           607
         ],
-        "WWIWWIII": [
-          628
+        "IIISSISI": [
+          581
         ],
-        "IWWWWIII": [
-          612
+        "IIISSISS": [
+          579
         ],
-        "IWIWWIII": [
-          614
+        "IIISSSSI": [
+          578
         ],
-        "IWWWWIWI": [
-          615
+        "IIISSSSS": [
+          574
         ],
-        "WWIWWIWI": [
-          616
+        "IISIIIII": [
+          512
         ],
-        "IWIIWIWI": [
+        "IISIIIIS": [
+          556
+        ],
+        "IISIISII": [
+          472
+        ],
+        "IISIISSS": [
+          534
+        ],
+        "IISISIIS": [
+          487
+        ],
+        "IISISISI": [
+          539
+        ],
+        "IISISSIS": [
+          492
+        ],
+        "IISISSSS": [
+          509
+        ],
+        "ISIIIISI": [
+          587
+        ],
+        "ISIISISI": [
           621
         ],
-        "WWIWWWWI": [
-          622
+        "ISIISISS": [
+          599
         ],
-        "IWWWWIWW": [
-          623
-        ],
-        "IWIWIIWI": [
+        "ISISIISI": [
           624
         ],
-        "IWIWWIWI": [
+        "ISISISSI": [
+          602
+        ],
+        "ISISSIII": [
+          614
+        ],
+        "ISISSISI": [
           625
+        ],
+        "ISISSISS": [
+          604
+        ],
+        "ISISSSSI": [
+          605
+        ],
+        "ISISSSSS": [
+          603
+        ],
+        "ISSISISI": [
+          588
+        ],
+        "ISSISISS": [
+          584
+        ],
+        "ISSSSIII": [
+          612
+        ],
+        "ISSSSISI": [
+          615
+        ],
+        "ISSSSISS": [
+          623
+        ],
+        "ISSSSSSI": [
+          593
+        ],
+        "ISSSSSSS": [
+          601,
+          613
+        ],
+        "SIIIIIII": [
+          513
+        ],
+        "SIIIIIIS": [
+          494
+        ],
+        "SIIIISII": [
+          557
+        ],
+        "SIIIISIS": [
+          538
+        ],
+        "SIIIISSS": [
+          535
+        ],
+        "SIISISII": [
+          485
+        ],
+        "SIISISIS": [
+          489
+        ],
+        "SIISISSS": [
+          507
+        ],
+        "SISIIIII": [
+          515
+        ],
+        "SISIISII": [
+          516
+        ],
+        "SISIISIS": [
+          559
+        ],
+        "SISIISSS": [
+          537
+        ],
+        "SISISIII": [
+          517
+        ],
+        "SISISIIS": [
+          514
+        ],
+        "SISISSIS": [
+          558
+        ],
+        "SISISSSS": [
+          536
+        ],
+        "SISSISII": [
+          511
+        ],
+        "SISSISIS": [
+          555
+        ],
+        "SISSISSS": [
+          533
+        ],
+        "SISSSSIS": [
+          488
+        ],
+        "SISSSSSS": [
+          510
+        ],
+        "SSISIISI": [
+          591
+        ],
+        "SSISISSI": [
+          586
+        ],
+        "SSISISSS": [
+          611
+        ],
+        "SSISSIII": [
+          628
+        ],
+        "SSISSISI": [
+          616
+        ],
+        "SSISSISS": [
+          582
+        ],
+        "SSISSSSI": [
+          622
+        ],
+        "SSISSSSS": [
+          600,
+          610
+        ],
+        "SSSIIIII": [
+          464
+        ],
+        "SSSIIIIS": [
+          468
+        ],
+        "SSSIISII": [
+          469
+        ],
+        "SSSIISIS": [
+          471
+        ],
+        "SSSIISSS": [
+          530
+        ],
+        "SSSISIIS": [
+          465
+        ],
+        "SSSISSIS": [
+          470
+        ],
+        "SSSISSSS": [
+          531
+        ],
+        "SSSSISII": [
+          463
+        ],
+        "SSSSISIS": [
+          467
+        ],
+        "SSSSISSS": [
+          529
+        ],
+        "SSSSSIII": [
+          596
+        ],
+        "SSSSSISI": [
+          592
+        ],
+        "SSSSSISS": [
+          590
+        ],
+        "SSSSSSIS": [
+          466
+        ],
+        "SSSSSSSI": [
+          589
         ]
       }
     },
-    "lava_to_white": {
-      "description": "Edges/corners where orange lava meets white ground",
+    "wet_earth_to_snow": {
+      "description": "Edges/corners where wet earth meets snow ground",
       "key": {
-        "L": "lava",
-        "W": "white"
+        "W": "wet_earth",
+        "S": "snow"
       },
       "patterns": {
-        "LLLLLLLW": [
-          501
+        "SSSSSSWS": [
+          477
         ],
-        "LLLLLWLL": [
-          502
-        ],
-        "LLLLLWLW": [
-          504
-        ],
-        "LLLLLWWW": [
-          519
-        ],
-        "LLWLLLLL": [
-          523
-        ],
-        "LLWLLLLW": [
-          567
-        ],
-        "LLWLLWLL": [
-          483
-        ],
-        "LLWLLWWW": [
-          545
-        ],
-        "LLWLWLLW": [
-          498
-        ],
-        "LLWLWWLW": [
-          503
-        ],
-        "LWWLWWWW": [
-          520
-        ],
-        "WLLLLLLL": [
-          524
-        ],
-        "WLLLLLLW": [
-          505
-        ],
-        "WLLLLWLL": [
-          568
-        ],
-        "WLLLLWLW": [
-          549
-        ],
-        "WLLLLWWW": [
-          546
-        ],
-        "WLLWLWLL": [
-          496
-        ],
-        "WLLWLWLW": [
-          500
-        ],
-        "WLLWWWWW": [
-          518
-        ],
-        "WLWLLLLL": [
-          526
-        ],
-        "WLWLLWLL": [
-          527
-        ],
-        "WLWLLWLW": [
-          570
-        ],
-        "WLWLLWWW": [
-          548
-        ],
-        "WLWLWLLW": [
-          525
-        ],
-        "WLWLWWLW": [
-          569
-        ],
-        "WLWLWWWW": [
-          547
-        ],
-        "WLWWLWLL": [
-          522
-        ],
-        "WLWWLWLW": [
-          566
-        ],
-        "WLWWLWWW": [
-          544
-        ],
-        "WLWWWWLW": [
-          499
-        ],
-        "WWWLLLLL": [
-          475
-        ],
-        "WWWLLLLW": [
-          479
-        ],
-        "WWWLLWLL": [
-          480
-        ],
-        "WWWLLWLW": [
-          482
-        ],
-        "WWWLLWWW": [
-          541
-        ],
-        "WWWLWLLW": [
-          476
-        ],
-        "WWWLWWLW": [
-          481
-        ],
-        "WWWLWWWW": [
-          542
-        ],
-        "WWWWLWLL": [
-          474
-        ],
-        "WWWWLWLW": [
+        "SSSSWSWS": [
           478
         ],
-        "WWWWWWLW": [
-          477
+        "SSSSWSWW": [
+          474
+        ],
+        "SSSWSSSS": [
+          542
+        ],
+        "SSSWSSWS": [
+          481
+        ],
+        "SSSWSWWS": [
+          476
+        ],
+        "SSSWWSSS": [
+          541
+        ],
+        "SSSWWSWS": [
+          482
+        ],
+        "SSSWWSWW": [
+          480
+        ],
+        "SSSWWWWS": [
+          479
+        ],
+        "SSSWWWWW": [
+          475
+        ],
+        "SWSSSSWS": [
+          499
+        ],
+        "SWSSWSSS": [
+          544
+        ],
+        "SWSSWSWS": [
+          566
+        ],
+        "SWSSWSWW": [
+          522
+        ],
+        "SWSWSSSS": [
+          547
+        ],
+        "SWSWSSWS": [
+          569
+        ],
+        "SWSWSWWS": [
+          525
+        ],
+        "SWSWSWWW": [
+          528
+        ],
+        "SWSWWSSS": [
+          548
+        ],
+        "SWSWWSWS": [
+          570
+        ],
+        "SWSWWSWW": [
+          527
+        ],
+        "SWSWWWWW": [
+          526
+        ],
+        "SWWSSSSS": [
+          518
+        ],
+        "SWWSWSWS": [
+          500
+        ],
+        "SWWSWSWW": [
+          496
+        ],
+        "SWWWWSSS": [
+          546
+        ],
+        "SWWWWSWS": [
+          549
+        ],
+        "SWWWWSWW": [
+          568
+        ],
+        "SWWWWWWS": [
+          505
+        ],
+        "SWWWWWWW": [
+          524
+        ],
+        "WSSWSSSS": [
+          520
+        ],
+        "WWSWSSWS": [
+          503
+        ],
+        "WWSWSWSW": [
+          550
+        ],
+        "WWSWSWWS": [
+          498
+        ],
+        "WWSWWSSS": [
+          545
+        ],
+        "WWSWWSWW": [
+          483
+        ],
+        "WWSWWWWS": [
+          567
+        ],
+        "WWSWWWWW": [
+          523
+        ],
+        "WWWWWSSS": [
+          519
+        ],
+        "WWWWWSWS": [
+          504
+        ],
+        "WWWWWSWW": [
+          502
+        ],
+        "WWWWWWWS": [
+          501
         ]
       }
     },
@@ -884,6 +1025,9 @@
         ],
         "DDDDDGDD": [
           194
+        ],
+        "DDDDDGGD": [
+          240
         ],
         "DDDDDGGG": [
           211
@@ -913,7 +1057,8 @@
           216
         ],
         "GDDDDDDG": [
-          197
+          197,
+          258
         ],
         "GDDDDGGG": [
           238
@@ -969,27 +1114,6 @@
         ]
       }
     },
-    "light_grass_to_brown_dirt": {
-      "description": "Edges/corners where light green grass meets brown dirt",
-      "key": {
-        "G": "light_grass",
-        "D": "brown_dirt"
-      },
-      "patterns": {
-        "DDDDGGGG": [
-          201
-        ],
-        "DGGDGDDG": [
-          157
-        ],
-        "GDDGDGGD": [
-          199
-        ],
-        "GGGGDDDD": [
-          155
-        ]
-      }
-    },
     "dark_grass_to_light_grass": {
       "description": "Edges/corners where dark green grass meets light green grass",
       "key": {
@@ -1022,11 +1146,11 @@
         "S": "dark_sand"
       },
       "patterns": {
-        "GGSGSGGS": [
-          298
-        ],
         "GGGGGSGG": [
           300
+        ],
+        "GGSGSGGS": [
+          298
         ],
         "SSSGSGSS": [
           299
@@ -1040,11 +1164,135 @@
         "S": "dark_sand"
       },
       "patterns": {
+        "GGGGGGSS": [
+          134,
+          137
+        ],
         "GGGSGSSG": [
           289
         ],
         "GSSGSGSS": [
           287
+        ],
+        "SSGGGSSS": [
+          133,
+          136
+        ],
+        "SSSSSSGS": [
+          135,
+          138
+        ]
+      }
+    },
+    "peach_to_light_sand": {
+      "description": "Edges/corners where peach meets light sand",
+      "key": {
+        "P": "peach",
+        "L": "light_sand"
+      },
+      "patterns": {
+        "LLLLLLLP": [
+          16
+        ],
+        "LLLLLLPL": [
+          21,
+          40,
+          57,
+          59,
+          83
+        ],
+        "LLLLLPPL": [
+          78,
+          79,
+          85
+        ],
+        "LLLLPLLL": [
+          39,
+          43,
+          80
+        ],
+        "LLLPPLLL": [
+          36,
+          41,
+          63
+        ],
+        "LLLPPPPL": [
+          58
+        ],
+        "LPPLLLLL": [
+          13,
+          17,
+          18
+        ],
+        "LPPLPLLL": [
+          14
+        ],
+        "PLLLLLLL": [
+          34,
+          38,
+          60
+        ],
+        "PLLLLLLP": [
+          15,
+          37,
+          104
+        ],
+        "PLLLLLPL": [
+          81
+        ],
+        "PLLLLPLP": [
+          82
+        ],
+        "PLLLLPPP": [
+          56
+        ],
+        "PLPLLLLP": [
+          12
+        ],
+        "PPPLPPPL": [
+          123
+        ]
+      }
+    },
+    "peach_to_dark_grass": {
+      "description": "Edges/corners where peach meets dark grass",
+      "key": {
+        "P": "peach",
+        "D": "dark_grass"
+      },
+      "patterns": {
+        "DDDDDDPP": [
+          145,
+          148
+        ],
+        "PPDDDPPP": [
+          144,
+          147
+        ],
+        "PPPPPPDP": [
+          146,
+          149
+        ]
+      }
+    },
+    "grey_stone_to_ice": {
+      "description": "Edges/corners where grey stone meets ice",
+      "key": {
+        "G": "grey_stone",
+        "I": "ice"
+      },
+      "patterns": {
+        "GGGGGIIG": [
+          443,
+          446
+        ],
+        "GIIIIGGG": [
+          441,
+          444
+        ],
+        "IIIIIIGI": [
+          442,
+          445
         ]
       }
     }
@@ -2391,30 +2639,34 @@
       ]
     },
     "torii_gate": {
-      "description": "Red torii gate (2x2)",
+      "description": "Red torii gate (3x2)",
       "tileset": "TilesetHouse",
       "size": [
-        2,
+        3,
         2
       ],
       "layer": "decoration",
       "tiles": [
         [
           1399,
-          1400
+          1400,
+          1401
         ],
         [
           1432,
-          1433
+          1433,
+          1434
         ]
       ],
       "collision": [
         [
           1,
+          0,
           1
         ],
         [
           1,
+          0,
           1
         ]
       ]
@@ -2500,6 +2752,8 @@
       "tileset": "TilesetNature",
       "layer": "decoration",
       "tiles": [
+        931,
+        932,
         955,
         956,
         957,
@@ -2543,16 +2797,6 @@
         1048
       ]
     },
-    "pumpkin": {
-      "description": "Pumpkins (ripe and unripe)",
-      "category": "item",
-      "tileset": "TilesetNature",
-      "layer": "decoration",
-      "tiles": [
-        931,
-        932
-      ]
-    },
     "gem": {
       "description": "Colored gems and crystals (red, purple, orange, green, teal)",
       "category": "item",
@@ -2584,7 +2828,10 @@
       "tileset": "TilesetNature",
       "layer": "decoration",
       "tiles": [
+        1022,
         1024,
+        1025,
+        1026,
         1027,
         1028,
         1030,
@@ -2623,7 +2870,8 @@
         655,
         656,
         657,
-        658
+        658,
+        927
       ]
     },
     "fossils": {
