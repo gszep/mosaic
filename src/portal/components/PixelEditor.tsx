@@ -29,6 +29,13 @@ export function PixelEditor({ initial, onChange, color }: PixelEditorProps) {
   const [pixels, setPixels] = useState<string[]>(
     () => initial?.pixels.slice() ?? createBlank()
   );
+  // Sync pixels when initial data loads from Firebase
+  useEffect(() => {
+    if (initial?.pixels) {
+      setPixels(initial.pixels.slice());
+    }
+  }, [initial]);
+
   const [undoStack, setUndoStack] = useState<string[][]>([]);
   const [redoStack, setRedoStack] = useState<string[][]>([]);
   const isPainting = useRef(false);

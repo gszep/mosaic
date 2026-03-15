@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { db, ref, get, update } from "../../shared/firebase";
 import type { Submission, SpriteData } from "../../shared/types";
+import { pngToSpriteData } from "../../shared/pngToSpriteData";
+
+const BASE = import.meta.env.BASE_URL;
 
 function getToken(): string | null {
   return new URLSearchParams(window.location.search).get("token");
@@ -33,18 +36,29 @@ export function useSubmission() {
     }
 
     get(ref(db, `submissions/${token}`))
-      .then((snapshot) => {
+      .then(async (snapshot) => {
+        let name = "";
+        let spriteData: SpriteData | null = null;
+
         if (snapshot.exists()) {
           const data = snapshot.val() as Submission;
-          setState((s) => ({
-            ...s,
-            loading: false,
-            name: data.name ?? "",
-            spriteData: data.spriteData ?? null,
-          }));
-        } else {
-          setState((s) => ({ ...s, loading: false }));
+          name = data.name ?? "";
+          spriteData = data.spriteData ?? null;
         }
+
+        // Load default sprite if no custom one exists
+        if (!spriteData) {
+          try {
+            const defaultSprite = token === "player"
+              ? "player-default.png"
+              : "npc-default.png";
+            spriteData = await pngToSpriteData(`${BASE}sprites/${defaultSprite}`);
+          } catch {
+            // Fall through with null spriteData
+          }
+        }
+
+        setState((s) => ({ ...s, loading: false, name, spriteData }));
       })
       .catch((err) => {
         setState((s) => ({ ...s, loading: false, error: (err as Error).message }));
