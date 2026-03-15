@@ -133,9 +133,11 @@ body {
 .check { cursor: pointer; }
 
 #catalog-tree { font: inherit; }
-.catalog-header { cursor: pointer; color: #888; padding: 1px 0; user-select: none; }
-.catalog-header:hover { color: #EEEEEC; }
-.catalog-body { padding-left: 12px; }
+#catalog-tree summary { cursor: pointer; color: #888; padding: 1px 0; user-select: none; list-style: none; }
+#catalog-tree summary:hover { color: #EEEEEC; }
+#catalog-tree summary::before { content: "\25BE "; }
+#catalog-tree details:not([open]) > summary::before { content: "\25B8 "; }
+#catalog-tree details > :not(summary) { padding-left: 12px; }
 .catalog-row { display: flex; align-items: center; gap: 4px; padding: 1px 0; }
 .catalog-row-stamp { align-items: start; }
 .catalog-label { color: #888; flex-shrink: 0; }

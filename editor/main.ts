@@ -278,19 +278,61 @@ function buildCatalogTree() {
   catalogTreeEl = document.createElement("div");
   catalogTreeEl.id = "catalog-tree";
   catalogTreeScale = paletteScale;
-
   const ts = TILE_SIZE * paletteScale;
 
-  function makeTile(gid: number): HTMLElement {
-    const wrap = document.createElement("span");
-    wrap.className = "catalog-tile-wrap";
-    wrap.dataset.gid = String(gid);
-    wrap.dataset.pattern = "";
-    const c = document.createElement("canvas");
-    c.width = ts;
-    c.height = ts;
-    c.className = "catalog-tile";
-    if (gid === selectedGid) c.classList.add("selected");
+  const tile = (gid: number, pattern = "") =>
+    `<span class="catalog-tile-wrap" data-gid="${gid}" data-pattern="${pattern}"><canvas class="catalog-tile" width="${ts}" height="${ts}"></canvas></span>`;
+
+  const row = (label: string, tiles: string) =>
+    `<div class="catalog-row"><span class="catalog-label">${label}</span><span class="catalog-tiles">${tiles}</span></div>`;
+
+  let html = "<details open><summary>fill</summary>";
+  for (const [name, terrain] of Object.entries(catalog!.terrains)) {
+    html += row(name, terrain.fill.map(g => tile(g)).join(""));
+  }
+  html += "</details>";
+
+  html += "<details open><summary>transition</summary>";
+  for (const [name, trans] of Object.entries(catalog!.transitions)) {
+    const keys = Object.keys(trans.key);
+    const secondary = keys[1];
+    const keyLabel = Object.entries(trans.key).map(([k, v]) => `${k}=${v}`).join(" ");
+
+    const byCount = new Map<number, { pattern: string; gids: number[] }[]>();
+    for (const [pattern, gids] of Object.entries(trans.patterns)) {
+      const count = [...pattern].filter(c => c === secondary).length;
+      if (!byCount.has(count)) byCount.set(count, []);
+      byCount.get(count)!.push({ pattern, gids });
+    }
+
+    html += `<details open><summary>${name} (${keyLabel})</summary>`;
+    for (const count of [...byCount.keys()].sort((a, b) => b - a)) {
+      const tiles = byCount.get(count)!
+        .flatMap(({ pattern, gids }) => gids.map(g => tile(g, pattern)))
+        .join("");
+      html += row(`${count}/8 ${secondary}`, tiles);
+    }
+    html += "</details>";
+  }
+  html += "</details>";
+
+  html += "<details open><summary>stamp</summary>";
+  for (const [name, stamp] of Object.entries(catalog!.stamps)) {
+    html += `<div class="catalog-row catalog-row-stamp"><span class="catalog-label">${name}</span>`;
+    html += `<div class="catalog-stamp-grid" style="grid-template-columns:repeat(${stamp.size[0]},${ts}px)">`;
+    for (const gridRow of stamp.tiles) {
+      for (const gid of gridRow) html += tile(gid);
+    }
+    html += "</div></div>";
+  }
+  html += "</details>";
+
+  catalogTreeEl.innerHTML = html;
+
+  // Draw tiles on canvases (inherently imperative — separated from structure)
+  for (const wrap of catalogTreeEl.querySelectorAll<HTMLElement>(".catalog-tile-wrap")) {
+    const gid = parseInt(wrap.dataset.gid!, 10);
+    const c = wrap.querySelector("canvas")!;
     const ctx = c.getContext("2d")!;
     ctx.imageSmoothingEnabled = false;
     for (let t = tilesetImages.length - 1; t >= 0; t--) {
@@ -303,110 +345,15 @@ function buildCatalogTree() {
         break;
       }
     }
-    wrap.appendChild(c);
-    return wrap;
+    if (gid === selectedGid) c.classList.add("selected");
   }
 
-  function makeGroup(label: string, children: HTMLElement[], open = true): HTMLElement {
-    const group = document.createElement("div");
-    const header = document.createElement("div");
-    header.className = "catalog-header";
-    header.textContent = `${open ? "\u25BE" : "\u25B8"} ${label}`;
-    const body = document.createElement("div");
-    body.className = "catalog-body";
-    if (!open) body.style.display = "none";
-    children.forEach(el => body.appendChild(el));
-    header.addEventListener("click", () => {
-      const isOpen = body.style.display !== "none";
-      body.style.display = isOpen ? "none" : "";
-      header.textContent = `${isOpen ? "\u25B8" : "\u25BE"} ${label}`;
-    });
-    group.appendChild(header);
-    group.appendChild(body);
-    return group;
-  }
-
-  function makeRow(label: string, gids: number[]): HTMLElement {
-    const row = document.createElement("div");
-    row.className = "catalog-row";
-    const lbl = document.createElement("span");
-    lbl.className = "catalog-label";
-    lbl.textContent = label;
-    row.appendChild(lbl);
-    const tiles = document.createElement("span");
-    tiles.className = "catalog-tiles";
-    for (const gid of gids) tiles.appendChild(makeTile(gid));
-    row.appendChild(tiles);
-    return row;
-  }
-
-  const fillRows = Object.entries(catalog!.terrains).map(
-    ([name, terrain]) => makeRow(name, terrain.fill)
-  );
-  catalogTreeEl.appendChild(makeGroup("fill", fillRows));
-
-  const transGroups = Object.entries(catalog!.transitions).map(
-    ([name, trans]) => {
-      const keys = Object.keys(trans.key);
-      const secondary = keys[1];
-      const keyLabel = Object.entries(trans.key).map(([k, v]) => `${k}=${v}`).join(" ");
-
-      const byCount = new Map<number, { pattern: string; gids: number[] }[]>();
-      for (const [pattern, gids] of Object.entries(trans.patterns)) {
-        const count = [...pattern].filter(c => c === secondary).length;
-        if (!byCount.has(count)) byCount.set(count, []);
-        byCount.get(count)!.push({ pattern, gids });
-      }
-
-      const countRows = [...byCount.keys()].sort((a, b) => b - a).map(count => {
-        const row = document.createElement("div");
-        row.className = "catalog-row";
-        const lbl = document.createElement("span");
-        lbl.className = "catalog-label";
-        lbl.textContent = `${count}/8 ${secondary}`;
-        row.appendChild(lbl);
-        const tiles = document.createElement("span");
-        tiles.className = "catalog-tiles";
-        for (const { pattern, gids } of byCount.get(count)!) {
-          for (const gid of gids) {
-            const tile = makeTile(gid);
-            tile.dataset.pattern = pattern;
-            tiles.appendChild(tile);
-          }
-        }
-        row.appendChild(tiles);
-        return row;
-      });
-
-      return makeGroup(`${name} (${keyLabel})`, countRows);
-    }
-  );
-  catalogTreeEl.appendChild(makeGroup("transition", transGroups));
-
-  const stampRows = Object.entries(catalog!.stamps).map(([name, stamp]) => {
-    const row = document.createElement("div");
-    row.className = "catalog-row catalog-row-stamp";
-    const lbl = document.createElement("span");
-    lbl.className = "catalog-label";
-    lbl.textContent = name;
-    row.appendChild(lbl);
-    const grid = document.createElement("div");
-    grid.className = "catalog-stamp-grid";
-    grid.style.gridTemplateColumns = `repeat(${stamp.size[0]}, ${ts}px)`;
-    for (const gridRow of stamp.tiles) {
-      for (const gid of gridRow) grid.appendChild(makeTile(gid));
-    }
-    row.appendChild(grid);
-    return row;
-  });
-  catalogTreeEl.appendChild(makeGroup("stamp", stampRows));
-
+  // Event delegation
   catalogTreeEl.addEventListener("click", (e) => {
     const wrap = (e.target as HTMLElement).closest(".catalog-tile-wrap") as HTMLElement | null;
     if (!wrap?.dataset.gid) return;
-    const gid = parseInt(wrap.dataset.gid, 10);
-    selectedGid = gid;
-    tileInfo.textContent = `GID ${gid} (catalog)`;
+    selectedGid = parseInt(wrap.dataset.gid, 10);
+    tileInfo.textContent = `GID ${selectedGid} (catalog)`;
     catalogTreeEl!.querySelectorAll(".catalog-tile.selected").forEach(el => el.classList.remove("selected"));
     wrap.querySelector(".catalog-tile")!.classList.add("selected");
   });

@@ -8,6 +8,9 @@ import { TRANSPARENT } from "./palette";
  */
 export async function pngToSpriteData(url: string): Promise<SpriteData> {
   const img = await loadImage(url);
+  if (img.width !== 16 || img.height !== 16) {
+    throw new Error(`Expected 16x16 sprite, got ${img.width}x${img.height}`);
+  }
   const canvas = document.createElement("canvas");
   canvas.width = img.width;
   canvas.height = img.height;
