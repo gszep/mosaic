@@ -34,7 +34,7 @@ async function boot() {
   const cleanupInput = initInput();
   const player = createPlayer(
     Math.max(0, (mapWidth - 16) / 2),
-    Math.max(0, (mapHeight - 32) / 2)
+    Math.max(0, (mapHeight - 16) / 2)
   );
 
   const playerSprite = await loadPlayerSprite();

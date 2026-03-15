@@ -1,6 +1,6 @@
 export interface SpriteData {
   width: 16;
-  height: 32;
+  height: 16;
   pixels: string[];
 }
 

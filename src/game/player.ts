@@ -12,56 +12,37 @@ const SHOE = "#3B3643";
 const EYE = "#090B0C";
 const _ = TRANSPARENT;
 
-/* 16x32 default character placeholder */
+/* 16x16 default character placeholder */
 const DEFAULT_PIXELS: string[] = [
-  // row 0-1: hair top
-  _,_,_,_,_,_,HAIR,HAIR,HAIR,HAIR,_,_,_,_,_,_,
+  // row 0-1: hair
   _,_,_,_,_,HAIR,HAIR,HAIR,HAIR,HAIR,HAIR,_,_,_,_,_,
-  // row 2-3: hair sides + forehead
   _,_,_,_,HAIR,HAIR,HAIR,HAIR,HAIR,HAIR,HAIR,HAIR,_,_,_,_,
-  _,_,_,_,HAIR,HAIR,SKIN,SKIN,SKIN,SKIN,HAIR,HAIR,_,_,_,_,
-  // row 4-5: face
+  // row 2-3: face
   _,_,_,_,HAIR,SKIN,SKIN,SKIN,SKIN,SKIN,SKIN,HAIR,_,_,_,_,
   _,_,_,_,_,SKIN,EYE,SKIN,SKIN,EYE,SKIN,_,_,_,_,_,
-  // row 6-7: face bottom
-  _,_,_,_,_,SKIN,SKIN,SKIN,SKIN,SKIN,SKIN,_,_,_,_,_,
+  // row 4: chin
   _,_,_,_,_,_,SKIN,SKIN,SKIN,SKIN,_,_,_,_,_,_,
-  // row 8: neck
+  // row 5-6: neck + shoulders
   _,_,_,_,_,_,_,SKIN,SKIN,_,_,_,_,_,_,_,
-  // row 9-10: shoulders
-  _,_,_,_,_,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,_,_,_,_,_,
   _,_,_,_,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,_,_,_,_,
-  // row 11-16: torso
+  // row 7-9: torso
   _,_,_,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,_,_,_,
   _,_,_,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,_,_,_,
   _,_,_,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,_,_,_,
-  _,_,_,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,_,_,_,
-  _,_,_,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,_,_,_,
-  _,_,_,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,_,_,_,
-  _,_,_,_,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,SHIRT,_,_,_,_,
-  // row 18-19: belt / waist
+  // row 10-11: waist
   _,_,_,_,PANTS,PANTS,PANTS,PANTS,PANTS,PANTS,PANTS,PANTS,_,_,_,_,
   _,_,_,_,PANTS,PANTS,PANTS,PANTS,PANTS,PANTS,PANTS,PANTS,_,_,_,_,
-  // row 20-26: legs
+  // row 12-13: legs
   _,_,_,_,PANTS,PANTS,PANTS,_,_,PANTS,PANTS,PANTS,_,_,_,_,
   _,_,_,_,PANTS,PANTS,PANTS,_,_,PANTS,PANTS,PANTS,_,_,_,_,
-  _,_,_,_,PANTS,PANTS,PANTS,_,_,PANTS,PANTS,PANTS,_,_,_,_,
-  _,_,_,_,PANTS,PANTS,PANTS,_,_,PANTS,PANTS,PANTS,_,_,_,_,
-  _,_,_,_,PANTS,PANTS,PANTS,_,_,PANTS,PANTS,PANTS,_,_,_,_,
-  _,_,_,_,PANTS,PANTS,PANTS,_,_,PANTS,PANTS,PANTS,_,_,_,_,
-  _,_,_,_,PANTS,PANTS,PANTS,_,_,PANTS,PANTS,PANTS,_,_,_,_,
-  // row 27-28: ankles
-  _,_,_,_,PANTS,PANTS,PANTS,_,_,PANTS,PANTS,PANTS,_,_,_,_,
-  _,_,_,_,PANTS,PANTS,PANTS,_,_,PANTS,PANTS,PANTS,_,_,_,_,
-  // row 29-31: shoes
-  _,_,_,SHOE,SHOE,SHOE,SHOE,_,_,SHOE,SHOE,SHOE,SHOE,_,_,_,
+  // row 14-15: shoes
   _,_,_,SHOE,SHOE,SHOE,SHOE,_,_,SHOE,SHOE,SHOE,SHOE,_,_,_,
   _,_,_,SHOE,SHOE,SHOE,SHOE,_,_,SHOE,SHOE,SHOE,SHOE,_,_,_,
 ];
 
 const DEFAULT_SPRITE_DATA: SpriteData = {
   width: 16,
-  height: 32,
+  height: 16,
   pixels: DEFAULT_PIXELS,
 };
 

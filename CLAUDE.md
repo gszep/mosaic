@@ -65,7 +65,7 @@ npx vitest run        # Run tests once (CI)
 
 ## Key Conventions
 
-- **Tile size**: 16x16 pixels. Sprite size: 16x32 pixels.
+- **Tile size**: 16x16 pixels. Sprite size: 16x16 pixels.
 - **Maps**: 40x30 tiles (640x480 pixels). TMJ format (Tiled JSON).
 - **Layers**: ground, buildings, decoration, collision (in render order). Collision is non-rendered; parsed into a Set of blocked tile indices.
 - **GIDs**: Global tile IDs across all 20 tilesets. GID 1 = first tile of TilesetFloor. Each tileset's `firstgid` is computed by summing previous tileset tile counts.
@@ -153,6 +153,8 @@ These are also set as GitHub Actions secrets for the deploy workflow.
 
 Visual verification via `@playwright/cli`. Any agent with shell access can use it. Screenshots go in `screenshots/` (gitignored).
 
+ALWAYS: Check `npx playwright-cli --help` for the full list of available commands.
+
 ```bash
 npx playwright-cli open http://localhost:5173/mosaic/              # open page (headless)
 npx playwright-cli screenshot --filename screenshots/game.png      # capture viewport
@@ -160,6 +162,11 @@ npx playwright-cli console                                         # show JS con
 npx playwright-cli eval "document.title"                           # evaluate JS expression
 npx playwright-cli snapshot                                        # a11y tree snapshot
 npx playwright-cli close                                           # close browser session
+
+# Keyboard input (key names are case-sensitive, e.g. ArrowRight not arrowright)
+npx playwright-cli press ArrowRight                                # press and release a key
+npx playwright-cli keydown ArrowRight                              # hold key down
+npx playwright-cli keyup ArrowRight                                # release key
 ```
 
 Console logs are auto-saved to `.playwright-cli/` (gitignored). The `open` command also captures an a11y snapshot and console log on each invocation.

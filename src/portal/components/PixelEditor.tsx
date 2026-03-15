@@ -9,7 +9,7 @@ import { TRANSPARENT } from "../../shared/palette";
 import type { SpriteData } from "../../shared/types";
 
 const W = 16;
-const H = 32;
+const H = 16;
 const CELL_COUNT = W * H;
 
 const SCALE = 16;
@@ -82,7 +82,7 @@ export function PixelEditor({ initial, onChange, color }: PixelEditorProps) {
         if (prev[index] === color) return prev;
         const next = prev.slice();
         next[index] = color;
-        onChange({ width: W as 16, height: H as 32, pixels: next });
+        onChange({ width: W as 16, height: H as 16, pixels: next });
         return next;
       });
     },
@@ -124,7 +124,7 @@ export function PixelEditor({ initial, onChange, color }: PixelEditorProps) {
       const snapshot = prev[prev.length - 1];
       setPixels((current) => {
         setRedoStack((r) => [...r, current]);
-        onChange({ width: W as 16, height: H as 32, pixels: snapshot });
+        onChange({ width: W as 16, height: H as 16, pixels: snapshot });
         return snapshot;
       });
       return prev.slice(0, -1);
@@ -137,7 +137,7 @@ export function PixelEditor({ initial, onChange, color }: PixelEditorProps) {
       const snapshot = prev[prev.length - 1];
       setPixels((current) => {
         setUndoStack((u) => [...u, current]);
-        onChange({ width: W as 16, height: H as 32, pixels: snapshot });
+        onChange({ width: W as 16, height: H as 16, pixels: snapshot });
         return snapshot;
       });
       return prev.slice(0, -1);
@@ -149,7 +149,7 @@ export function PixelEditor({ initial, onChange, color }: PixelEditorProps) {
       setUndoStack((prev) => [...prev, current]);
       setRedoStack([]);
       const blank = createBlank();
-      onChange({ width: W as 16, height: H as 32, pixels: blank });
+      onChange({ width: W as 16, height: H as 16, pixels: blank });
       return blank;
     });
   }, [onChange]);
