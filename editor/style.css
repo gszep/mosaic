@@ -131,3 +131,23 @@ body {
 #map-list li:hover, #layer-list li:hover, #tool-list li:hover { background: #373737; }
 #map-list li.active, #layer-list li.active, #tool-list li.active { background: #E95420; color: #FFFFFF; }
 .check { cursor: pointer; }
+
+#catalog-tree { font: inherit; }
+.catalog-header { cursor: pointer; color: #888; padding: 1px 0; user-select: none; }
+.catalog-header:hover { color: #EEEEEC; }
+.catalog-body { padding-left: 12px; }
+.catalog-row { display: flex; align-items: center; gap: 4px; padding: 1px 0; }
+.catalog-row-stamp { align-items: start; }
+.catalog-label { color: #888; flex-shrink: 0; }
+.catalog-tiles { display: flex; flex-wrap: wrap; gap: 1px; }
+.catalog-stamp-grid { display: grid; gap: 0px; }
+.catalog-tile-wrap { position: relative; display: inline-block; line-height: 0; }
+.catalog-tile { image-rendering: pixelated; cursor: pointer; outline: 1px solid transparent; }
+.catalog-tile:hover { outline-color: rgba(255,255,255,0.4); }
+.catalog-tile.selected { outline-color: #E95420; }
+.catalog-tile-wrap:hover::after {
+  content: attr(data-gid);
+  position: absolute; bottom: 1px; left: 2px;
+  font-size: 9px; color: rgba(255,255,255,0.7);
+  pointer-events: none; text-shadow: 0 0 2px #000;
+}

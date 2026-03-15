@@ -1,5 +1,23 @@
 import type { TMJMap, TMJTileset } from "./tmj";
 
+export interface CatalogData {
+  terrains: Record<string, { fill: number[]; description: string }>;
+  transitions: Record<string, {
+    description: string;
+    key: Record<string, string>;
+    patterns: Record<string, number[]>;
+  }>;
+  stamps: Record<string, {
+    description: string;
+    tileset: string;
+    size: [number, number];
+    layer: string;
+    tiles: number[][];
+    collision: number[][];
+    door: [number, number];
+  }>;
+}
+
 export interface TilesetImage {
   tileset: TMJTileset;
   img: HTMLImageElement;

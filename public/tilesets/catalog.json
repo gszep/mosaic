@@ -1,0 +1,267 @@
+{
+  "terrains": {
+    "dark_grass": {
+      "fill": [
+        235,
+        276,
+        277,
+        278,
+        279,
+        280
+      ],
+      "description": "Dark green grass \u2014 rows 7-13 right half of TilesetFloor"
+    },
+    "light_grass": {
+      "fill": [
+        245,
+        246,
+        265,
+        266,
+        267,
+        268,
+        269
+      ],
+      "description": "Light/lime green grass \u2014 rows 7-13 left half of TilesetFloor"
+    },
+    "brown_dirt": {
+      "fill": [
+        189,
+        257
+      ],
+      "description": "Brown dirt/earth \u2014 shared fill for the green/brown terrain pair"
+    }
+  },
+  "transitions": {
+    "dark_grass_to_brown_dirt": {
+      "description": "Edges/corners where dark green grass meets brown dirt",
+      "key": {
+        "G": "dark_grass",
+        "D": "brown_dirt"
+      },
+      "patterns": {
+        "DDDDDDDG": [
+          193
+        ],
+        "DDDDDGDD": [
+          194
+        ],
+        "DDDDDGGG": [
+          211
+        ],
+        "DDGDDDDD": [
+          215
+        ],
+        "DDGDDDDG": [
+          261
+        ],
+        "DDGDDGDD": [
+          175
+        ],
+        "DDGDDGGG": [
+          239,
+          237
+        ],
+        "DDGDGDDG": [
+          190,
+          195,
+          217
+        ],
+        "DDGDGGGG": [
+          212
+        ],
+        "GDDDDDDD": [
+          216
+        ],
+        "GDDDDDDG": [
+          197
+        ],
+        "GDDDDGGG": [
+          238
+        ],
+        "GDDGDGDD": [
+          188,
+          192,
+          214
+        ],
+        "GDDGDGGD": [
+          236
+        ],
+        "GDDGDGGG": [
+          210
+        ],
+        "GDGGDDDG": [
+          191
+        ],
+        "GDGGGGGG": [
+          213
+        ],
+        "GGGDDDDD": [
+          167,
+          174
+        ],
+        "GGGDDDDG": [
+          171,
+          173
+        ],
+        "GGGDDGDD": [
+          172
+        ],
+        "GGGDDGGG": [
+          233
+        ],
+        "GGGDGDDG": [
+          168
+        ],
+        "GGGDGGGG": [
+          234
+        ],
+        "GGGGDDDD": [
+          170
+        ],
+        "GGGGDGDD": [
+          166
+        ],
+        "GGGGDGGG": [
+          232
+        ],
+        "GGGGGGDG": [
+          169
+        ]
+      }
+    },
+    "dark_grass_to_sand": {
+      "description": "Edges/corners where dark green grass meets sand",
+      "key": {
+        "G": "dark_grass",
+        "S": "sand"
+      },
+      "patterns": {
+        "GGSGSGGS": [
+          298
+        ],
+        "GGGGGSGG": [
+          300
+        ],
+        "SSSGSGSS": [
+          299
+        ]
+      }
+    },
+    "light_grass_to_sand": {
+      "description": "Edges/corners where light green grass meets sand",
+      "key": {
+        "G": "light_grass",
+        "S": "sand"
+      },
+      "patterns": {
+        "GGGSGSSG": [
+          289
+        ],
+        "GSSGSGSS": [
+          287
+        ]
+      }
+    },
+    "light_grass_to_brown_dirt": {
+      "description": "Edges/corners where light green grass meets brown dirt",
+      "key": {
+        "G": "light_grass",
+        "D": "brown_dirt"
+      },
+      "patterns": {
+        "DDDDGGGG": [
+          201
+        ],
+        "DGGDGDDG": [
+          157
+        ],
+        "GDDGDGGD": [
+          199
+        ],
+        "GGGGDDDD": [
+          155
+        ]
+      }
+    },
+    "dark_grass_to_light_grass": {
+      "description": "Edges/corners where dark green grass meets light green grass",
+      "key": {
+        "D": "dark_grass",
+        "L": "light_grass"
+      },
+      "patterns": {
+        "DDDDDLDD": [
+          291,
+          303
+        ],
+        "DDLDLDDL": [
+          301
+        ],
+        "LDDLDLLD": [
+          290
+        ],
+        "LLLDLDDL": [
+          302
+        ],
+        "LLLLLDDL": [
+          292
+        ]
+      }
+    }
+  },
+  "stamps": {
+    "cottage_a": {
+      "description": "Small orange-roofed cottage, 4x3 tiles",
+      "tileset": "TilesetHouse",
+      "size": [
+        4,
+        3
+      ],
+      "layer": "buildings",
+      "tiles": [
+        [
+          1234,
+          1235,
+          1236,
+          1237
+        ],
+        [
+          1267,
+          1268,
+          1269,
+          1270
+        ],
+        [
+          1300,
+          1301,
+          1302,
+          1303
+        ]
+      ],
+      "collision": [
+        [
+          1,
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          1,
+          1,
+          1
+        ]
+      ],
+      "door": [
+        1,
+        3
+      ]
+    }
+  }
+}

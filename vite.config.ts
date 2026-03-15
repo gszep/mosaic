@@ -18,6 +18,14 @@ function mapWriterPlugin(): Plugin {
         server.ws.send("map-update", { name });
       });
 
+      // Watch tilesets dir for catalog.json changes.
+      const tilesetsDir = resolve(__dirname, "public/tilesets");
+      watch(tilesetsDir, (_event, filename) => {
+        if (filename === "catalog.json") {
+          server.ws.send("catalog-update", {});
+        }
+      });
+
       server.middlewares.use(async (req, res, next) => {
         const match = req.url?.match(/^\/api\/save-map\/([a-z]+)$/);
         if (req.method !== "POST" || !match) return next();

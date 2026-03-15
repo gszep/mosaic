@@ -6,6 +6,7 @@ import {
   renderPalette,
   type TilesetImage,
   type RenderOptions,
+  type CatalogData,
 } from "./renderer";
 
 const BASE = import.meta.env.BASE_URL;
@@ -45,6 +46,10 @@ let activeTilesetIndex = 0;
 let tool: "paint" | "erase" | "inspect" = "paint";
 let painting = false;
 let currentMapName = "village";
+let catalog: CatalogData | null = null;
+let catalogTreeEl: HTMLDivElement | null = null;
+let catalogTreeScale = 0;
+const CATALOG_INDEX = -1;
 
 const opts: RenderOptions = {
   showGrid: true,
@@ -132,6 +137,19 @@ async function init() {
   mapScale = getMinMapScale();
   opts.scale = mapScale;
 
+  try {
+    const resp = await fetch(`${BASE}tilesets/catalog.json`);
+    if (resp.ok) catalog = await resp.json();
+  } catch {}
+
+  if (catalog) {
+    const opt = document.createElement("option");
+    opt.value = String(CATALOG_INDEX);
+    opt.textContent = "-- Catalog --";
+    tilesetSelect.appendChild(opt);
+    activeTilesetIndex = CATALOG_INDEX;
+  }
+
   tilesetImages.forEach((tsi, i) => {
     const opt = document.createElement("option");
     opt.value = String(i);
@@ -154,6 +172,18 @@ async function init() {
           redrawMap();
         }
       }
+    });
+
+    import.meta.hot.on("catalog-update", async () => {
+      try {
+        const resp = await fetch(`${BASE}tilesets/catalog.json?t=${Date.now()}`);
+        if (resp.ok) {
+          catalog = await resp.json();
+          catalogTreeEl?.remove();
+          catalogTreeEl = null;
+          redrawPalette();
+        }
+      } catch {}
     });
   }
 }
@@ -228,9 +258,172 @@ function redrawMap() {
 }
 
 function redrawPalette() {
+  if (activeTilesetIndex === CATALOG_INDEX && catalog) {
+    paletteCanvas.style.display = "none";
+    if (!catalogTreeEl || catalogTreeScale !== paletteScale) {
+      buildCatalogTree();
+    }
+    catalogTreeEl!.style.display = "";
+    return;
+  }
+  if (catalogTreeEl) catalogTreeEl.style.display = "none";
+  paletteCanvas.style.display = "";
   const tsi = tilesetImages[activeTilesetIndex];
   if (!tsi) return;
   renderPalette(paletteCtx, tsi, selectedGid, paletteScale);
+}
+
+function buildCatalogTree() {
+  if (catalogTreeEl) catalogTreeEl.remove();
+  catalogTreeEl = document.createElement("div");
+  catalogTreeEl.id = "catalog-tree";
+  catalogTreeScale = paletteScale;
+
+  const ts = TILE_SIZE * paletteScale;
+
+  function makeTile(gid: number): HTMLElement {
+    const wrap = document.createElement("span");
+    wrap.className = "catalog-tile-wrap";
+    wrap.dataset.gid = String(gid);
+    wrap.dataset.pattern = "";
+    const c = document.createElement("canvas");
+    c.width = ts;
+    c.height = ts;
+    c.className = "catalog-tile";
+    if (gid === selectedGid) c.classList.add("selected");
+    const ctx = c.getContext("2d")!;
+    ctx.imageSmoothingEnabled = false;
+    for (let t = tilesetImages.length - 1; t >= 0; t--) {
+      if (gid >= tilesetImages[t].tileset.firstgid) {
+        const tileset = tilesetImages[t].tileset;
+        const localId = gid - tileset.firstgid;
+        const sx = (localId % tileset.columns) * TILE_SIZE;
+        const sy = Math.floor(localId / tileset.columns) * TILE_SIZE;
+        ctx.drawImage(tilesetImages[t].img, sx, sy, TILE_SIZE, TILE_SIZE, 0, 0, ts, ts);
+        break;
+      }
+    }
+    wrap.appendChild(c);
+    return wrap;
+  }
+
+  function makeGroup(label: string, children: HTMLElement[], open = true): HTMLElement {
+    const group = document.createElement("div");
+    const header = document.createElement("div");
+    header.className = "catalog-header";
+    header.textContent = `${open ? "\u25BE" : "\u25B8"} ${label}`;
+    const body = document.createElement("div");
+    body.className = "catalog-body";
+    if (!open) body.style.display = "none";
+    children.forEach(el => body.appendChild(el));
+    header.addEventListener("click", () => {
+      const isOpen = body.style.display !== "none";
+      body.style.display = isOpen ? "none" : "";
+      header.textContent = `${isOpen ? "\u25B8" : "\u25BE"} ${label}`;
+    });
+    group.appendChild(header);
+    group.appendChild(body);
+    return group;
+  }
+
+  function makeRow(label: string, gids: number[]): HTMLElement {
+    const row = document.createElement("div");
+    row.className = "catalog-row";
+    const lbl = document.createElement("span");
+    lbl.className = "catalog-label";
+    lbl.textContent = label;
+    row.appendChild(lbl);
+    const tiles = document.createElement("span");
+    tiles.className = "catalog-tiles";
+    for (const gid of gids) tiles.appendChild(makeTile(gid));
+    row.appendChild(tiles);
+    return row;
+  }
+
+  const fillRows = Object.entries(catalog!.terrains).map(
+    ([name, terrain]) => makeRow(name, terrain.fill)
+  );
+  catalogTreeEl.appendChild(makeGroup("fill", fillRows));
+
+  const transGroups = Object.entries(catalog!.transitions).map(
+    ([name, trans]) => {
+      const keys = Object.keys(trans.key);
+      const secondary = keys[1];
+      const keyLabel = Object.entries(trans.key).map(([k, v]) => `${k}=${v}`).join(" ");
+
+      const byCount = new Map<number, { pattern: string; gids: number[] }[]>();
+      for (const [pattern, gids] of Object.entries(trans.patterns)) {
+        const count = [...pattern].filter(c => c === secondary).length;
+        if (!byCount.has(count)) byCount.set(count, []);
+        byCount.get(count)!.push({ pattern, gids });
+      }
+
+      const countRows = [...byCount.keys()].sort((a, b) => b - a).map(count => {
+        const row = document.createElement("div");
+        row.className = "catalog-row";
+        const lbl = document.createElement("span");
+        lbl.className = "catalog-label";
+        lbl.textContent = `${count}/8 ${secondary}`;
+        row.appendChild(lbl);
+        const tiles = document.createElement("span");
+        tiles.className = "catalog-tiles";
+        for (const { pattern, gids } of byCount.get(count)!) {
+          for (const gid of gids) {
+            const tile = makeTile(gid);
+            tile.dataset.pattern = pattern;
+            tiles.appendChild(tile);
+          }
+        }
+        row.appendChild(tiles);
+        return row;
+      });
+
+      return makeGroup(`${name} (${keyLabel})`, countRows);
+    }
+  );
+  catalogTreeEl.appendChild(makeGroup("transition", transGroups));
+
+  const stampRows = Object.entries(catalog!.stamps).map(([name, stamp]) => {
+    const row = document.createElement("div");
+    row.className = "catalog-row catalog-row-stamp";
+    const lbl = document.createElement("span");
+    lbl.className = "catalog-label";
+    lbl.textContent = name;
+    row.appendChild(lbl);
+    const grid = document.createElement("div");
+    grid.className = "catalog-stamp-grid";
+    grid.style.gridTemplateColumns = `repeat(${stamp.size[0]}, ${ts}px)`;
+    for (const gridRow of stamp.tiles) {
+      for (const gid of gridRow) grid.appendChild(makeTile(gid));
+    }
+    row.appendChild(grid);
+    return row;
+  });
+  catalogTreeEl.appendChild(makeGroup("stamp", stampRows));
+
+  catalogTreeEl.addEventListener("click", (e) => {
+    const wrap = (e.target as HTMLElement).closest(".catalog-tile-wrap") as HTMLElement | null;
+    if (!wrap?.dataset.gid) return;
+    const gid = parseInt(wrap.dataset.gid, 10);
+    selectedGid = gid;
+    tileInfo.textContent = `GID ${gid} (catalog)`;
+    catalogTreeEl!.querySelectorAll(".catalog-tile.selected").forEach(el => el.classList.remove("selected"));
+    wrap.querySelector(".catalog-tile")!.classList.add("selected");
+  });
+
+  catalogTreeEl.addEventListener("mouseover", (e) => {
+    const wrap = (e.target as HTMLElement).closest(".catalog-tile-wrap") as HTMLElement | null;
+    if (!wrap?.dataset.gid) return;
+    const p = wrap.dataset.pattern;
+    tileInfo.textContent = p ? `GID ${wrap.dataset.gid} ${p}` : `GID ${wrap.dataset.gid}`;
+  });
+
+  catalogTreeEl.addEventListener("mouseout", (e) => {
+    const wrap = (e.target as HTMLElement).closest(".catalog-tile-wrap") as HTMLElement | null;
+    if (wrap) tileInfo.textContent = selectedGid !== null ? `GID ${selectedGid} (catalog)` : "";
+  });
+
+  paletteScroll.appendChild(catalogTreeEl);
 }
 
 function selectGid(gid: number) {
