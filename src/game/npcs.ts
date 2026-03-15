@@ -1,32 +1,10 @@
-import { Container, Sprite, Texture } from "pixi.js";
+import { Assets, Container, Sprite, Texture } from "pixi.js";
 import { db, ref, get } from "../shared/firebase";
-import type { Submission, SpriteData } from "../shared/types";
+import type { Submission } from "../shared/types";
+import { spriteDataToTexture } from "./sprites";
 
 const TILE = 16;
-
-function spriteDataToTexture(data: SpriteData): Texture {
-  const canvas = document.createElement("canvas");
-  canvas.width = data.width;
-  canvas.height = data.height;
-  const ctx = canvas.getContext("2d")!;
-  const imageData = ctx.createImageData(data.width, data.height);
-
-  for (let i = 0; i < data.pixels.length; i++) {
-    const hex = data.pixels[i];
-    const offset = i * 4;
-    if (!hex) {
-      imageData.data[offset + 3] = 0;
-      continue;
-    }
-    imageData.data[offset] = parseInt(hex.slice(1, 3), 16);
-    imageData.data[offset + 1] = parseInt(hex.slice(3, 5), 16);
-    imageData.data[offset + 2] = parseInt(hex.slice(5, 7), 16);
-    imageData.data[offset + 3] = 255;
-  }
-
-  ctx.putImageData(imageData, 0, 0);
-  return Texture.from(canvas);
-}
+const BASE = import.meta.env.BASE_URL;
 
 export async function loadNpcSprites(
   mapWidth: number,
@@ -35,12 +13,15 @@ export async function loadNpcSprites(
   const container = new Container();
 
   try {
-    const snapshot = await get(ref(db, "submissions"));
+    const [snapshot, fallbackTexture] = await Promise.all([
+      get(ref(db, "submissions")),
+      Assets.load<Texture>(`${BASE}sprites/npc-default.png`),
+    ]);
     if (!snapshot.exists()) return container;
 
     const all = snapshot.val() as Record<string, Submission>;
     const submissions = Object.values(all).filter(
-      (s) => s.spriteData != null && s.token !== "player"
+      (s) => s.token !== "player"
     );
 
     const cols = Math.ceil(Math.sqrt(submissions.length));
@@ -50,7 +31,9 @@ export async function loadNpcSprites(
     for (let i = 0; i < submissions.length; i++) {
       const sub = submissions[i];
 
-      const texture = spriteDataToTexture(sub.spriteData!);
+      const texture = sub.spriteData
+        ? spriteDataToTexture(sub.spriteData)
+        : fallbackTexture;
       const sprite = new Sprite(texture);
       const col = i % cols;
       const row = Math.floor(i / cols);
