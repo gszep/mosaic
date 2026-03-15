@@ -7,6 +7,13 @@ export interface CatalogData {
     key: Record<string, string>;
     patterns: Record<string, number[]>;
   }>;
+  details: Record<string, {
+    description: string;
+    category: string;
+    tileset: string;
+    layer: string;
+    tiles: number[];
+  }>;
   stamps: Record<string, {
     description: string;
     tileset: string;

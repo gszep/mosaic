@@ -316,6 +316,23 @@ function buildCatalogTree() {
   }
   html += "</details>";
 
+  if (catalog!.details) {
+    html += "<details open><summary>detail</summary>";
+    const byCategory = new Map<string, { name: string; tiles: number[] }[]>();
+    for (const [name, detail] of Object.entries(catalog!.details)) {
+      if (!byCategory.has(detail.category)) byCategory.set(detail.category, []);
+      byCategory.get(detail.category)!.push({ name, tiles: detail.tiles });
+    }
+    for (const [category, entries] of byCategory) {
+      html += `<details open><summary>${category}</summary>`;
+      for (const { name, tiles } of entries) {
+        html += row(name, tiles.map(g => tile(g)).join(""));
+      }
+      html += "</details>";
+    }
+    html += "</details>";
+  }
+
   html += "<details open><summary>stamp</summary>";
   for (const [name, stamp] of Object.entries(catalog!.stamps)) {
     html += `<div class="catalog-row catalog-row-stamp"><span class="catalog-label">${name}</span>`;

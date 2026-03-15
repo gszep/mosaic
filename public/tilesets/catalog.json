@@ -2573,5 +2573,256 @@
         ]
       ]
     }
+  },
+  "details": {
+    "earth_cracks": {
+      "description": "Cracks, roots, and debris overlays for dark earth terrain",
+      "category": "ground",
+      "tileset": "TilesetFloorDetail",
+      "layer": "decoration",
+      "tiles": [
+        650,
+        651,
+        654,
+        655,
+        656,
+        657,
+        658
+      ]
+    },
+    "earth_rocks": {
+      "description": "Small rock and bone fragments on earth terrain",
+      "category": "ground",
+      "tileset": "TilesetFloorDetail",
+      "layer": "decoration",
+      "tiles": [
+        661,
+        662,
+        663,
+        664,
+        665
+      ]
+    },
+    "sand_pebbles": {
+      "description": "Scattered pebbles and mounds on sand terrain",
+      "category": "ground",
+      "tileset": "TilesetFloorDetail",
+      "layer": "decoration",
+      "tiles": [
+        652,
+        653,
+        659
+      ]
+    },
+    "ice_detail": {
+      "description": "Small ice/frost texture overlay",
+      "category": "ground",
+      "tileset": "TilesetFloorDetail",
+      "layer": "decoration",
+      "tiles": [
+        660
+      ]
+    },
+    "puddle": {
+      "description": "Small water puddle overlay",
+      "category": "ground",
+      "tileset": "TilesetFloorDetail",
+      "layer": "decoration",
+      "tiles": [
+        666
+      ]
+    },
+    "grass_overlay_green": {
+      "description": "Green grass tufts and small plants as terrain overlays",
+      "category": "plant",
+      "tileset": "TilesetFloorDetail",
+      "layer": "decoration",
+      "tiles": [
+        682,
+        683,
+        684,
+        685,
+        686,
+        687,
+        688,
+        689
+      ]
+    },
+    "grass_overlay_snow": {
+      "description": "Snow/winter grass tufts and plants as terrain overlays",
+      "category": "plant",
+      "tileset": "TilesetFloorDetail",
+      "layer": "decoration",
+      "tiles": [
+        698,
+        699,
+        700,
+        701,
+        702,
+        703,
+        704,
+        705
+      ]
+    },
+    "grass_green": {
+      "description": "Small green grass tufts and weeds",
+      "category": "plant",
+      "tileset": "TilesetNature",
+      "layer": "decoration",
+      "tiles": [
+        970,
+        971,
+        972,
+        973,
+        974,
+        975,
+        976,
+        977,
+        978,
+        979,
+        980,
+        981,
+        982
+      ]
+    },
+    "bush_small": {
+      "description": "Small green bushes and shrubs",
+      "category": "plant",
+      "tileset": "TilesetNature",
+      "layer": "decoration",
+      "tiles": [
+        955,
+        956,
+        957,
+        958,
+        1002,
+        1003,
+        1023,
+        1031
+      ]
+    },
+    "bush_seasonal": {
+      "description": "Seasonal bush variants with berries/flowers (autumn, spring, winter)",
+      "category": "plant",
+      "tileset": "TilesetNature",
+      "layer": "decoration",
+      "tiles": [
+        1070,
+        1071,
+        1072,
+        1094,
+        1095,
+        1096,
+        1118,
+        1119,
+        1120,
+        1142,
+        1143
+      ]
+    },
+    "clover": {
+      "description": "Small clover and leaf patches",
+      "category": "plant",
+      "tileset": "TilesetNature",
+      "layer": "decoration",
+      "tiles": [
+        996
+      ]
+    },
+    "flower": {
+      "description": "Decorative flowers (sunflowers, tulips)",
+      "category": "plant",
+      "tileset": "TilesetNature",
+      "layer": "decoration",
+      "tiles": [
+        994,
+        995,
+        997
+      ]
+    },
+    "mushroom": {
+      "description": "Mushrooms of various sizes and colors",
+      "category": "plant",
+      "tileset": "TilesetNature",
+      "layer": "decoration",
+      "tiles": [
+        1006,
+        1007,
+        1029,
+        1047,
+        1048
+      ]
+    },
+    "pumpkin": {
+      "description": "Pumpkins (ripe and unripe)",
+      "category": "item",
+      "tileset": "TilesetNature",
+      "layer": "decoration",
+      "tiles": [
+        931,
+        932
+      ]
+    },
+    "gem": {
+      "description": "Colored gems and crystals (red, purple, orange, green, teal)",
+      "category": "item",
+      "tileset": "TilesetNature",
+      "layer": "decoration",
+      "tiles": [
+        1022,
+        1025,
+        1026,
+        1090,
+        1091,
+        1092,
+        1093
+      ]
+    },
+    "wood": {
+      "description": "Small wooden objects (sign, log piece)",
+      "category": "item",
+      "tileset": "TilesetNature",
+      "layer": "decoration",
+      "tiles": [
+        927,
+        951
+      ]
+    },
+    "stone": {
+      "description": "Small stones, pebbles, snowballs",
+      "category": "item",
+      "tileset": "TilesetNature",
+      "layer": "decoration",
+      "tiles": [
+        1024,
+        1027,
+        1028,
+        1030,
+        1052,
+        1053
+      ]
+    },
+    "creature": {
+      "description": "Small birds and animals",
+      "category": "creature",
+      "tileset": "TilesetNature",
+      "layer": "decoration",
+      "tiles": [
+        1050,
+        1051
+      ]
+    },
+    "footprint": {
+      "description": "Small sandy footprints and ground marks",
+      "category": "ground",
+      "tileset": "TilesetNature",
+      "layer": "decoration",
+      "tiles": [
+        1177,
+        1178,
+        1179,
+        1180
+      ]
+    }
   }
 }
