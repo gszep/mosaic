@@ -1,8 +1,9 @@
-import { Application } from "pixi.js";
+import { Application, Container } from "pixi.js";
 import { applyViewport } from "./viewport";
 import { loadTilemap } from "./tilemap";
 import { loadNpcSprites } from "./npcs";
-import { initInput, createCamera, updateCamera, applyCamera } from "./camera";
+import { loadPlayerSprite, updatePlayerSprite } from "./player";
+import { initInput, createPlayer, createCamera, updatePlayer, updateCamera, applyCamera } from "./camera";
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -17,27 +18,45 @@ async function boot() {
   });
   document.body.appendChild(app.canvas);
   applyViewport(app);
-  window.addEventListener("resize", () => applyViewport(app));
+
+  const world = new Container();
+  app.stage.addChild(world);
 
   const { container: mapContainer, mapWidth, mapHeight } = await loadTilemap(
     `${BASE}maps/village.tmj`,
     `${BASE}tilesets`
   );
-  app.stage.addChild(mapContainer);
+  world.addChild(mapContainer);
 
   const npcContainer = await loadNpcSprites(mapWidth, mapHeight);
-  app.stage.addChild(npcContainer);
+  world.addChild(npcContainer);
 
-  initInput();
+  const cleanupInput = initInput();
+  const player = createPlayer(
+    Math.max(0, (mapWidth - 16) / 2),
+    Math.max(0, (mapHeight - 32) / 2)
+  );
+
+  const playerSprite = await loadPlayerSprite();
+  playerSprite.x = player.x;
+  playerSprite.y = player.y;
+  world.addChild(playerSprite);
   const camera = createCamera();
 
-  camera.x = Math.max(0, (mapWidth - 480) / 2);
-  camera.y = Math.max(0, (mapHeight - 270) / 2);
+  const onResize = () => applyViewport(app);
+  window.addEventListener("resize", onResize);
 
   app.ticker.add(() => {
-    updateCamera(camera, mapWidth, mapHeight);
-    applyCamera(app.stage, camera);
+    updatePlayer(player, mapWidth, mapHeight);
+    updatePlayerSprite(playerSprite, player);
+    updateCamera(camera, player, mapWidth, mapHeight);
+    applyCamera(world, camera);
   });
+
+  return () => {
+    cleanupInput();
+    window.removeEventListener("resize", onResize);
+  };
 }
 
 boot();

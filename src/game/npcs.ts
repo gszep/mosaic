@@ -39,7 +39,9 @@ export async function loadNpcSprites(
     if (!snapshot.exists()) return container;
 
     const all = snapshot.val() as Record<string, Submission>;
-    const submissions = Object.values(all).filter((s) => s.spriteData != null);
+    const submissions = Object.values(all).filter(
+      (s) => s.spriteData != null && s.token !== "player"
+    );
 
     const cols = Math.ceil(Math.sqrt(submissions.length));
     const startX = Math.floor(mapWidth / 2 / TILE - cols) * TILE;
