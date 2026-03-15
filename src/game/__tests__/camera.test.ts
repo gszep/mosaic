@@ -6,10 +6,10 @@ describe("updateCamera", () => {
     const player = createPlayer(320, 240);
     const cam = createCamera();
     updateCamera(cam, player, 640, 480);
-    // camera.x = player.x + 8 - 240 = 328 - 240 = 88
-    // camera.y = player.y + 8 - 135 = 248 - 135 = 113
-    expect(cam.x).toBe(88);
-    expect(cam.y).toBe(113);
+    // camera.x = player.x + 8 - 120 = 328 - 120 = 208
+    // camera.y = player.y + 8 - 67.5 = 248 - 67.5 = 180.5
+    expect(cam.x).toBe(208);
+    expect(cam.y).toBe(180.5);
   });
 
   it("clamps to zero at top-left", () => {
@@ -24,8 +24,8 @@ describe("updateCamera", () => {
     const player = createPlayer(9999, 9999);
     const cam = createCamera();
     updateCamera(cam, player, 640, 480);
-    // maxX = 640 - 480 = 160, maxY = 480 - 270 = 210
-    expect(cam.x).toBe(160);
-    expect(cam.y).toBe(210);
+    // maxX = 640 - 240 = 400, maxY = 480 - 135 = 345
+    expect(cam.x).toBe(400);
+    expect(cam.y).toBe(345);
   });
 });

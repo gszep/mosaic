@@ -1,7 +1,7 @@
 import { Application } from "pixi.js";
 
-export const INTERNAL_WIDTH = 480;
-export const INTERNAL_HEIGHT = 270;
+export const INTERNAL_WIDTH = 240;
+export const INTERNAL_HEIGHT = 135;
 
 export function calculateScale(viewportW: number, viewportH: number): number {
   const scaleX = Math.floor(viewportW / INTERNAL_WIDTH);
