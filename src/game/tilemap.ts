@@ -1,38 +1,13 @@
-import { Container, Sprite, Texture, Rectangle, Assets } from "pixi.js";
-
-interface TMJLayer {
-  name: string;
-  type: "tilelayer" | "objectgroup";
-  data?: number[];
-  width?: number;
-  height?: number;
-  visible: boolean;
-}
-
-interface TMJTileset {
-  firstgid: number;
-  image: string;
-  tilewidth: number;
-  tileheight: number;
-  imagewidth: number;
-  imageheight: number;
-  columns: number;
-}
-
-interface TMJMap {
-  width: number;
-  height: number;
-  tilewidth: number;
-  tileheight: number;
-  layers: TMJLayer[];
-  tilesets: TMJTileset[];
-}
+import { Container, Texture, Rectangle, Assets } from "pixi.js";
+import { CompositeTilemap } from "@pixi/tilemap";
+import type { TMJMap } from "../shared/tmj";
 
 const RENDER_LAYERS = ["ground", "buildings", "decoration"];
 
 /**
- * Load and render a Tiled TMJ map. Returns a Container with all visible
- * tile layers and a Set of solid tile indices from the collision layer.
+ * Load and render a Tiled TMJ map using @pixi/tilemap for batch rendering.
+ * Returns a Container with all visible tile layers and a Set of solid tile
+ * indices from the collision layer.
  */
 export async function loadTilemap(
   mapUrl: string,
@@ -42,16 +17,16 @@ export async function loadTilemap(
   const container = new Container();
   const collision = new Set<number>();
 
-  // Load tileset textures.
+  // Load tileset textures and pre-slice every tile.
   const tileTextures = new Map<number, Texture>();
 
   for (const ts of map.tilesets) {
     const texturePath = `${tilesetBasePath}/${ts.image.split("/").pop()}`;
     const baseTexture = await Assets.load(texturePath);
     const cols = ts.columns;
+    const totalTiles = (ts.imagewidth / ts.tilewidth) * (ts.imageheight / ts.tileheight);
 
-    // Pre-slice every tile in this tileset.
-    for (let localId = 0; localId < (ts.imagewidth / ts.tilewidth) * (ts.imageheight / ts.tileheight); localId++) {
+    for (let localId = 0; localId < totalTiles; localId++) {
       const gid = ts.firstgid + localId;
       const col = localId % cols;
       const row = Math.floor(localId / cols);
@@ -75,27 +50,27 @@ export async function loadTilemap(
     if (layer.type !== "tilelayer" || !layer.data) continue;
 
     if (layer.name === "collision") {
-      // Build collision set (tile indices where gid > 0).
       for (let i = 0; i < layer.data.length; i++) {
         if (layer.data[i] > 0) collision.add(i);
       }
-      continue; // Don't render collision layer.
+      continue;
     }
 
     if (!RENDER_LAYERS.includes(layer.name)) continue;
 
-    const layerContainer = new Container();
+    const tilemap = new CompositeTilemap();
     for (let i = 0; i < layer.data.length; i++) {
       const gid = layer.data[i];
       if (gid === 0) continue;
       const tex = tileTextures.get(gid);
       if (!tex) continue;
-      const sprite = new Sprite(tex);
-      sprite.x = (i % map.width) * map.tilewidth;
-      sprite.y = Math.floor(i / map.width) * map.tileheight;
-      layerContainer.addChild(sprite);
+      tilemap.tile(
+        tex,
+        (i % map.width) * map.tilewidth,
+        Math.floor(i / map.width) * map.tileheight
+      );
     }
-    container.addChild(layerContainer);
+    container.addChild(tilemap);
   }
 
   return {

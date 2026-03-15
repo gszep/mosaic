@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { db, ref, get, set } from "../../shared/firebase";
+import { db, ref, get, update } from "../../shared/firebase";
 import type { Submission, SpriteData } from "../../shared/types";
 
 function getToken(): string | null {
@@ -67,18 +67,12 @@ export function useSubmission() {
     setState((s) => ({ ...s, saving: true, error: null }));
 
     try {
-      await set(ref(db, `submissions/${token}`), {
+      await update(ref(db, `submissions/${token}`), {
         token,
         name: state.name || null,
         spriteData: state.spriteData,
-        dialogueMode: null,
-        dialogueTree: null,
-        personalityTraits: null,
-        personalityPrompt: null,
-        giftObject: null,
-        audioBlips: null,
         locationDescription: "In the village square.",
-      } satisfies Submission);
+      });
       setState((s) => ({ ...s, saving: false }));
     } catch (err) {
       setState((s) => ({ ...s, saving: false, error: (err as Error).message }));

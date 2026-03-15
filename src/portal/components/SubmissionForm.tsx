@@ -2,7 +2,7 @@ import { useState } from "react";
 import { PixelEditor } from "./PixelEditor";
 import { PalettePicker } from "./PalettePicker";
 import { useSubmission } from "../hooks/useSubmission";
-import { PALETTE } from "../../shared/palette";
+import { PALETTE, TRANSPARENT } from "../../shared/palette";
 
 export function SubmissionForm() {
   const { token, loading, saving, error, name, spriteData, setName, setSpriteData, save } =
@@ -29,6 +29,17 @@ export function SubmissionForm() {
 
       <h2>Draw your sprite</h2>
       <PalettePicker selected={color} onSelect={setColor} />
+      <button
+        onClick={() => setColor(TRANSPARENT)}
+        style={{
+          marginBottom: "0.5rem",
+          padding: "0.25rem 0.75rem",
+          fontWeight: color === TRANSPARENT ? "bold" : "normal",
+          border: color === TRANSPARENT ? "2px solid #000" : "1px solid #999",
+        }}
+      >
+        Eraser
+      </button>
       <PixelEditor initial={spriteData} onChange={setSpriteData} color={color} />
 
       <button

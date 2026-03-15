@@ -8,14 +8,15 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "resolveJsonImports": true,
+    "resolveJsonModule": true,
     "isolatedModules": true,
     "outDir": "dist",
     "baseUrl": ".",
+    "types": ["vite/client"],
     "paths": {
       "@shared/*": ["src/shared/*"]
     }
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "editor/**/*", "vite.config.ts"],
   "exclude": ["node_modules", "dist"]
 }
