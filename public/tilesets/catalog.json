@@ -9,7 +9,7 @@
         114,
         115
       ],
-      "description": "Warm orange sand with texture — rows 0-5 left of TilesetFloor"
+      "description": "Warm orange sand with texture \u2014 rows 0-5 left of TilesetFloor"
     },
     "grass_lime": {
       "fill": [
@@ -22,7 +22,7 @@
         268,
         269
       ],
-      "description": "Light/lime green grass — rows 7-13 left half of TilesetFloor"
+      "description": "Light/lime green grass \u2014 rows 7-13 left half of TilesetFloor"
     },
     "grass_white": {
       "fill": [
@@ -34,7 +34,7 @@
         423,
         585
       ],
-      "description": "Grey cobblestone — rows 14-19 left of TilesetFloor"
+      "description": "Grey cobblestone \u2014 rows 14-19 left of TilesetFloor"
     },
     "grass_green": {
       "fill": [
@@ -45,25 +45,29 @@
         279,
         280
       ],
-      "description": "Dark green grass — rows 7-13 right half of TilesetFloor"
+      "description": "Dark green grass \u2014 rows 7-13 right half of TilesetFloor"
     },
     "grass_pink": {
       "fill": [
         122,
         124,
         125,
-        126
+        126,
+        81,
+        123
       ],
-      "description": "Warm peach/salmon terrain — rows 0-5 right of TilesetFloor"
+      "description": "Warm peach/salmon terrain \u2014 rows 0-5 right of TilesetFloor"
     },
     "grass_grey": {
       "fill": [
         430,
         432,
         433,
-        434
+        434,
+        431,
+        389
       ],
-      "description": "Grey earth — rows 14-19 right base of TilesetFloor"
+      "description": "Grey earth \u2014 rows 14-19 right base of TilesetFloor"
     },
     "earth_dark": {
       "fill": [
@@ -72,7 +76,7 @@
         409,
         411
       ],
-      "description": "Warm brown earth — rows 14-19 right fill of TilesetFloor"
+      "description": "Warm brown earth \u2014 rows 14-19 right fill of TilesetFloor"
     },
     "earth_brown": {
       "fill": [
@@ -81,7 +85,7 @@
         255,
         257
       ],
-      "description": "Dark brown dirt — pairs with dark_grass in transitions"
+      "description": "Dark brown dirt \u2014 pairs with dark_grass in transitions"
     },
     "earth_light": {
       "fill": [
@@ -89,13 +93,13 @@
         243,
         244
       ],
-      "description": "Light brown earth — pairs with light_grass in transitions"
+      "description": "Light brown earth \u2014 pairs with light_grass in transitions"
     },
     "earth_wet": {
       "fill": [
         497
       ],
-      "description": "Dark wet earth (melted ice) — rows 20-25 right of TilesetFloor"
+      "description": "Dark wet earth (melted ice) \u2014 rows 20-25 right of TilesetFloor"
     },
     "sand": {
       "fill": [
@@ -106,7 +110,7 @@
         100,
         101
       ],
-      "description": "Smooth light orange sand — rows 0-5 left of TilesetFloor"
+      "description": "Smooth light orange sand \u2014 rows 0-5 left of TilesetFloor"
     },
     "snow": {
       "fill": [
@@ -116,13 +120,14 @@
         400,
         551
       ],
-      "description": "White/off-white snow ground — shared secondary terrain for stone, ice, and wet earth"
+      "description": "White/off-white snow ground \u2014 shared secondary terrain for stone, ice, and wet earth"
     },
     "ice": {
       "fill": [
-        486
+        486,
+        628
       ],
-      "description": "Light blue ice — rows 20-25 left of TilesetFloor"
+      "description": "Light blue ice \u2014 rows 20-25 left of TilesetFloor"
     }
   },
   "transitions": {
@@ -136,23 +141,11 @@
         "DDDDDDLD": [
           4
         ],
-        "DDDDDDLL": [
-          1
-        ],
         "DDDDLDDD": [
           67
         ],
-        "DDDDLDLL": [
-          5
-        ],
         "DDDLDDDD": [
           69
-        ],
-        "DDDLDLDD": [
-          3
-        ],
-        "DDDLDLLD": [
-          8
         ],
         "DDDLLDDD": [
           68
@@ -164,11 +157,7 @@
           6
         ],
         "DDDLLLLL": [
-          2,
-          9
-        ],
-        "DDLDLDDD": [
-          45
+          2
         ],
         "DLDDDDDD": [
           48
@@ -188,14 +177,8 @@
         "DLDLLLLL": [
           53
         ],
-        "DLLDLDDD": [
-          71
-        ],
         "DLLDLDLL": [
-          23,
-          27,
-          49,
-          93
+          23
         ],
         "DLLLDLDL": [
           76
@@ -213,24 +196,11 @@
           51
         ],
         "LDDLDLLD": [
-          25,
           30,
           52
         ],
-        "LDDLLDLL": [
-          10
-        ],
-        "LLDDDDDD": [
-          47
-        ],
-        "LLDLDDDD": [
-          74
-        ],
         "LLDLDLDL": [
           77
-        ],
-        "LLDLDLLD": [
-          96
         ],
         "LLDLDLLL": [
           94
@@ -245,14 +215,61 @@
           31
         ],
         "LLLLLDDD": [
-          46,
-          75
+          46
         ],
         "LLLLLDLL": [
           29
         ],
         "LLLLLLLD": [
           28
+        ],
+        "LLDLLDLL": [
+          10
+        ],
+        "DLLDLDLD": [
+          27
+        ],
+        "DLDDLDLL": [
+          49
+        ],
+        "DDDLLDLD": [
+          9
+        ],
+        "DLDDLDLD": [
+          93
+        ],
+        "DLDLDDLD": [
+          96
+        ],
+        "DLDLLDDD": [
+          75
+        ],
+        "LLDLDLLD": [
+          25
+        ],
+        "DDDDLDLD": [
+          5
+        ],
+        "DDDLDDLD": [
+          8
+        ],
+        "DLDDLDDD": [
+          71
+        ],
+        "DLDLDDDD": [
+          74
+        ],
+        "DDDDLDLL": [
+          1
+        ],
+        "DDDLDLLD": [
+          3
+        ],
+        "DLLDLDDD": [
+          45
+        ],
+        "LLDLDDDD": [
+          47
         ]
       }
     },
@@ -266,122 +283,135 @@
         "DDDDDDGD": [
           183
         ],
-        "DDDDDDGG": [
-          288
-        ],
-        "DDDDDGGD": [
-          229
-        ],
         "DDDDGDDD": [
           182
         ],
         "DDDDGDGD": [
           185
         ],
-        "DDDDGGGD": [
-          200
-        ],
-        "DDDDGGGG": [
-          201
-        ],
         "DDGDDDDD": [
           204
         ],
-        "DDGDDDGD": [
-          164
-        ],
         "DDGDGDDD": [
-          250,
           248
         ],
         "DDGDGDGD": [
           231
         ],
-        "DDGDGDGG": [
-          202
-        ],
-        "DDGDGGGD": [
-          226,
-          228
-        ],
-        "DDGGGDDD": [
-          179,
-          184,
-          206
-        ],
-        "DGGDGDDG": [
-          157
-        ],
         "GDDDDDDD": [
           205
         ],
         "GDDDDDDG": [
-          247
+          186
         ],
         "GDDDDDGD": [
           249
         ],
-        "GDDDDDGG": [
-          177,
-          181,
-          203
-        ],
-        "GDDDDGGG": [
-          225
-        ],
-        "GDDDGDDD": [
-          186
-        ],
         "GDDDGDGD": [
           230
         ],
-        "GDDDGGGD": [
-          227
-        ],
-        "GDDGDGGD": [
-          199
-        ],
         "GDGDDDDD": [
-          163,
           207
-        ],
-        "GDGDDDDG": [
-          159
         ],
         "GDGDDDGD": [
           208
         ],
-        "GDGDDGGD": [
-          222
-        ],
-        "GDGDDGGG": [
-          221
-        ],
         "GDGDGDDD": [
-          162,
           209
-        ],
-        "GDGDGDDG": [
-          158,
-          180
         ],
         "GDGDGDGD": [
           251
         ],
-        "GDGGGGDD": [
-          223
-        ],
         "GGGDDDDD": [
           156
         ],
-        "GGGDDDGD": [
-          161
+        "GGGGGGDG": [
+          158
         ],
-        "GGGDGDDD": [
+        "GGGGDGGG": [
+          221
+        ],
+        "GGGDGGGG": [
+          223
+        ],
+        "GDGGGGGG": [
+          202
+        ],
+        "GDGGDGGG": [
+          225
+        ],
+        "GGGDDGGG": [
+          222
+        ],
+        "GDGGGGDG": [
+          180
+        ],
+        "GGGGDGDG": [
+          159
+        ],
+        "GGGDGGDG": [
+          162
+        ],
+        "GDGDGGGG": [
+          228
+        ],
+        "GGGGDGDD": [
+          155
+        ],
+        "GGGDGDDG": [
+          157
+        ],
+        "GGGDDDDG": [
           160
         ],
-        "GGGGDDDD": [
-          155
+        "GGGDDGDD": [
+          161
+        ],
+        "GGGDDGDG": [
+          163
+        ],
+        "DDGDDGDD": [
+          164
+        ],
+        "GDDGDGDD": [
+          177
+        ],
+        "DDGDGDDG": [
+          179
+        ],
+        "GDDGDGDG": [
+          181
+        ],
+        "DGGDGDDG": [
+          184,
+          206
+        ],
+        "GDDGDGGG": [
+          199
+        ],
+        "DDDDDGGG": [
+          200
+        ],
+        "DDGDGGGG": [
+          201
+        ],
+        "GDGGDGDD": [
+          203
+        ],
+        "DDGDDGGG": [
+          226
+        ],
+        "GDDDDGGG": [
+          227
+        ],
+        "GDGDDGGG": [
+          229
+        ],
+        "GDGGDGDG": [
+          247
+        ],
+        "GDGDGGDG": [
+          250
         ]
       }
     },
@@ -395,22 +425,22 @@
         "GGGGGGSG": [
           312
         ],
-        "GGGGGGSS": [
+        "GGGGSGSS": [
           309
         ],
         "GGGGSGGG": [
           375
         ],
-        "GGGGSGSS": [
+        "GGGGSGSG": [
           313
         ],
         "GGGSGGGG": [
           377
         ],
-        "GGGSGSGG": [
+        "GGGSGSSG": [
           311
         ],
-        "GGGSGSSG": [
+        "GGGSGGSG": [
           316
         ],
         "GGGSSGGG": [
@@ -423,10 +453,12 @@
           314
         ],
         "GGGSSSSS": [
-          310,
+          310
+        ],
+        "GGGSSGSG": [
           317
         ],
-        "GGSGSGGG": [
+        "GSSGSGGG": [
           353
         ],
         "GSGGGGGG": [
@@ -447,22 +479,28 @@
         "GSGSSSSS": [
           361
         ],
-        "GSSGSGGG": [
+        "GSGGSGGG": [
           379
         ],
         "GSSGSGSS": [
-          331,
-          335,
-          357,
+          331
+        ],
+        "GSSGSGSG": [
+          335
+        ],
+        "GSGGSGSS": [
+          357
+        ],
+        "GSGGSGSG": [
           401
         ],
-        "GSSSGGGG": [
+        "GSSSSGGG": [
           381
         ],
         "GSSSGSGS": [
           384
         ],
-        "GSSSGSSG": [
+        "GSSSSSSG": [
           340
         ],
         "GSSSSSGS": [
@@ -471,27 +509,29 @@
         "GSSSSSSS": [
           359
         ],
+        "SSGSGSSG": [
+          333
+        ],
         "SGGSGSSG": [
-          333,
           338,
           360
         ],
-        "SGGSSGSS": [
+        "SSGSSGSS": [
           318
         ],
-        "SGGSSSSS": [
+        "SSGSSSSS": [
           358
         ],
-        "SSGGGGGG": [
+        "SSGSGGGG": [
           355
         ],
-        "SSGSGGGG": [
+        "GSGSGGGG": [
           382
         ],
         "SSGSGSGS": [
           385
         ],
-        "SSGSGSSG": [
+        "GSGSGGSG": [
           404
         ],
         "SSGSGSSS": [
@@ -500,16 +540,16 @@
         "SSGSSGGG": [
           380
         ],
-        "SSSSGGGG": [
+        "SSSSSGGG": [
           354
         ],
         "SSSSGSGS": [
           339
         ],
-        "SSSSGSSG": [
+        "SSSSSSSG": [
           336
         ],
-        "SSSSSGGG": [
+        "GSGSSGGG": [
           383
         ],
         "SSSSSGSS": [
@@ -524,11 +564,8 @@
         "L": "grass_grey"
       },
       "patterns": {
-        "DDDDDDLD": [
-          456
-        ],
         "DDDDLDLD": [
-          350
+          324
         ],
         "DDDDLDLL": [
           320
@@ -537,87 +574,28 @@
           322
         ],
         "DDDLLLLL": [
-          321,
-          325,
-          326
-        ],
-        "DDLDLDDD": [
-          413
-        ],
-        "DDLDLDLD": [
-          396
-        ],
-        "DLDDLLLD": [
-          323
-        ],
-        "DLDLLDLD": [
-          389
-        ],
-        "DLDLLLLD": [
-          327,
-          388
+          321
         ],
         "DLLDLDDD": [
           364
         ],
-        "DLLDLDLD": [
-          453
-        ],
         "DLLDLDLL": [
-          342,
-          346,
-          368
+          342
         ],
         "DLLLLDDD": [
           392
-        ],
-        "DLLLLDDL": [
-          386
         ],
         "DLLLLLLD": [
           351
         ],
         "DLLLLLLL": [
-          324,
-          328,
-          370,
-          387
-        ],
-        "LDDDDDDL": [
-          412
-        ],
-        "LDDDDDLD": [
-          414
-        ],
-        "LDDDDLLL": [
-          455
-        ],
-        "LDDDLDLD": [
-          395
-        ],
-        "LDDLLLLL": [
-          452
-        ],
-        "LDLDDDDD": [
-          372
-        ],
-        "LDLDDDLD": [
-          373
-        ],
-        "LDLDLDDD": [
-          374,
-          394
-        ],
-        "LDLDLDLD": [
-          416
+          370
         ],
         "LLDLDDDD": [
           366
         ],
         "LLDLDLLD": [
-          344,
-          349,
-          371
+          344
         ],
         "LLDLLDDD": [
           391
@@ -625,33 +603,99 @@
         "LLDLLDLL": [
           329
         ],
-        "LLDLLLLD": [
-          345,
-          393
-        ],
         "LLDLLLLL": [
-          369,
-          415
-        ],
-        "LLLDLDLD": [
-          367
-        ],
-        "LLLDLLLD": [
-          431
+          369
         ],
         "LLLLLDDD": [
           365
         ],
-        "LLLLLDDL": [
-          457
-        ],
         "LLLLLDLL": [
-          348,
-          390,
-          454
+          348
         ],
         "LLLLLLLD": [
           347
+        ],
+        "DDDDDDLD": [
+          323
+        ],
+        "DDDLLLLD": [
+          325
+        ],
+        "DDDLLDLL": [
+          326
+        ],
+        "DDDLDDLD": [
+          327
+        ],
+        "DDDLLDLD": [
+          328
+        ],
+        "DLDDDDLD": [
+          345
+        ],
+        "DLLDLDLD": [
+          346
+        ],
+        "LDDLDLLD": [
+          349,
+          371
+        ],
+        "LLLLDLDL": [
+          350
+        ],
+        "DLDDDDDD": [
+          367
+        ],
+        "DLDDLDLL": [
+          368
+        ],
+        "DLDLLLLL": [
+          372
+        ],
+        "DLDLLLDL": [
+          373
+        ],
+        "DLDLDLLL": [
+          374
+        ],
+        "DDDDLDDD": [
+          386
+        ],
+        "DDDLLDDD": [
+          387
+        ],
+        "DDDLDDDD": [
+          388
+        ],
+        "DLDDLDDD": [
+          390
+        ],
+        "DLDLDDDD": [
+          393
+        ],
+        "DLDLLDDD": [
+          394
+        ],
+        "DLLLDLDL": [
+          395
+        ],
+        "LLDLDLDL": [
+          396
+        ],
+        "DLDDLDLD": [
+          412
+        ],
+        "LLDLDLLL": [
+          413
+        ],
+        "DLLLLLDL": [
+          414
+        ],
+        "DLDLDDLD": [
+          415
+        ],
+        "DLDLDLDL": [
+          416
         ]
       }
     },
@@ -673,21 +717,6 @@
         ],
         "IIIIISSS": [
           508
-        ],
-        "IIISSIII": [
-          607
-        ],
-        "IIISSISI": [
-          581
-        ],
-        "IIISSISS": [
-          579
-        ],
-        "IIISSSSI": [
-          578
-        ],
-        "IIISSSSS": [
-          574
         ],
         "IISIIIII": [
           512
@@ -712,58 +741,6 @@
         ],
         "IISISSSS": [
           509
-        ],
-        "ISIIIISI": [
-          587
-        ],
-        "ISIISISI": [
-          621
-        ],
-        "ISIISISS": [
-          599
-        ],
-        "ISISIISI": [
-          624
-        ],
-        "ISISISSI": [
-          602
-        ],
-        "ISISSIII": [
-          614
-        ],
-        "ISISSISI": [
-          625
-        ],
-        "ISISSISS": [
-          604
-        ],
-        "ISISSSSI": [
-          605
-        ],
-        "ISISSSSS": [
-          603
-        ],
-        "ISSISISI": [
-          588
-        ],
-        "ISSISISS": [
-          584
-        ],
-        "ISSSSIII": [
-          612
-        ],
-        "ISSSSISI": [
-          615
-        ],
-        "ISSSSISS": [
-          623
-        ],
-        "ISSSSSSI": [
-          593
-        ],
-        "ISSSSSSS": [
-          601,
-          613
         ],
         "SIIIIIII": [
           513
@@ -826,33 +803,7 @@
           488
         ],
         "SISSSSSS": [
-          510,
-          521
-        ],
-        "SSISIISI": [
-          591
-        ],
-        "SSISISSI": [
-          586
-        ],
-        "SSISISSS": [
-          611
-        ],
-        "SSISSIII": [
-          628
-        ],
-        "SSISSISI": [
-          616
-        ],
-        "SSISSISS": [
-          582
-        ],
-        "SSISSSSI": [
-          622
-        ],
-        "SSISSSSS": [
-          600,
-          610
+          510
         ],
         "SSSIIIII": [
           464
@@ -876,8 +827,7 @@
           470
         ],
         "SSSISSSS": [
-          531,
-          540
+          531
         ],
         "SSSSISII": [
           463
@@ -888,20 +838,8 @@
         "SSSSISSS": [
           529
         ],
-        "SSSSSIII": [
-          596
-        ],
-        "SSSSSISI": [
-          592
-        ],
-        "SSSSSISS": [
-          590
-        ],
         "SSSSSSIS": [
           466
-        ],
-        "SSSSSSSI": [
-          589
         ]
       }
     },
@@ -922,7 +860,8 @@
           474
         ],
         "SSSWSSSS": [
-          542
+          542,
+          540
         ],
         "SSSWSSWS": [
           481
@@ -963,8 +902,9 @@
         "SWSWSSWS": [
           569
         ],
-        "SWSWSWWS": [
-          525
+        "WSSWSWWS": [
+          525,
+          503
         ],
         "SWSWSWWW": [
           528
@@ -972,16 +912,16 @@
         "SWSWWSSS": [
           548
         ],
-        "SWSWWSWS": [
+        "SWSWSWSW": [
           570
         ],
-        "SWSWWSWW": [
+        "SWSWWWSW": [
           527
         ],
         "SWSWWWWW": [
           526
         ],
-        "SWWSSSSS": [
+        "SWWSWSSS": [
           518
         ],
         "SWWSWSWS": [
@@ -993,10 +933,10 @@
         "SWWWWSSS": [
           546
         ],
-        "SWWWWSWS": [
+        "SWWWSWSW": [
           549
         ],
-        "SWWWWSWW": [
+        "SWWWWWSW": [
           568
         ],
         "SWWWWWWS": [
@@ -1005,11 +945,8 @@
         "SWWWWWWW": [
           524
         ],
-        "WSSWSSSS": [
+        "WWSWSSSS": [
           520
-        ],
-        "WWSWSSWS": [
-          503
         ],
         "WWSWSWSW": [
           550
@@ -1023,7 +960,7 @@
         "WWSWWSWW": [
           483
         ],
-        "WWSWWWWS": [
+        "WWSWSWWW": [
           567
         ],
         "WWSWWWWW": [
@@ -1032,7 +969,7 @@
         "WWWWWSSS": [
           519
         ],
-        "WWWWWSWS": [
+        "WWWWSWSW": [
           504
         ],
         "WWWWWSWW": [
@@ -1040,6 +977,9 @@
         ],
         "WWWWWWWS": [
           501
+        ],
+        "SWSSSSSS": [
+          521
         ]
       }
     },
@@ -1056,7 +996,7 @@
         "DDDDDGDD": [
           194
         ],
-        "DDDDDGGD": [
+        "GDGDDGGG": [
           240
         ],
         "DDDDDGGG": [
@@ -1068,21 +1008,25 @@
         "DDGDDDDD": [
           215
         ],
-        "DDGDDDDG": [
+        "GDGDGGDG": [
           261
         ],
         "DDGDDGDD": [
           175
         ],
+        "GDGDGGGG": [
+          239
+        ],
         "DDGDDGGG": [
-          239,
           237
         ],
         "DDGDGDDD": [
           259
         ],
         "DDGDGDDG": [
-          190,
+          190
+        ],
+        "DGGDGDDG": [
           195,
           217
         ],
@@ -1096,7 +1040,9 @@
           216
         ],
         "GDDDDDDG": [
-          197,
+          197
+        ],
+        "GDGGDGDG": [
           258
         ],
         "GDDDDDGD": [
@@ -1109,11 +1055,15 @@
           241
         ],
         "GDDGDGDD": [
-          188,
-          192,
+          188
+        ],
+        "GDDGDGDG": [
+          192
+        ],
+        "GDGGDGDD": [
           214
         ],
-        "GDDGDGGD": [
+        "GDGGDGGG": [
           236
         ],
         "GDDGDGGG": [
@@ -1131,18 +1081,22 @@
         "GDGDGDGD": [
           262
         ],
-        "GDGGDDDG": [
+        "GDGGGGDG": [
           191
         ],
         "GDGGGGGG": [
           213
         ],
         "GGGDDDDD": [
-          167,
+          167
+        ],
+        "GGGDDGDG": [
           174
         ],
         "GGGDDDDG": [
-          171,
+          171
+        ],
+        "GGGDGGDG": [
           173
         ],
         "GGGDDGDD": [
@@ -1157,7 +1111,7 @@
         "GGGDGGGG": [
           234
         ],
-        "GGGGDDDD": [
+        "GGGGDGDG": [
           170
         ],
         "GGGGDGDD": [
@@ -1211,6 +1165,15 @@
         ],
         "SSSGSGSS": [
           299
+        ],
+        "SSGGGSSS": [
+          133
+        ],
+        "GGGGGGSS": [
+          134
+        ],
+        "SSSSSSGS": [
+          135
         ]
       }
     },
@@ -1222,8 +1185,8 @@
       },
       "patterns": {
         "GGGGGGSS": [
-          134,
-          137
+          137,
+          288
         ],
         "GGGSGSSG": [
           289
@@ -1232,11 +1195,9 @@
           287
         ],
         "SSGGGSSS": [
-          133,
           136
         ],
         "SSSSSSGS": [
-          135,
           138
         ]
       }
@@ -1248,40 +1209,11 @@
         "L": "sand"
       },
       "patterns": {
-        "LLLLLLLP": [
-          16
-        ],
-        "LLLLLLPL": [
-          21,
-          40,
-          57,
-          59,
-          83
-        ],
-        "LLLLLPPL": [
-          78,
-          79,
-          85
-        ],
-        "LLLLPLLL": [
-          39,
-          43,
-          80
-        ],
         "LLLLPLPL": [
           42
         ],
-        "LLLPPLLL": [
-          36,
-          41,
-          63
-        ],
-        "LLLPPPPL": [
-          58
-        ],
         "LLPLLLLL": [
-          61,
-          107
+          61
         ],
         "LLPLPLLL": [
           105
@@ -1289,51 +1221,20 @@
         "LLPLPLPL": [
           88
         ],
-        "LPPLLLLL": [
-          13,
-          17,
-          18
-        ],
-        "LPPLPLLL": [
-          14
-        ],
         "PLLLLLLL": [
-          34,
-          38,
-          60,
-          20,
           62
         ],
         "PLLLLLLP": [
-          15,
-          37,
-          104
+          43
         ],
         "PLLLLLPL": [
-          81,
           106
-        ],
-        "PLLLLPLP": [
-          82
-        ],
-        "PLLLLPPP": [
-          56
         ],
         "PLLLPLPL": [
           87
         ],
-        "PLLLPPPL": [
-          84
-        ],
         "PLPLLLLL": [
-          19,
           64
-        ],
-        "PLPLLLLP": [
-          12
-        ],
-        "PLPLLPLL": [
-          65
         ],
         "PLPLPLLL": [
           66
@@ -1341,11 +1242,105 @@
         "PLPLPLPL": [
           108
         ],
-        "PLPLPPPL": [
-          86
+        "PPPPLPLP": [
+          16
         ],
-        "PPPLPPPL": [
-          123
+        "LLPLLPLL": [
+          21
+        ],
+        "LLLLLPLL": [
+          40
+        ],
+        "LLLLLPPP": [
+          57
+        ],
+        "PLPPPPPP": [
+          59
+        ],
+        "LLPLLPPP": [
+          83
+        ],
+        "PPPPLPPP": [
+          78
+        ],
+        "PPPLLPPP": [
+          79
+        ],
+        "PLPLPPPP": [
+          85
+        ],
+        "LLLLLLLP": [
+          39
+        ],
+        "PPPLPPPP": [
+          80
+        ],
+        "LLPLPLLP": [
+          36
+        ],
+        "LPPLPLLP": [
+          41,
+          63
+        ],
+        "LLPLPPPP": [
+          58
+        ],
+        "PLPLPPLP": [
+          107
+        ],
+        "PPPLLLLL": [
+          13
+        ],
+        "PPPLLLLP": [
+          17
+        ],
+        "PPPLLPLL": [
+          18
+        ],
+        "PPPLPLLP": [
+          14
+        ],
+        "PLLPLPLL": [
+          34
+        ],
+        "PLLPLPLP": [
+          38
+        ],
+        "PLPPLPLL": [
+          60
+        ],
+        "PPPLLPLP": [
+          20
+        ],
+        "PPPPPPLP": [
+          15
+        ],
+        "PLPPPPLP": [
+          37
+        ],
+        "PLPPLPLP": [
+          104
+        ],
+        "PLPPLPPP": [
+          82
+        ],
+        "PLLPLPPP": [
+          56
+        ],
+        "PLLLLPPP": [
+          84
+        ],
+        "PPPLPPLP": [
+          19
+        ],
+        "PPPPLPLL": [
+          12
+        ],
+        "PLPLLLPL": [
+          65
+        ],
+        "PLPLLPPP": [
+          86
         ]
       }
     },
@@ -1388,6 +1383,42 @@
         "IIIIIIGI": [
           442,
           445
+        ]
+      }
+    },
+    "grass_lime_to_grass_grey": {
+      "description": "Edges/corners where grass lime meets grass grey",
+      "key": {
+        "G": "grass_lime",
+        "L": "grass_grey"
+      },
+      "patterns": {
+        "LGGLLLLL": [
+          452
+        ],
+        "GLLGLGLG": [
+          453
+        ],
+        "LLLLLGLL": [
+          454
+        ]
+      }
+    },
+    "grass_grey_to_grass_green": {
+      "description": "Edges/corners where grass grey meets grass green",
+      "key": {
+        "L": "grass_grey",
+        "G": "grass_green"
+      },
+      "patterns": {
+        "LGGGGLLL": [
+          455
+        ],
+        "GGGGGGLG": [
+          456
+        ],
+        "LLLLLGGL": [
+          457
         ]
       }
     }
@@ -3020,16 +3051,51 @@
       "layer": "decoration",
       "tiles": [
         573,
+        574,
         575,
         576,
         577,
+        578,
+        579,
         580,
+        581,
+        582,
+        584,
+        586,
+        587,
+        588,
+        589,
+        590,
+        591,
+        592,
+        593,
         595,
+        596,
         597,
         598,
+        599,
+        600,
+        601,
+        602,
+        603,
+        604,
+        605,
         606,
+        607,
         608,
-        609
+        609,
+        610,
+        611,
+        612,
+        613,
+        614,
+        615,
+        616,
+        621,
+        622,
+        623,
+        624,
+        625
       ]
     }
   }
