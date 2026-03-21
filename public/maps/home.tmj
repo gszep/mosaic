@@ -659,22 +659,6 @@
               "value": 1
             }
           ]
-        },
-        {
-          "id": 3,
-          "name": "player_start",
-          "type": "spawn",
-          "x": 64,
-          "y": 16,
-          "width": 16,
-          "height": 16,
-          "properties": [
-            {
-              "name": "npcId",
-              "type": "string",
-              "value": "player"
-            }
-          ]
         }
       ],
       "width": 10,
