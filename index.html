@@ -15,7 +15,9 @@
       align-items: end;
       gap: 72px;
       opacity: 0.6;
-      pointer-events: none;
+      pointer-events: auto;
+      user-select: none;
+      -webkit-user-select: none;
       z-index: 10;
     }
     .controls img { image-rendering: pixelated; transition: filter 0.05s; }
@@ -95,6 +97,68 @@
       const id = keyMap[e.key];
       if (id) document.getElementById(id)?.classList.remove('pressed');
     });
+
+    // Touch controls: map button touches to keyboard events
+    const touchMap = {
+      'key-up': 'ArrowUp', 'key-down': 'ArrowDown',
+      'key-left': 'ArrowLeft', 'key-right': 'ArrowRight',
+      'key-space': ' '
+    };
+    const activeKeys = new Set();
+
+    function sendKey(key, type) {
+      window.dispatchEvent(new KeyboardEvent(type, { key, bubbles: true }));
+    }
+
+    for (const [id, key] of Object.entries(touchMap)) {
+      const el = document.getElementById(id);
+      if (!el) continue;
+
+      el.addEventListener('touchstart', e => {
+        e.preventDefault();
+        el.classList.add('pressed');
+        activeKeys.add(key);
+        sendKey(key, 'keydown');
+      }, { passive: false });
+
+      el.addEventListener('touchend', e => {
+        e.preventDefault();
+        el.classList.remove('pressed');
+        activeKeys.delete(key);
+        sendKey(key, 'keyup');
+      }, { passive: false });
+
+      el.addEventListener('touchcancel', e => {
+        e.preventDefault();
+        el.classList.remove('pressed');
+        activeKeys.delete(key);
+        sendKey(key, 'keyup');
+      }, { passive: false });
+    }
+
+    // Handle touch leaving one button and entering another (drag between keys)
+    document.querySelector('.controls')?.addEventListener('touchmove', e => {
+      e.preventDefault();
+      for (const touch of e.changedTouches) {
+        const el = document.elementFromPoint(touch.clientX, touch.clientY);
+        const img = el?.closest('img[id]');
+        // Release keys not under finger
+        for (const [id, key] of Object.entries(touchMap)) {
+          const btn = document.getElementById(id);
+          if (btn !== img && activeKeys.has(key)) {
+            btn?.classList.remove('pressed');
+            activeKeys.delete(key);
+            sendKey(key, 'keyup');
+          }
+        }
+        // Press key under finger
+        if (img?.id && touchMap[img.id] && !activeKeys.has(touchMap[img.id])) {
+          img.classList.add('pressed');
+          activeKeys.add(touchMap[img.id]);
+          sendKey(touchMap[img.id], 'keydown');
+        }
+      }
+    }, { passive: false });
   </script>
   <script type="module" src="/src/game/main.ts"></script>
 </body>
