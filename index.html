@@ -19,7 +19,8 @@
       pointer-events: none;
       z-index: 10;
     }
-    .controls img { image-rendering: pixelated; }
+    .controls img { image-rendering: pixelated; transition: filter 0.05s; }
+    .controls img.pressed { filter: brightness(1.8) sepia(1) saturate(3) hue-rotate(-10deg); }
     .control-group {
       display: flex;
       flex-direction: column;
@@ -42,19 +43,34 @@
 <body>
   <div class="controls">
     <div class="control-group">
-      <img src="ui/keys/KeyUp.png" width="26" height="26" alt="Up" />
+      <img id="key-up" src="ui/keys/KeyUp.png" width="26" height="26" alt="Up" />
       <div class="control-row">
-        <img src="ui/keys/KeyLeft.png" width="26" height="26" alt="Left" />
-        <img src="ui/keys/KeyDown.png" width="26" height="26" alt="Down" />
-        <img src="ui/keys/KeyRight.png" width="26" height="26" alt="Right" />
+        <img id="key-left" src="ui/keys/KeyLeft.png" width="26" height="26" alt="Left" />
+        <img id="key-down" src="ui/keys/KeyDown.png" width="26" height="26" alt="Down" />
+        <img id="key-right" src="ui/keys/KeyRight.png" width="26" height="26" alt="Right" />
       </div>
       <div class="control-label">Move</div>
     </div>
     <div class="control-group">
-      <img src="ui/keys/KeySpace.png" width="66" height="26" alt="Space" />
+      <img id="key-space" src="ui/keys/KeySpace.png" width="66" height="26" alt="Space" />
       <div class="control-label">Interact</div>
     </div>
   </div>
+  <script>
+    const keyMap = {
+      ArrowUp: 'key-up', ArrowDown: 'key-down', ArrowLeft: 'key-left', ArrowRight: 'key-right',
+      w: 'key-up', s: 'key-down', a: 'key-left', d: 'key-right',
+      ' ': 'key-space', Enter: 'key-space', e: 'key-space'
+    };
+    window.addEventListener('keydown', e => {
+      const id = keyMap[e.key];
+      if (id) document.getElementById(id)?.classList.add('pressed');
+    });
+    window.addEventListener('keyup', e => {
+      const id = keyMap[e.key];
+      if (id) document.getElementById(id)?.classList.remove('pressed');
+    });
+  </script>
   <script type="module" src="/src/game/main.ts"></script>
 </body>
 </html>
