@@ -388,17 +388,19 @@ function renderSpawns(ctx: CanvasRenderingContext2D) {
       ctx.lineWidth = 1;
       ctx.strokeRect(px, py, sw, sh);
     } else {
-      // Fallback marker
       const w = (obj.width || TILE_SIZE) * s;
       const h = (obj.height || TILE_SIZE) * s;
-      ctx.fillStyle = "rgba(233, 84, 32, 0.35)";
+      const isWarp = obj.type === "warp";
+      const isPlayer = npcId === "player";
+      const color = isWarp ? "rgba(100, 200, 255, 0.4)" : isPlayer ? "rgba(100, 255, 100, 0.4)" : "rgba(233, 84, 32, 0.35)";
+      const stroke = isWarp ? "#64c8ff" : isPlayer ? "#64ff64" : "#E95420";
+      ctx.fillStyle = color;
       ctx.fillRect(px, py, w, h);
-      ctx.strokeStyle = "#E95420";
+      ctx.strokeStyle = stroke;
       ctx.lineWidth = 2;
       ctx.strokeRect(px + 1, py + 1, w - 2, h - 2);
     }
 
-    // Label
     const label = obj.name || npcId || `#${obj.id}`;
     ctx.fillStyle = "#fff";
     ctx.font = `${Math.max(10, 3 * s)}px Ubuntu Mono, monospace`;
