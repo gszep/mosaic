@@ -40,9 +40,12 @@ async function boot() {
   await initEmote(world);
 
   const cleanupInput = initInput();
+  const params = new URLSearchParams(window.location.search);
+  const startX = params.has("x") ? Number(params.get("x")) * 16 : (mapWidth - 16) / 2;
+  const startY = params.has("y") ? Number(params.get("y")) * 16 : (mapHeight - 16) / 2;
   const player = createPlayer(
-    Math.max(0, (mapWidth - 16) / 2),
-    Math.max(0, (mapHeight - 16) / 2)
+    Math.max(0, Math.min(startX, mapWidth - 16)),
+    Math.max(0, Math.min(startY, mapHeight - 16))
   );
 
   const playerSprite = await loadPlayerSprite();
