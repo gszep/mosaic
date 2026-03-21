@@ -6,7 +6,7 @@ import { loadTilemap } from "./tilemap";
 import { loadNpcSprites, findNearestNpc, initEmote, updateEmote, type NpcData } from "./npcs";
 import { loadPlayerSprite, updatePlayerSprite } from "./player";
 import { initInput, createPlayer, createCamera, updatePlayer, updateCamera, applyCamera } from "./camera";
-import { startDialogue, updateDialogue, handleDialogueInput, isDialogueActive } from "./dialogue";
+import { startDialogue, updateDialogue, handleDialogueInput, isDialogueActive, dialogueEndedWithGift } from "./dialogue";
 import { showGiftPopup, dismissGiftPopup, isGiftPopupActive } from "./giftPopup";
 
 const BASE = import.meta.env.BASE_URL;
@@ -61,6 +61,7 @@ async function boot() {
   window.addEventListener("resize", onResize);
 
   let talkingTo: NpcData | null = null;
+  const inventory = new Set<string>();
 
   const onInteract = (e: KeyboardEvent) => {
     if (e.key === " " || e.key === "Enter" || e.key === "e") {
@@ -73,10 +74,15 @@ async function boot() {
 
       if (isDialogueActive()) {
         handleDialogueInput(e.key);
-        // Check if dialogue just ended — show gift popup
-        if (!isDialogueActive() && talkingTo?.giftObject) {
-          void showGiftPopup(talkingTo.giftObject, talkingTo.giftSprite, uiLayer);
-          talkingTo.interacted = true;
+        if (!isDialogueActive() && talkingTo) {
+          const shouldGift = dialogueEndedWithGift()
+            && talkingTo.giftObject
+            && !inventory.has(talkingTo.token);
+          if (shouldGift) {
+            inventory.add(talkingTo.token);
+            talkingTo.interacted = true;
+            void showGiftPopup(talkingTo.giftObject!, talkingTo.giftSprite, uiLayer);
+          }
           talkingTo = null;
         }
         return;

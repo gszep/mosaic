@@ -10,7 +10,7 @@ let popup: Container | null = null;
 
 async function ensureTexture() {
   if (!boxTexture) {
-    boxTexture = await Assets.load<Texture>(`${BASE}ui/dialogue-box.png`);
+    boxTexture = await Assets.load<Texture>(`${BASE}ui/dialogue-box-simple.png`);
     boxTexture.source.scaleMode = "nearest";
   }
 }

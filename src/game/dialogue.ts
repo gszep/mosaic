@@ -26,6 +26,7 @@ interface DialogueState {
   lastBlipChar: number;
   selectedOption: number;
   phase: "typing" | "waiting" | "options";
+  lastChosenResponse: import("../shared/types").DialogueResponse | null;
 }
 
 let state: DialogueState | null = null;
@@ -90,6 +91,7 @@ export async function startDialogue(
     lastBlipChar: 0,
     selectedOption: 0,
     phase: "typing",
+    lastChosenResponse: null,
   };
 
   container = new Container();
@@ -257,6 +259,7 @@ export function handleDialogueInput(key: string): void {
       renderOptions();
     } else if (key === " " || key === "Enter" || key === "e") {
       const chosen = responses[state.selectedOption];
+      state.lastChosenResponse = chosen;
       if (chosen.goto) {
         const target = findNode(state.tree, chosen.goto);
         if (target) {
@@ -274,6 +277,15 @@ export function handleDialogueInput(key: string): void {
 }
 
 function endDialogue() {
+  // Determine if this ending gives a gift
+  if (state) {
+    if (state.lastChosenResponse) {
+      lastEndGaveGift = state.lastChosenResponse.givesGift !== false;
+    } else {
+      // No responses were ever shown — use root node's givesGift
+      lastEndGaveGift = state.tree.givesGift !== false;
+    }
+  }
   clearText();
   if (container) {
     container.destroy({ children: true });
@@ -285,4 +297,10 @@ function endDialogue() {
 
 export function isDialogueActive(): boolean {
   return state !== null;
+}
+
+let lastEndGaveGift = false;
+
+export function dialogueEndedWithGift(): boolean {
+  return lastEndGaveGift;
 }
