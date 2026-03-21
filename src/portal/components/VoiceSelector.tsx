@@ -3,6 +3,10 @@ import { useAudioRecorder, getWaveform, MAX_BLIP_MS } from "../hooks/useAudioRec
 
 const BASE = import.meta.env.BASE_URL;
 const VOICES = Array.from({ length: 10 }, (_, i) => `Voice${i + 1}`);
+const VOICE_ICONS: Record<string, string> = {
+  Voice1: "♪", Voice2: "♫", Voice3: "★", Voice4: "◆",  Voice5: "♥",
+  Voice6: "☀", Voice7: "♠", Voice8: "▲", Voice9: "●", Voice10: "☆",
+};
 const DEFAULT_VOICE = "Voice9";
 const PREVIEW_TEXT = "Happy birthday!";
 const TYPEWRITER_INTERVAL = 17;
@@ -237,7 +241,7 @@ export function VoiceSelector({ voice, voiceData, voiceStart, voiceEnd, onVoice 
             className={`nes-btn ${activeVoice === name ? "is-warning" : "is-dark"}`}
             style={{ fontSize: "8px", padding: "4px 6px", margin: "2px" }}
           >
-            {name.replace("Voice", "")}
+            {VOICE_ICONS[name]}
           </button>
         ))}
         <button
