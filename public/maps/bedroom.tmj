@@ -625,12 +625,12 @@
             {
               "name": "targetX",
               "type": "int",
-              "value": 7
+              "value": 4
             },
             {
               "name": "targetY",
               "type": "int",
-              "value": 3
+              "value": 1
             }
           ]
         },
