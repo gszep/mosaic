@@ -2,14 +2,16 @@ import { Container, Texture, Rectangle, Assets } from "pixi.js";
 import { CompositeTilemap } from "@pixi/tilemap";
 import type { TMJMap } from "../shared/tmj";
 
-const RENDER_LAYERS = ["ground", "buildings", "decoration"];
+const RENDER_LAYERS = ["ground", "buildings"];
 
 export async function loadTilemap(
   mapUrl: string,
   tilesetBasePath: string
-): Promise<{ container: Container; collision: Set<number>; mapWidth: number; mapHeight: number; map: TMJMap }> {
+): Promise<{ base: Container; decorBelow: Container; decorAbove: Container; collision: Set<number>; mapWidth: number; mapHeight: number; map: TMJMap }> {
   const map: TMJMap = await (await fetch(mapUrl)).json();
-  const container = new Container();
+  const base = new Container();
+  const decorBelow = new Container();
+  const decorAbove = new Container();
   const collision = new Set<number>();
 
   const tileTextures = new Map<number, Texture>();
@@ -45,13 +47,58 @@ export async function loadTilemap(
     }
   }
 
+  // Collect depth flags
+  const depthLayer = map.layers.find((l) => l.type === "tilelayer" && l.name === "depth");
+  const depthSet = new Set<number>();
+  if (depthLayer?.data) {
+    for (let i = 0; i < depthLayer.data.length; i++) {
+      if (depthLayer.data[i] > 0) depthSet.add(i);
+    }
+  }
+
   for (const layer of map.layers) {
     if (layer.type !== "tilelayer" || !layer.data) continue;
 
-    if (layer.name === "collision") {
-      for (let i = 0; i < layer.data.length; i++) {
-        if (layer.data[i] > 0) collision.add(i);
+    if (layer.name === "collision" || layer.name === "depth") {
+      if (layer.name === "collision") {
+        for (let i = 0; i < layer.data.length; i++) {
+          if (layer.data[i] > 0) collision.add(i);
+        }
       }
+      continue;
+    }
+
+    if (layer.name === "decoration") {
+      const below = new CompositeTilemap();
+      const above = new CompositeTilemap();
+      const normal = new CompositeTilemap();
+      const tw = map.tilewidth;
+      const th = map.tileheight;
+      const halfH = Math.floor(th / 2);
+
+      for (let i = 0; i < layer.data.length; i++) {
+        const gid = layer.data[i];
+        if (gid === 0) continue;
+        const tex = tileTextures.get(gid);
+        if (!tex) continue;
+        const px = (i % map.width) * tw;
+        const py = Math.floor(i / map.width) * th;
+
+        if (depthSet.has(i)) {
+          // Split: bottom half below player, top half above
+          const frame = tex.frame;
+          const bottomTex = new Texture({ source: tex.source, frame: new Rectangle(frame.x, frame.y + halfH, frame.width, frame.height - halfH) });
+          const topTex = new Texture({ source: tex.source, frame: new Rectangle(frame.x, frame.y, frame.width, halfH) });
+          below.tile(bottomTex, px, py + halfH);
+          above.tile(topTex, px, py);
+        } else {
+          normal.tile(tex, px, py);
+        }
+      }
+
+      decorBelow.addChild(below);
+      decorBelow.addChild(normal);
+      decorAbove.addChild(above);
       continue;
     }
 
@@ -69,11 +116,13 @@ export async function loadTilemap(
         Math.floor(i / map.width) * map.tileheight
       );
     }
-    container.addChild(tilemap);
+    base.addChild(tilemap);
   }
 
   return {
-    container,
+    base,
+    decorBelow,
+    decorAbove,
     collision,
     mapWidth: map.width * map.tilewidth,
     mapHeight: map.height * map.tileheight,

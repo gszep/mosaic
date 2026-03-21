@@ -60,11 +60,12 @@ export async function loadScene(
   world.visible = false;
   const uiLayer = new Container();
 
-  const { container: mapContainer, collision, mapWidth, mapHeight, map } = await loadTilemap(
+  const { base, decorBelow, decorAbove, collision, mapWidth, mapHeight, map } = await loadTilemap(
     `${BASE}maps/${name}.tmj`,
     `${BASE}tilesets`
   );
-  world.addChild(mapContainer);
+  world.addChild(base);
+  world.addChild(decorBelow);
 
   // Priority: arrivalSpawn > startX/startY > player_start spawn > map center
   let defaultX = (mapWidth - TILE) / 2;
@@ -99,9 +100,11 @@ export async function loadScene(
     world.addChild(bottom);
     world.addChild(playerSprite);
     world.addChild(top);
+    world.addChild(decorAbove);
     await initEmote(world);
   } else {
     world.addChild(playerSprite);
+    world.addChild(decorAbove);
   }
 
   const camera = createCamera();

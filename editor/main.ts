@@ -16,7 +16,7 @@ const TILE_SIZE = 16;
 const MAX_SCALE = 16;
 let mapScale = 4;
 let paletteScale = 2;
-const DEFAULT_LAYERS = ["ground", "buildings", "decoration", "collision"];
+const DEFAULT_LAYERS = ["ground", "buildings", "decoration", "collision", "depth"];
 const TILESET_DEFS = [
   { name: "TilesetFloor", image: "TilesetFloor.png", imagewidth: 352, imageheight: 417 },
   { name: "TilesetFloorB", image: "TilesetFloorB.png", imagewidth: 176, imageheight: 112 },
@@ -431,8 +431,38 @@ function getSpawnAtPixel(e: MouseEvent): TMJObject | null {
   return null;
 }
 
+function renderDepthMarkers(ctx: CanvasRenderingContext2D) {
+  const depthLayer = map.layers.find((l) => l.name === "depth" && l.type === "tilelayer");
+  if (!depthLayer?.data) return;
+  const s = opts.scale;
+  const tw = map.tilewidth * s;
+  const th = map.tileheight * s;
+  const halfH = Math.floor(th / 2);
+
+  for (let i = 0; i < depthLayer.data.length; i++) {
+    if (depthLayer.data[i] === 0) continue;
+    const x = (i % map.width) * tw;
+    const y = Math.floor(i / map.width) * th;
+
+    // Draw a horizontal line at center
+    ctx.strokeStyle = "#ffff00";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x, y + halfH);
+    ctx.lineTo(x + tw, y + halfH);
+    ctx.stroke();
+
+    // Small "D" marker
+    ctx.fillStyle = "#ffff00";
+    ctx.font = `${Math.max(8, 2 * s)}px monospace`;
+    ctx.textBaseline = "top";
+    ctx.fillText("D", x + 2, y + 2);
+  }
+}
+
 function redrawMap() {
   renderMap(mapCtx, map, tilesetImages, opts);
+  renderDepthMarkers(mapCtx);
   renderSpawns(mapCtx);
 }
 
@@ -738,6 +768,25 @@ function bindEvents() {
     }
     painting = false;
     tooltip.style.display = "none";
+  });
+
+  // Double-click to toggle depth split on a tile
+  mapCanvas.addEventListener("dblclick", (e) => {
+    const idx = getTileIndex(e);
+    if (idx === null) return;
+    let depthLayer = map.layers.find((l) => l.name === "depth" && l.type === "tilelayer");
+    if (!depthLayer) {
+      depthLayer = {
+        id: map.layers.length + 1, name: "depth", type: "tilelayer",
+        data: new Array(map.width * map.height).fill(0),
+        width: map.width, height: map.height, visible: true, x: 0, y: 0, opacity: 1,
+      };
+      map.layers.push(depthLayer);
+    }
+    if (!depthLayer.data) return;
+    depthLayer.data[idx] = depthLayer.data[idx] > 0 ? 0 : 1;
+    redrawMap();
+    scheduleSave();
   });
 
   canvasWrap.addEventListener("wheel", (e) => {

@@ -5157,7 +5157,7 @@
           "name": "arrive_from_home",
           "type": "arrival",
           "x": 80,
-          "y": 64,
+          "y": 80,
           "width": 16,
           "height": 16,
           "properties": []
@@ -5167,7 +5167,7 @@
           "name": "door_to_home",
           "type": "warp",
           "x": 80,
-          "y": 48,
+          "y": 64,
           "width": 16,
           "height": 16,
           "properties": [
