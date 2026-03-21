@@ -68,8 +68,6 @@ async function boot() {
   let transitioning = false;
 
   async function transitionTo(targetMap: string, tx: number, ty: number) {
-    if (transitioning) return;
-    transitioning = true;
     unloadScene(scene, app.stage);
     scene = await loadScene(targetMap, app.stage, tx * 16, ty * 16);
     startSceneMusic(targetMap);
