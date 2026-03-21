@@ -76,7 +76,7 @@ function NodeEditor({
 
       {(!node.responses || node.responses.length < MAX_RESPONSES) && depth < MAX_DEPTH && (
         <button onClick={addResponse} style={{ fontSize: "0.8rem", marginTop: 2, marginBottom: 4 }}>
-          + Add Fraser's response option
+          + response option for turn {depth + 1}
         </button>
       )}
 
