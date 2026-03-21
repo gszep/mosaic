@@ -95,7 +95,8 @@ export async function loadScene(
   playerSprite.x = player.x;
   playerSprite.y = player.y;
 
-  const hasNpcs = name === "village";
+  // Check if this map has any NPC spawns
+  const hasNpcs = spawnsLayer?.objects?.some((o) => o.type === "spawn" && o.properties?.some((p) => p.name === "npcId" && p.value !== "player")) ?? false;
   if (hasNpcs) {
     const { bottom, top } = await loadNpcSprites(map);
     world.addChild(bottom);
