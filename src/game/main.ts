@@ -72,10 +72,9 @@ async function boot() {
         const tree = npc.dialogueTree ?? {
           id: "default",
           text: "Happy birthday!",
-          audio: null,
           responses: null,
         };
-        void startDialogue(tree, npc.name, uiLayer);
+        void startDialogue(tree, npc.name, uiLayer, npc.voice, npc.customVoice);
       }
     }
     if (isDialogueActive() && (e.key === "ArrowUp" || e.key === "ArrowDown" || e.key === "w" || e.key === "s")) {

@@ -13,7 +13,7 @@ export interface DialogueResponse {
 export interface DialogueNode {
   id: string;
   text: string;
-  audio: string | null;
+  audio?: string | null;
   responses: DialogueResponse[] | null;
 }
 
@@ -27,6 +27,8 @@ export interface Submission {
   personalityPrompt: string | null;
   giftObject: string | null;
   emote: string | null;
+  voice: string | null;
+  customVoice: string | null;
   audioBlips: unknown | null;
   locationDescription: string;
 }

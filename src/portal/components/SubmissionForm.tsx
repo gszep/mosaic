@@ -3,6 +3,7 @@ import { PixelEditor } from "./PixelEditor";
 import { PalettePicker } from "./PalettePicker";
 import { SpriteSelector } from "./SpriteSelector";
 import { EmoteSelector } from "./EmoteSelector";
+import { VoiceSelector } from "./VoiceSelector";
 import { DialogueEditor } from "./DialogueEditor";
 import { useSubmission } from "../hooks/useSubmission";
 import { PALETTE, TRANSPARENT } from "../../shared/palette";
@@ -11,7 +12,7 @@ const BASE = import.meta.env.BASE_URL;
 const TILE = 16;
 
 export function SubmissionForm() {
-  const { token, loading, saving, error, name, spriteData, dialogueTree, emote, setName, setSpriteData, setDialogueTree, setEmote, save } =
+  const { token, loading, saving, error, name, spriteData, dialogueTree, emote, voice, customVoice, setName, setSpriteData, setDialogueTree, setEmote, setVoice, setCustomVoice, save } =
     useSubmission();
   const [color, setColor] = useState(PALETTE[0]);
 
@@ -55,6 +56,11 @@ export function SubmissionForm() {
       <h2>Choose your emote</h2>
       <section className="nes-container is-dark is-rounded" style={{ marginBottom: "1rem" }}>
         <EmoteSelector selected={emote} onSelect={setEmote} />
+      </section>
+
+      <h2>Choose your voice</h2>
+      <section className="nes-container is-dark is-rounded" style={{ marginBottom: "1rem" }}>
+        <VoiceSelector selected={voice} customVoice={customVoice} onSelect={setVoice} onCustomVoice={setCustomVoice} />
       </section>
 
       <h2>Write your dialogue</h2>

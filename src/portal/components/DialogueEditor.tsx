@@ -1,6 +1,5 @@
 import { useState, useCallback } from "react";
 import type { DialogueNode, DialogueResponse } from "../../shared/types";
-import { AudioRecorder } from "./AudioRecorder";
 
 const MAX_DEPTH = 4;
 const MAX_RESPONSES = 3;
@@ -30,7 +29,6 @@ function NodeEditor({
   onChange: (updated: DialogueNode) => void;
 }) {
   const updateText = (text: string) => onChange({ ...node, text });
-  const updateAudio = (audio: string | null) => onChange({ ...node, audio });
 
   const updateResponse = (idx: number, resp: DialogueResponse) => {
     const responses = (node.responses ?? []).slice();
@@ -54,10 +52,7 @@ function NodeEditor({
   return (
     <div className={depth > 0 ? "dialogue-node-inner" : "dialogue-node"}>
       <div style={{ display: "flex", alignItems: "start", gap: 4, marginBottom: 4 }}>
-        <span className="dialogue-label-you">
-          You:
-          <AudioRecorder audio={node.audio ?? null} onRecord={updateAudio} />
-        </span>
+        <span className="dialogue-label-you">You:</span>
         <textarea
           value={node.text}
           onChange={(e) => updateText(e.target.value)}

@@ -18,6 +18,8 @@ interface SubmissionState {
   spriteData: SpriteData | null;
   dialogueTree: DialogueNode | null;
   emote: string | null;
+  voice: string | null;
+  customVoice: string | null;
 }
 
 export function useSubmission() {
@@ -30,6 +32,8 @@ export function useSubmission() {
     spriteData: null,
     dialogueTree: null,
     emote: null,
+    voice: null,
+    customVoice: null,
   });
 
   useEffect(() => {
@@ -46,6 +50,8 @@ export function useSubmission() {
 
         let dialogueTree: DialogueNode | null = null;
         let emote: string | null = null;
+        let voice: string | null = null;
+        let customVoice: string | null = null;
 
         if (snapshot.exists()) {
           const data = snapshot.val() as Submission;
@@ -53,6 +59,8 @@ export function useSubmission() {
           spriteData = data.spriteData ?? null;
           dialogueTree = data.dialogueTree ?? null;
           emote = data.emote ?? null;
+          voice = data.voice ?? null;
+          customVoice = data.customVoice ?? null;
         }
 
         // Load default sprite if no custom one exists
@@ -67,7 +75,7 @@ export function useSubmission() {
           }
         }
 
-        setState((s) => ({ ...s, loading: false, name, spriteData, dialogueTree, emote }));
+        setState((s) => ({ ...s, loading: false, name, spriteData, dialogueTree, emote, voice, customVoice }));
       })
       .catch((err) => {
         setState((s) => ({ ...s, loading: false, error: (err as Error).message }));
@@ -90,6 +98,14 @@ export function useSubmission() {
     setState((s) => ({ ...s, emote }));
   }, []);
 
+  const setVoice = useCallback((voice: string) => {
+    setState((s) => ({ ...s, voice }));
+  }, []);
+
+  const setCustomVoice = useCallback((customVoice: string | null) => {
+    setState((s) => ({ ...s, customVoice }));
+  }, []);
+
   const save = useCallback(async () => {
     const token = getToken();
     if (!token) return;
@@ -104,13 +120,15 @@ export function useSubmission() {
         dialogueTree: state.dialogueTree || null,
         dialogueMode: state.dialogueTree ? "hardcoded" : null,
         emote: state.emote || null,
+        voice: state.voice || null,
+        customVoice: state.customVoice || null,
         locationDescription: "In the village square.",
       });
       setState((s) => ({ ...s, saving: false }));
     } catch (err) {
       setState((s) => ({ ...s, saving: false, error: (err as Error).message }));
     }
-  }, [state.name, state.spriteData, state.dialogueTree, state.emote]);
+  }, [state.name, state.spriteData, state.dialogueTree, state.emote, state.voice, state.customVoice]);
 
-  return { ...state, setName, setSpriteData, setDialogueTree, setEmote, save };
+  return { ...state, setName, setSpriteData, setDialogueTree, setEmote, setVoice, setCustomVoice, save };
 }

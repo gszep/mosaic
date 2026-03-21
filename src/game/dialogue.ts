@@ -12,13 +12,17 @@ const TAB_W = 35;  // speaker tab width (nine-slice left)
 const TAB_H = 7;   // speaker tab height (nine-slice top)
 const BORDER = 3;   // border thickness on right/bottom
 const TYPEWRITER_SPEED = 1;
+const BLIP_INTERVAL = 3; // play blip every N chars
+const DEFAULT_VOICE = "Voice9";
 const TEXT_WIDTH = INTERNAL_WIDTH - BOX_MARGIN * 2 - BOX_PAD_X * 2;
 
 interface DialogueState {
   tree: DialogueNode;
   currentNode: DialogueNode;
   speaker: string;
+  voiceUrl: string;
   displayedChars: number;
+  lastBlipChar: number;
   selectedOption: number;
   phase: "typing" | "waiting" | "options";
 }
@@ -54,14 +58,29 @@ async function ensureAssets() {
   assetsReady = true;
 }
 
-export async function startDialogue(tree: DialogueNode, speaker: string, parent: Container) {
+export async function startDialogue(
+  tree: DialogueNode,
+  speaker: string,
+  parent: Container,
+  voice?: string | null,
+  customVoice?: string | null,
+) {
   await ensureAssets();
+
+  let voiceUrl: string;
+  if (customVoice && voice === "custom") {
+    voiceUrl = customVoice;
+  } else {
+    voiceUrl = `${BASE}audio/voice/${voice || DEFAULT_VOICE}.wav`;
+  }
 
   state = {
     tree,
     currentNode: tree,
     speaker,
+    voiceUrl,
     displayedChars: 0,
+    lastBlipChar: 0,
     selectedOption: 0,
     phase: "typing",
   };
@@ -99,15 +118,10 @@ function renderNode() {
   container.addChild(bodyContainer);
 
   state.displayedChars = 0;
+  state.lastBlipChar = 0;
   state.selectedOption = 0;
   state.phase = "typing";
   layoutBox();
-
-  // Play audio if available
-  if (state.currentNode.audio) {
-    const audio = new Audio(state.currentNode.audio);
-    audio.play().catch(() => {});
-  }
 }
 
 function renderOptions() {
@@ -186,6 +200,18 @@ export function updateDialogue(): void {
       state.displayedChars + TYPEWRITER_SPEED,
       state.currentNode.text.length
     );
+
+    // Play voice blip at intervals
+    if (state.displayedChars - state.lastBlipChar >= BLIP_INTERVAL) {
+      const ch = state.currentNode.text[state.displayedChars - 1];
+      if (ch && ch !== " ") {
+        const blip = new Audio(state.voiceUrl);
+        blip.volume = 0.4;
+        blip.play().catch(() => {});
+        state.lastBlipChar = state.displayedChars;
+      }
+    }
+
     renderBody();
     layoutBox();
 
