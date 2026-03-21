@@ -27,8 +27,21 @@ export function PresentSelector({ giftObject, giftSprite, onGiftObject, onGiftSp
 
   return (
     <div>
-      <div className="nes-field" style={{ marginBottom: "0.75rem" }}>
-        <label htmlFor="gift-name" style={{ fontSize: "10px", color: "#888" }}>What are you giving Fraser?</label>
+      <label htmlFor="gift-name" style={{ fontSize: "10px", color: "#888", display: "block", marginBottom: 4 }}>What are you giving Fraser?</label>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: "0.75rem" }}>
+        <div style={{
+          width: 40, height: 40, flexShrink: 0,
+          background: "#1a1a2e", border: "2px solid #555",
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}>
+          {giftSprite && (
+            <img
+              src={`${BASE}sprites/items/${giftSprite}.png`}
+              alt=""
+              style={{ imageRendering: "pixelated", maxWidth: 36, maxHeight: 36, objectFit: "contain" }}
+            />
+          )}
+        </div>
         <input
           type="text"
           id="gift-name"
@@ -36,6 +49,7 @@ export function PresentSelector({ giftObject, giftSprite, onGiftObject, onGiftSp
           value={giftObject ?? ""}
           onChange={(e) => onGiftObject(e.target.value)}
           placeholder='e.g. "a tiny telescope"'
+          style={{ flex: 1 }}
         />
       </div>
       <p style={{ color: "#888", fontSize: "9px", margin: "0 0 4px" }}>Choose an icon for your present:</p>
