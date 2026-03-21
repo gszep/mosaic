@@ -41,7 +41,7 @@ export function VoiceSelector({ voice, voiceData, voiceStart, voiceEnd, onVoice 
     const s = Math.max(0, center - half);
     const e = Math.min(dur, center + half);
     onVoice("custom", result, s, e);
-    setTrigger((t) => t + 1);
+    triggerPreview(result);
   };
 
   const { recording, processing, start, stop } = useAudioRecorder(handleRecordingResult);
@@ -51,7 +51,7 @@ export function VoiceSelector({ voice, voiceData, voiceStart, voiceEnd, onVoice 
   const [startMs, setStartMs] = useState(0);
   const [endMs, setEndMs] = useState(0);
   const dragging = useRef(false);
-  const [trigger, setTrigger] = useState(0);
+  const [previewUrl, setPreviewUrl] = useState<{ url: string; n: number } | null>(null);
   const [typewriterText, setTypewriterText] = useState("");
   const [typewriterPlaying, setTypewriterPlaying] = useState(false);
   const typewriterTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -120,20 +120,11 @@ export function VoiceSelector({ voice, voiceData, voiceStart, voiceEnd, onVoice 
     }
   }, [waveform, startMs, endMs, durationMs]);
 
-  // Typewriter preview
   useEffect(() => {
-    if (trigger === 0) return;
+    if (!previewUrl) return;
     if (typewriterTimer.current) clearTimeout(typewriterTimer.current);
 
-    // Build the blip URL: crop from source
-    let blipPromise: Promise<string>;
-    if (waveformSrc) {
-      blipPromise = cropToBlip(waveformSrc, startMs, endMs);
-    } else {
-      return;
-    }
-
-    blipPromise.then((blipUrl) => {
+    cropToBlip(previewUrl.url, startMs, endMs).then((blipUrl) => {
       setTypewriterText("");
       setTypewriterPlaying(true);
       let i = 0;
@@ -156,7 +147,7 @@ export function VoiceSelector({ voice, voiceData, voiceStart, voiceEnd, onVoice 
       tick();
     });
     return () => { if (typewriterTimer.current) clearTimeout(typewriterTimer.current); };
-  }, [trigger]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [previewUrl]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Drag handlers (custom only)
   const pxToMs = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -178,26 +169,26 @@ export function VoiceSelector({ voice, voiceData, voiceStart, voiceEnd, onVoice 
     setEndMs(Math.max(startMs, Math.min(ms, startMs + MAX_BLIP_MS)));
   };
 
+  const triggerPreview = (url: string) => setPreviewUrl({ url, n: Date.now() });
+
   const handleMouseUp = () => {
     if (!dragging.current) return;
     dragging.current = false;
     const len = endMs - startMs;
     if (len >= 5 && voiceData) {
       onVoice("custom", voiceData, startMs, endMs);
-      setTrigger((t) => t + 1);
+      triggerPreview(voiceData);
     }
   };
 
-  // Select preset (preserve custom data for switching back)
   const selectPreset = (name: string) => {
     onVoice(name);
-    setTrigger((t) => t + 1);
+    triggerPreview(`${BASE}audio/voice/${name}.wav`);
   };
 
-  // Select custom
   const selectCustom = () => {
     onVoice("custom");
-    setTrigger((t) => t + 1);
+    if (voiceData) triggerPreview(voiceData);
   };
 
   // Record
