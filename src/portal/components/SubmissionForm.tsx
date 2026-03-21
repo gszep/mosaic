@@ -40,16 +40,20 @@ export function SubmissionForm() {
       <h2>Draw your sprite</h2>
       <section className="nes-container is-dark is-rounded" style={{ marginBottom: "1rem" }}>
         <SpriteSelector onSelect={setSpriteData} />
-        <PalettePicker selected={color} onSelect={setColor} />
-        <button
-          onClick={() => setColor(TRANSPARENT)}
-          className={`nes-btn ${color === TRANSPARENT ? "is-warning" : "is-dark"}`}
-          style={{ marginBottom: "0.5rem" }}
-        >
-          Eraser
-        </button>
-        <div className="pixel-editor">
-          <PixelEditor initial={spriteData} onChange={setSpriteData} color={color} onPickColor={setColor} />
+        <div className="sprite-editor-row">
+          <div className="pixel-editor">
+            <PixelEditor initial={spriteData} onChange={setSpriteData} color={color} onPickColor={setColor} />
+          </div>
+          <div className="palette-column">
+            <PalettePicker selected={color} onSelect={setColor} />
+            <button
+              onClick={() => setColor(TRANSPARENT)}
+              className={`nes-btn ${color === TRANSPARENT ? "is-warning" : "is-dark"}`}
+              style={{ marginTop: "0.25rem", width: "100%" }}
+            >
+              Eraser
+            </button>
+          </div>
         </div>
       </section>
 
