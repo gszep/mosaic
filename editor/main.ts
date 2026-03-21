@@ -340,26 +340,6 @@ async function loadSubmissions() {
       }
     }
 
-    const spawns = ensureSpawnsLayer();
-    const existingIds = new Set(
-      spawns.flatMap((o) => o.properties?.filter((p) => p.name === "npcId").map((p) => p.value) ?? [])
-    );
-
-    for (const [token, sub] of Object.entries(submissions)) {
-      if (token === "player" || existingIds.has(token)) continue;
-      const nextId = spawns.reduce((max, o) => Math.max(max, o.id), 0) + 1;
-      spawns.push({
-        id: nextId,
-        name: sub.name || token,
-        type: "spawn",
-        x: Math.floor(map.width / 2) * TILE_SIZE,
-        y: Math.floor(map.height / 2) * TILE_SIZE,
-        width: TILE_SIZE,
-        height: TILE_SIZE,
-        properties: [{ name: "npcId", type: "string", value: token }],
-      });
-    }
-
     redrawMap();
   } catch (err) {
     console.warn("Could not load submissions:", (err as Error).message);
@@ -756,38 +736,6 @@ function bindEvents() {
     }
     painting = false;
     tooltip.style.display = "none";
-  });
-
-  // Double-click to add new spawn point
-  mapCanvas.addEventListener("dblclick", (e) => {
-    const rect = mapCanvas.getBoundingClientRect();
-    const scaleX = mapCanvas.width / rect.width;
-    const scaleY = mapCanvas.height / rect.height;
-    const mx = (e.clientX - rect.left) * scaleX / opts.scale;
-    const my = (e.clientY - rect.top) * scaleY / opts.scale;
-    const tileX = Math.floor(mx / TILE_SIZE) * TILE_SIZE;
-    const tileY = Math.floor(my / TILE_SIZE) * TILE_SIZE;
-
-    // Don't add if there's already a spawn here
-    if (getSpawnAtPixel(e)) return;
-
-    const spawns = ensureSpawnsLayer();
-    const nextId = spawns.reduce((max, o) => Math.max(max, o.id), 0) + 1;
-    const name = prompt("NPC name (or cancel):");
-    if (!name) return;
-
-    spawns.push({
-      id: nextId,
-      name,
-      type: "spawn",
-      x: tileX,
-      y: tileY,
-      width: TILE_SIZE,
-      height: TILE_SIZE * 2,
-      properties: [{ name: "npcId", type: "string", value: name.toLowerCase().replace(/\s+/g, "-") }],
-    });
-    redrawMap();
-    scheduleSave();
   });
 
   canvasWrap.addEventListener("wheel", (e) => {

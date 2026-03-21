@@ -5093,7 +5093,7 @@
           "name": "TestCharacter",
           "type": "spawn",
           "x": 320,
-          "y": 224,
+          "y": 192,
           "width": 16,
           "height": 16,
           "properties": [

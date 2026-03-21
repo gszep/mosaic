@@ -102,16 +102,32 @@ export function SubmissionForm() {
                 o.properties?.some((p: { name: string; value: string }) => p.name === "npcId" && p.value === token)
               );
 
-              // Auto-create spawn if missing
               if (!obj) {
                 if (!spawns) {
                   spawns = { id: map.layers.length + 1, name: "spawns", type: "objectgroup", objects: [], width: map.width, height: map.height, visible: true, x: 0, y: 0, opacity: 1 };
                   map.layers.push(spawns);
                 }
-                const cx = Math.floor(map.width / 2) * TILE;
-                const cy = Math.floor(map.height / 2) * TILE;
-                const nextId = (spawns.objects ?? []).reduce((m: number, o: { id: number }) => Math.max(m, o.id), 0) + 1;
-                obj = { id: nextId, name: name || token, type: "spawn", x: cx, y: cy, width: TILE, height: TILE, properties: [{ name: "npcId", type: "string", value: token }] };
+                const existing = (spawns.objects ?? []) as { id?: number; x: number; y: number }[];
+                const MIN_DIST = TILE * 2;
+                let px = Math.floor(map.width / 2) * TILE;
+                let py = Math.floor(map.height / 2) * TILE;
+
+                // Spiral outward from center to find a free spot
+                let found = false;
+                for (let r = 0; r < 20 && !found; r++) {
+                  for (let dx = -r; dx <= r && !found; dx++) {
+                    for (let dy = -r; dy <= r && !found; dy++) {
+                      if (Math.abs(dx) !== r && Math.abs(dy) !== r) continue;
+                      const cx = Math.floor(map.width / 2 + dx) * TILE;
+                      const cy = Math.floor(map.height / 2 + dy) * TILE;
+                      const tooClose = existing.some((s) => Math.abs(s.x - cx) < MIN_DIST && Math.abs(s.y - cy) < MIN_DIST);
+                      if (!tooClose) { px = cx; py = cy; found = true; }
+                    }
+                  }
+                }
+
+                const nextId = existing.reduce((m: number, o: { id?: number }) => Math.max(m, o.id ?? 0), 0) + 1;
+                obj = { id: nextId, name: name || token, type: "spawn", x: px, y: py, width: TILE, height: TILE, properties: [{ name: "npcId", type: "string", value: token }] };
                 spawns.objects = spawns.objects ?? [];
                 spawns.objects.push(obj);
                 await fetch(`/api/save-map/village`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(map, null, 2) }).catch(() => {});
