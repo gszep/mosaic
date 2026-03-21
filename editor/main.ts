@@ -390,9 +390,10 @@ function renderSpawns(ctx: CanvasRenderingContext2D) {
       const w = (obj.width || TILE_SIZE) * s;
       const h = (obj.height || TILE_SIZE) * s;
       const isWarp = obj.type === "warp";
+      const isArrival = obj.type === "arrival";
       const isPlayer = npcId === "player";
-      const color = isWarp ? "rgba(100, 200, 255, 0.4)" : isPlayer ? "rgba(100, 255, 100, 0.4)" : "rgba(233, 84, 32, 0.35)";
-      const stroke = isWarp ? "#64c8ff" : isPlayer ? "#64ff64" : "#E95420";
+      const color = isWarp ? "rgba(100, 200, 255, 0.4)" : isArrival ? "rgba(255, 255, 100, 0.4)" : isPlayer ? "rgba(100, 255, 100, 0.4)" : "rgba(233, 84, 32, 0.35)";
+      const stroke = isWarp ? "#64c8ff" : isArrival ? "#ffff64" : isPlayer ? "#64ff64" : "#E95420";
       ctx.fillStyle = color;
       ctx.fillRect(px, py, w, h);
       ctx.strokeStyle = stroke;

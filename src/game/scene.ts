@@ -54,6 +54,7 @@ export async function loadScene(
   stage: Container,
   startX?: number,
   startY?: number,
+  arrivalSpawn?: string,
 ): Promise<Scene> {
   const world = new Container();
   world.visible = false;
@@ -65,7 +66,7 @@ export async function loadScene(
   );
   world.addChild(mapContainer);
 
-  // Use provided start position, or player_start spawn, or map center
+  // Priority: arrivalSpawn > startX/startY > player_start spawn > map center
   let defaultX = (mapWidth - TILE) / 2;
   let defaultY = (mapHeight - TILE) / 2;
   const spawnsLayer = map.layers.find((l) => l.type === "objectgroup" && l.name === "spawns");
@@ -74,6 +75,11 @@ export async function loadScene(
       o.properties?.some((p) => p.name === "npcId" && p.value === "player")
     );
     if (playerSpawn) { defaultX = playerSpawn.x; defaultY = playerSpawn.y; }
+  }
+
+  if (arrivalSpawn) {
+    const arrival = findArrivalPosition(map, arrivalSpawn);
+    if (arrival) { defaultX = arrival.x; defaultY = arrival.y; }
   }
 
   const playerTexture = await getPlayerTexture();
@@ -119,7 +125,7 @@ export function updateScene(scene: Scene, dialogueActive: boolean): void {
   if (scene.hasNpcs) updateEmote(scene.player.x, scene.player.y, dialogueActive);
 }
 
-export function findWarp(scene: Scene): { target: string; x: number; y: number } | null {
+export function findWarp(scene: Scene): { target: string; targetSpawn?: string; x: number; y: number } | null {
   const spawns = scene.map.layers.find((l) => l.type === "objectgroup" && l.name === "spawns");
   if (!spawns?.objects) return null;
   const cx = scene.player.x + 8;
@@ -129,8 +135,10 @@ export function findWarp(scene: Scene): { target: string; x: number; y: number }
     if (cx >= obj.x && cx < obj.x + obj.width && cy >= obj.y && cy < obj.y + obj.height) {
       const target = obj.properties?.find((p) => p.name === "target")?.value;
       if (target) {
+        const targetSpawn = obj.properties?.find((p) => p.name === "targetSpawn")?.value;
         return {
           target,
+          targetSpawn,
           x: Number(obj.properties?.find((p) => p.name === "targetX")?.value ?? 0),
           y: Number(obj.properties?.find((p) => p.name === "targetY")?.value ?? 0),
         };
@@ -138,6 +146,13 @@ export function findWarp(scene: Scene): { target: string; x: number; y: number }
     }
   }
   return null;
+}
+
+function findArrivalPosition(map: TMJMap, spawnName: string): { x: number; y: number } | null {
+  const spawns = map.layers.find((l) => l.type === "objectgroup" && l.name === "spawns");
+  if (!spawns?.objects) return null;
+  const obj = spawns.objects.find((o) => o.name === spawnName && o.type === "arrival");
+  return obj ? { x: obj.x, y: obj.y } : null;
 }
 
 export function startSceneMusic(name: string): void {

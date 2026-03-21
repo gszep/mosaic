@@ -57,9 +57,9 @@ async function boot() {
   const inventory = new Set<string>();
   let transitioning = false;
 
-  async function transition(target: string, tx: number, ty: number) {
+  async function transition(target: string, tx: number, ty: number, targetSpawn?: string) {
     unloadScene(scene, app.stage);
-    scene = await loadScene(target, app.stage, tx * TILE, ty * TILE);
+    scene = await loadScene(target, app.stage, targetSpawn ? undefined : tx * TILE, targetSpawn ? undefined : ty * TILE, targetSpawn);
     startSceneMusic(target);
     transitioning = false;
   }
@@ -108,7 +108,7 @@ async function boot() {
       const warp = findWarp(scene);
       if (warp) {
         transitioning = true;
-        void transition(warp.target, warp.x, warp.y);
+        void transition(warp.target, warp.x, warp.y, warp.targetSpawn);
         return;
       }
     } else {

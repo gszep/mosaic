@@ -623,14 +623,9 @@
               "value": "home"
             },
             {
-              "name": "targetX",
-              "type": "int",
-              "value": 4
-            },
-            {
-              "name": "targetY",
-              "type": "int",
-              "value": 1
+              "name": "targetSpawn",
+              "type": "string",
+              "value": "arrive_from_bedroom"
             }
           ]
         },
@@ -649,6 +644,16 @@
               "value": "player"
             }
           ]
+        },
+        {
+          "id": 3,
+          "name": "arrive_from_home",
+          "type": "arrival",
+          "x": 32,
+          "y": 16,
+          "width": 16,
+          "height": 16,
+          "properties": []
         }
       ],
       "width": 10,

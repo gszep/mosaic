@@ -5151,6 +5151,16 @@
               "value": "grisha"
             }
           ]
+        },
+        {
+          "id": 5,
+          "name": "arrive_from_home",
+          "type": "arrival",
+          "x": 80,
+          "y": 64,
+          "width": 16,
+          "height": 16,
+          "properties": []
         }
       ],
       "width": 40,
