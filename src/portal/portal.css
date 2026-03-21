@@ -109,45 +109,87 @@ button {
   background: #3a2a1e;
 }
 
-/* Dialogue editor */
+/* Dialogue tree */
 .dialogue-editor {
   background: #1a1a2e;
-  padding: 8px;
+  padding: 12px;
   margin-top: 4px;
+  overflow-x: auto;
 }
 
-.dialogue-node {
-  margin-top: 4px;
-}
-
-.dialogue-node-inner {
-  border-left: 2px solid #555;
-  padding-left: 8px;
-  margin-left: 8px;
-}
-
-.dialogue-response {
-  border-left: 2px solid #E95420;
-  padding-left: 8px;
-  margin-left: 16px;
-  margin-top: 4px;
-}
-
-.dialogue-label-you {
-  color: #E95420;
-  font-weight: bold;
-  flex-shrink: 0;
+.dtree-branch {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 4px;
-  font-size: 10px;
 }
 
-.dialogue-label-fraser {
-  color: #7ec8e3;
+.dtree-node {
+  padding: 6px 8px;
+  border-radius: 0;
+  min-width: 140px;
+  max-width: 220px;
+  width: 100%;
+}
+
+.dtree-npc {
+  border: 2px solid #E95420;
+  background: #2a1a10;
+}
+
+.dtree-player {
+  border: 2px solid #7ec8e3;
+  background: #0a1a2e;
+}
+
+.dtree-tag {
+  font-size: 8px;
   font-weight: bold;
-  flex-shrink: 0;
-  font-size: 10px;
+  padding: 1px 6px;
+  margin-bottom: 4px;
+  display: inline-block;
+}
+
+.dtree-tag-you { color: #E95420; }
+.dtree-tag-fraser { color: #7ec8e3; }
+
+.dtree-connector {
+  width: 2px;
+  height: 16px;
+  background: #555;
+}
+
+.dtree-connector-h {
+  width: 2px;
+  height: 12px;
+  background: #555;
+  margin: 0 auto;
+}
+
+.dtree-responses {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.dtree-response-branch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.dtree-leaf {
+  color: #888;
+  font-size: 8px;
+  font-style: italic;
+  margin-top: 6px;
+  padding: 4px 8px;
+  border: 1px dashed #555;
+  text-align: center;
+}
+
+.dtree-add {
+  margin-top: 8px;
 }
 
 /* Sprite editor layout */
