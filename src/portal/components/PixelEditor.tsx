@@ -189,7 +189,13 @@ export const PixelEditor = forwardRef<PixelEditorHandle, PixelEditorProps>(funct
     onChange({ width: W as 16, height: H as 16, pixels: blank });
   }, [onChange]);
 
-  useImperativeHandle(ref, () => ({ undo, redo, clear }), [undo, redo, clear]);
+  const handlersRef = useRef({ undo, redo, clear });
+  handlersRef.current = { undo, redo, clear };
+  useImperativeHandle(ref, () => ({
+    undo: () => handlersRef.current.undo(),
+    redo: () => handlersRef.current.redo(),
+    clear: () => handlersRef.current.clear(),
+  }), []);
 
   return (
     <canvas
