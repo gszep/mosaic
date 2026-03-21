@@ -33,13 +33,15 @@ export function PasswordGate({ children }: { children: React.ReactNode }) {
   if (authed) return <>{children}</>;
 
   return (
-    <form onSubmit={handleSubmit} style={{ padding: "2rem" }}>
-      <label>
-        Password:
-        <input type="password" name="password" autoFocus />
-      </label>
-      <button type="submit">Enter</button>
-      {error && <p style={{ color: "red" }}>Incorrect password.</p>}
+    <form onSubmit={handleSubmit} className="password-gate">
+      <div className="nes-container is-dark is-rounded" style={{ textAlign: "center" }}>
+        <h2 style={{ marginTop: 0 }}>Enter Password</h2>
+        <div className="nes-field" style={{ marginBottom: "1rem" }}>
+          <input type="password" name="password" autoFocus className="nes-input is-dark" />
+        </div>
+        <button type="submit" className="nes-btn is-primary">Enter</button>
+        {error && <p style={{ color: "#e76e55", marginTop: "0.5rem" }}>Incorrect password.</p>}
+      </div>
     </form>
   );
 }

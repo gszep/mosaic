@@ -12,59 +12,66 @@ export function SubmissionForm() {
     useSubmission();
   const [color, setColor] = useState(PALETTE[0]);
 
-  if (!token) return <p>Invalid invite link -- no token found.</p>;
-  if (loading) return <p>Loading...</p>;
+  if (!token) return <p className="nes-text is-error">Invalid invite link -- no token found.</p>;
+  if (loading) return <p className="nes-text is-primary">Loading...</p>;
 
   return (
-    <div style={{ padding: "1rem", maxWidth: 600 }}>
+    <div className="portal-root">
       <h1>Create Your Character</h1>
 
-      <label style={{ display: "block", marginBottom: "1rem" }}>
-        Your name:
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Enter your display name"
-          style={{ display: "block", marginTop: "0.25rem", fontSize: "1rem" }}
-        />
-      </label>
+      <section className="nes-container is-dark is-rounded" style={{ marginBottom: "1rem" }}>
+        <div className="nes-field">
+          <label htmlFor="name">Your name:</label>
+          <input
+            type="text"
+            id="name"
+            className="nes-input is-dark"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Display name"
+          />
+        </div>
+      </section>
 
       <h2>Draw your sprite</h2>
-      <SpriteSelector onSelect={setSpriteData} />
-      <PalettePicker selected={color} onSelect={setColor} />
-      <button
-        onClick={() => setColor(TRANSPARENT)}
-        style={{
-          marginBottom: "0.5rem",
-          padding: "0.25rem 0.75rem",
-          fontWeight: color === TRANSPARENT ? "bold" : "normal",
-          border: color === TRANSPARENT ? "2px solid #000" : "1px solid #999",
-        }}
-      >
-        Eraser
-      </button>
-      <PixelEditor initial={spriteData} onChange={setSpriteData} color={color} onPickColor={setColor} />
+      <section className="nes-container is-dark is-rounded" style={{ marginBottom: "1rem" }}>
+        <SpriteSelector onSelect={setSpriteData} />
+        <PalettePicker selected={color} onSelect={setColor} />
+        <button
+          onClick={() => setColor(TRANSPARENT)}
+          className={`nes-btn ${color === TRANSPARENT ? "is-warning" : "is-dark"}`}
+          style={{ marginBottom: "0.5rem" }}
+        >
+          Eraser
+        </button>
+        <div className="pixel-editor">
+          <PixelEditor initial={spriteData} onChange={setSpriteData} color={color} onPickColor={setColor} />
+        </div>
+      </section>
 
       <h2>Choose your emote</h2>
-      <EmoteSelector selected={emote} onSelect={setEmote} />
+      <section className="nes-container is-dark is-rounded" style={{ marginBottom: "1rem" }}>
+        <EmoteSelector selected={emote} onSelect={setEmote} />
+      </section>
 
       <h2>Write your dialogue</h2>
-      <p style={{ color: "#666", fontSize: "0.9rem" }}>
-        What do you say when Fraser talks to you?
-        Add Fraser's response choices to create branching conversations.
-      </p>
-      <DialogueEditor tree={dialogueTree} onChange={setDialogueTree} />
+      <section className="nes-container is-dark is-rounded" style={{ marginBottom: "1rem" }}>
+        <p style={{ color: "#888", fontSize: "10px" }}>
+          What do you say when Fraser talks to you?
+          Add Fraser's response choices to create branching conversations.
+        </p>
+        <DialogueEditor tree={dialogueTree} onChange={setDialogueTree} />
+      </section>
 
       <button
         onClick={save}
         disabled={saving}
-        style={{ marginTop: "1rem", fontSize: "1rem", padding: "0.5rem 1.5rem" }}
+        className={`nes-btn ${saving ? "is-disabled" : "is-success"} save-btn`}
       >
         {saving ? "Saving..." : "Save"}
       </button>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {error && <p className="nes-text is-error" style={{ marginTop: "0.5rem" }}>{error}</p>}
     </div>
   );
 }

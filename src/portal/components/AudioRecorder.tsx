@@ -23,47 +23,16 @@ export function AudioRecorder({ audio, onRecord }: AudioRecorderProps) {
         onClick={handleToggle}
         disabled={processing}
         title={recording ? "Stop recording" : "Record dialogue sound (max 3s)"}
-        style={{
-          fontSize: "0.75rem",
-          padding: "1px 5px",
-          background: recording ? "#c44" : "#555",
-          color: "#fff",
-          border: "none",
-          borderRadius: 3,
-          cursor: processing ? "wait" : "pointer",
-        }}
+        className={`audio-btn audio-btn-rec${recording ? " is-recording" : ""}`}
       >
         {processing ? "..." : recording ? "Stop" : "Rec"}
       </button>
       {audio && (
         <>
-          <button
-            onClick={() => playAudio(audio)}
-            title="Preview"
-            style={{
-              fontSize: "0.75rem",
-              padding: "1px 5px",
-              background: "#3a6",
-              color: "#fff",
-              border: "none",
-              borderRadius: 3,
-              cursor: "pointer",
-            }}
-          >
+          <button onClick={() => playAudio(audio)} title="Preview" className="audio-btn audio-btn-play">
             Play
           </button>
-          <button
-            onClick={() => onRecord(null)}
-            title="Remove audio"
-            style={{
-              fontSize: "0.7rem",
-              padding: "1px 4px",
-              background: "transparent",
-              color: "#c44",
-              border: "none",
-              cursor: "pointer",
-            }}
-          >
+          <button onClick={() => onRecord(null)} title="Remove audio" className="audio-btn audio-btn-remove">
             x
           </button>
         </>

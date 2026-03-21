@@ -11,47 +11,27 @@ interface EmoteSelectorProps {
 export function EmoteSelector({ selected, onSelect }: EmoteSelectorProps) {
   return (
     <div style={{ marginBottom: "0.75rem" }}>
-      <p style={{ margin: "0 0 0.5rem", color: "#666", fontSize: "0.9rem" }}>
+      <p style={{ color: "#888", fontSize: "10px", margin: "0 0 0.5rem" }}>
         Pick an emote that floats above your character:
       </p>
-      <div
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          gap: "2px",
-          background: "#f0f0f0",
-          padding: 4,
-          borderRadius: 4,
-        }}
-      >
-        {EMOTES.map((name) => (
-          <button
-            key={name}
-            onClick={() => onSelect(name)}
-            title={name}
-            style={{
-              width: 32,
-              height: 32,
-              padding: 2,
-              border:
-                (selected === name || (!selected && name === DEFAULT_EMOTE))
-                  ? "2px solid #E95420"
-                  : "2px solid transparent",
-              borderRadius: 2,
-              background: (selected === name || (!selected && name === DEFAULT_EMOTE)) ? "#ffe0cc" : "transparent",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <img
-              src={`${BASE}ui/emotes/${name}.png`}
-              alt={name}
-              style={{ imageRendering: "pixelated", maxWidth: 28, maxHeight: 26 }}
-            />
-          </button>
-        ))}
+      <div className="emote-grid">
+        {EMOTES.map((name) => {
+          const active = selected === name || (!selected && name === DEFAULT_EMOTE);
+          return (
+            <button
+              key={name}
+              onClick={() => onSelect(name)}
+              title={name}
+              className={`emote-btn${active ? " is-selected" : ""}`}
+            >
+              <img
+                src={`${BASE}ui/emotes/${name}.png`}
+                alt={name}
+                style={{ imageRendering: "pixelated", maxWidth: 28, maxHeight: 26 }}
+              />
+            </button>
+          );
+        })}
       </div>
     </div>
   );

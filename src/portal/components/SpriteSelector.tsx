@@ -31,42 +31,16 @@ export function SpriteSelector({ onSelect }: SpriteSelectorProps) {
 
   return (
     <div style={{ marginBottom: "0.75rem" }}>
-      <p style={{ margin: "0 0 0.5rem", color: "#666", fontSize: "0.9rem" }}>
-        Pick a character as your starting point, then customise in the editor
-        below:
+      <p style={{ color: "#888", fontSize: "10px", margin: "0 0 0.5rem" }}>
+        Pick a starting character, then customise below:
       </p>
-      <div
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          gap: "2px",
-          maxHeight: 200,
-          overflowY: "auto",
-          background: "#f0f0f0",
-          padding: 4,
-          borderRadius: 4,
-        }}
-      >
+      <div className="sprite-grid">
         {characters.map((name) => (
           <button
             key={name}
             onClick={() => handleSelect(name)}
             title={name}
-            style={{
-              width: 34,
-              height: 34,
-              padding: 1,
-              border:
-                selected === name
-                  ? "2px solid #E95420"
-                  : "2px solid transparent",
-              borderRadius: 2,
-              background: selected === name ? "#ffe0cc" : "transparent",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
+            className={`sprite-btn${selected === name ? " is-selected" : ""}`}
           >
             <img
               src={`${BASE}sprites/characters/${name}.png`}

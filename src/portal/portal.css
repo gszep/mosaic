@@ -1,0 +1,208 @@
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Press Start 2P", cursive;
+  font-size: 12px;
+  line-height: 1.8;
+  background: #212529;
+  color: #fff;
+  margin: 0;
+  padding: 0;
+}
+
+h1, h2, h3 {
+  font-family: "Press Start 2P", cursive;
+  color: #E95420;
+}
+
+h1 { font-size: 16px; margin: 0 0 1rem; }
+h2 { font-size: 12px; margin: 1.5rem 0 0.5rem; }
+
+input[type="text"],
+textarea {
+  font-family: "Press Start 2P", cursive;
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+button {
+  font-family: "Press Start 2P", cursive;
+  font-size: 10px;
+}
+
+.nes-container {
+  background: #2a2a3a;
+  color: #fff;
+}
+
+.nes-container.is-dark {
+  background: #1a1a2e;
+}
+
+/* Mobile-friendly layout */
+.portal-root {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+@media (max-width: 640px) {
+  .portal-root {
+    padding: 0.5rem;
+  }
+  h1 { font-size: 12px; }
+  h2 { font-size: 10px; }
+  body { font-size: 10px; }
+}
+
+/* Sprite selector grid */
+.sprite-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  max-height: 200px;
+  overflow-y: auto;
+  background: #1a1a2e;
+  padding: 4px;
+  border-radius: 0;
+}
+
+.sprite-btn {
+  width: 36px;
+  height: 36px;
+  padding: 2px;
+  border: 2px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  image-rendering: pixelated;
+}
+
+.sprite-btn.is-selected {
+  border-color: #E95420;
+  background: #3a2a1e;
+}
+
+/* Emote selector */
+.emote-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  background: #1a1a2e;
+  padding: 4px;
+}
+
+.emote-btn {
+  width: 34px;
+  height: 34px;
+  padding: 2px;
+  border: 2px solid transparent;
+  background: transparent;
+  cursor: pointer;
+}
+
+.emote-btn.is-selected {
+  border-color: #E95420;
+  background: #3a2a1e;
+}
+
+/* Dialogue editor */
+.dialogue-editor {
+  background: #1a1a2e;
+  padding: 8px;
+  margin-top: 4px;
+}
+
+.dialogue-node {
+  margin-top: 4px;
+}
+
+.dialogue-node-inner {
+  border-left: 2px solid #555;
+  padding-left: 8px;
+  margin-left: 8px;
+}
+
+.dialogue-response {
+  border-left: 2px solid #E95420;
+  padding-left: 8px;
+  margin-left: 16px;
+  margin-top: 4px;
+}
+
+.dialogue-label-you {
+  color: #E95420;
+  font-weight: bold;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+}
+
+.dialogue-label-fraser {
+  color: #7ec8e3;
+  font-weight: bold;
+  flex-shrink: 0;
+  font-size: 10px;
+}
+
+/* Audio recorder buttons */
+.audio-btn {
+  font-size: 8px !important;
+  padding: 2px 6px !important;
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+  color: #fff;
+}
+
+.audio-btn-rec { background: #555; }
+.audio-btn-rec.is-recording { background: #c44; }
+.audio-btn-play { background: #3a6; }
+.audio-btn-remove { background: transparent; color: #c44; padding: 2px 4px !important; }
+
+/* Pixel editor canvas */
+.pixel-editor canvas {
+  image-rendering: pixelated;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Save button */
+.save-btn {
+  margin-top: 1rem;
+  font-size: 12px !important;
+}
+
+/* Password gate */
+.password-gate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  gap: 1rem;
+}
+
+.password-gate input {
+  font-family: "Press Start 2P", cursive;
+  font-size: 12px;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a1a2e;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #E95420;
+}
