@@ -41,7 +41,7 @@ export function VoiceSelector({ voice, voiceData, voiceStart, voiceEnd, onVoice 
     const s = Math.max(0, center - half);
     const e = Math.min(dur, center + half);
     onVoice("custom", result, s, e);
-    triggerPreview(result);
+    triggerPreview(result, s, e);
   };
 
   const { recording, processing, start, stop } = useAudioRecorder(handleRecordingResult);
@@ -51,7 +51,7 @@ export function VoiceSelector({ voice, voiceData, voiceStart, voiceEnd, onVoice 
   const [startMs, setStartMs] = useState(0);
   const [endMs, setEndMs] = useState(0);
   const dragging = useRef(false);
-  const [previewUrl, setPreviewUrl] = useState<{ url: string; n: number } | null>(null);
+  const [preview, setPreview] = useState<{ url: string; s: number; e: number; n: number } | null>(null);
   const [typewriterText, setTypewriterText] = useState("");
   const [typewriterPlaying, setTypewriterPlaying] = useState(false);
   const typewriterTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -121,10 +121,10 @@ export function VoiceSelector({ voice, voiceData, voiceStart, voiceEnd, onVoice 
   }, [waveform, startMs, endMs, durationMs]);
 
   useEffect(() => {
-    if (!previewUrl) return;
+    if (!preview) return;
     if (typewriterTimer.current) clearTimeout(typewriterTimer.current);
 
-    cropToBlip(previewUrl.url, startMs, endMs).then((blipUrl) => {
+    cropToBlip(preview.url, preview.s, preview.e).then((blipUrl) => {
       setTypewriterText("");
       setTypewriterPlaying(true);
       let i = 0;
@@ -147,7 +147,7 @@ export function VoiceSelector({ voice, voiceData, voiceStart, voiceEnd, onVoice 
       tick();
     });
     return () => { if (typewriterTimer.current) clearTimeout(typewriterTimer.current); };
-  }, [previewUrl]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [preview]);
 
   // Drag handlers (custom only)
   const pxToMs = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -169,7 +169,8 @@ export function VoiceSelector({ voice, voiceData, voiceStart, voiceEnd, onVoice 
     setEndMs(Math.max(startMs, Math.min(ms, startMs + MAX_BLIP_MS)));
   };
 
-  const triggerPreview = (url: string) => setPreviewUrl({ url, n: Date.now() });
+  const triggerPreview = (url: string, s: number, e: number) =>
+    setPreview({ url, s, e, n: Date.now() });
 
   const handleMouseUp = () => {
     if (!dragging.current) return;
@@ -177,18 +178,18 @@ export function VoiceSelector({ voice, voiceData, voiceStart, voiceEnd, onVoice 
     const len = endMs - startMs;
     if (len >= 5 && voiceData) {
       onVoice("custom", voiceData, startMs, endMs);
-      triggerPreview(voiceData);
+      triggerPreview(voiceData, startMs, endMs);
     }
   };
 
   const selectPreset = (name: string) => {
     onVoice(name);
-    triggerPreview(`${BASE}audio/voice/${name}.wav`);
+    triggerPreview(`${BASE}audio/voice/${name}.wav`, 0, 99999);
   };
 
   const selectCustom = () => {
     onVoice("custom");
-    if (voiceData) triggerPreview(voiceData);
+    if (voiceData) triggerPreview(voiceData, voiceStart ?? 0, voiceEnd ?? 99999);
   };
 
   // Record
