@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useAudioRecorder, getWaveform, MAX_BLIP_MS } from "../hooks/useAudioRecorder";
+import { encodeWav, cropSamples, SAMPLE_RATE } from "../../shared/audio";
 
 const BASE = import.meta.env.BASE_URL;
 const VOICES = Array.from({ length: 10 }, (_, i) => `Voice${i + 1}`);
@@ -13,7 +14,6 @@ const TYPEWRITER_INTERVAL = 17;
 const BLIP_EVERY = 3;
 const CANVAS_W = 280;
 const CANVAS_H = 30;
-const SAMPLE_RATE = 8000;
 
 interface VoiceSelectorProps {
   voice: string | null;
@@ -25,27 +25,9 @@ interface VoiceSelectorProps {
 
 function cropToBlip(fullDataUrl: string, startMs: number, endMs: number): Promise<string> {
   return getWaveform(fullDataUrl).then((data) => {
-    const s = Math.floor((startMs / 1000) * SAMPLE_RATE);
-    const e = Math.floor((endMs / 1000) * SAMPLE_RATE);
-    const cropped = data.slice(s, e);
+    const cropped = cropSamples(data, startMs, endMs);
     if (cropped.length === 0) return fullDataUrl;
-    const buf = new AudioBuffer({ length: cropped.length, sampleRate: SAMPLE_RATE, numberOfChannels: 1 });
-    buf.copyToChannel(new Float32Array(cropped), 0);
-
-    // Encode WAV
-    const bps = 16;
-    const dataSize = cropped.length * 2;
-    const ab = new ArrayBuffer(44 + dataSize);
-    const v = new DataView(ab);
-    const w = (o: number, s: string) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
-    w(0, "RIFF"); v.setUint32(4, 36 + dataSize, true); w(8, "WAVE"); w(12, "fmt ");
-    v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
-    v.setUint32(24, SAMPLE_RATE, true); v.setUint32(28, SAMPLE_RATE * 2, true);
-    v.setUint16(32, 2, true); v.setUint16(34, bps, true); w(36, "data"); v.setUint32(40, dataSize, true);
-    for (let i = 0; i < cropped.length; i++) v.setInt16(44 + i * 2, Math.max(-1, Math.min(1, cropped[i])) * 0x7fff, true);
-    const bytes = new Uint8Array(ab);
-    let bin = ""; for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
-    return "data:audio/wav;base64," + btoa(bin);
+    return encodeWav(cropped);
   });
 }
 

@@ -2,6 +2,7 @@ import { Assets, Container, NineSliceSprite, Texture } from "pixi.js";
 import type { DialogueNode } from "../shared/types";
 import { INTERNAL_WIDTH, INTERNAL_HEIGHT } from "./viewport";
 import { loadBitmapFont, createBitmapText } from "./bitmapfont";
+import { decodeAudio, cropSamples, encodeWav } from "../shared/audio";
 
 const BASE = import.meta.env.BASE_URL;
 const BOX_MARGIN = 1;
@@ -69,40 +70,13 @@ export async function startDialogue(
 ) {
   await ensureAssets();
 
-  // For presets, use the full wav. For custom, use the stored data.
-  // The game plays the full voiceUrl — cropping is baked into voiceData at save time
-  // or we just use the preset directly (which is already short enough).
   let voiceUrl: string;
   if (voice === "custom" && voiceData) {
-    // Crop the stored recording at runtime
-    const resp = await fetch(voiceData);
-    const buf = await resp.arrayBuffer();
-    const ctx = new OfflineAudioContext(1, 1, 8000);
-    const decoded = await ctx.decodeAudioData(buf);
-    const data = decoded.getChannelData(0);
-    const s = Math.floor(((voiceStart ?? 0) / 1000) * 8000);
-    const e = Math.floor(((voiceEnd ?? (data.length / 8000 * 1000)) / 1000) * 8000);
-    const cropped = data.slice(s, e);
-    if (cropped.length > 0) {
-      const trimBuf = new AudioBuffer({ length: cropped.length, sampleRate: 8000, numberOfChannels: 1 });
-      trimBuf.copyToChannel(new Float32Array(cropped), 0);
-      // Encode to WAV data URL
-      const bps = 16;
-      const dataSize = cropped.length * 2;
-      const ab = new ArrayBuffer(44 + dataSize);
-      const v = new DataView(ab);
-      const w = (o: number, str: string) => { for (let i = 0; i < str.length; i++) v.setUint8(o + i, str.charCodeAt(i)); };
-      w(0, "RIFF"); v.setUint32(4, 36 + dataSize, true); w(8, "WAVE"); w(12, "fmt ");
-      v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
-      v.setUint32(24, 8000, true); v.setUint32(28, 16000, true);
-      v.setUint16(32, 2, true); v.setUint16(34, bps, true); w(36, "data"); v.setUint32(40, dataSize, true);
-      for (let i = 0; i < cropped.length; i++) v.setInt16(44 + i * 2, Math.max(-1, Math.min(1, cropped[i])) * 0x7fff, true);
-      const bytes = new Uint8Array(ab);
-      let bin = ""; for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
-      voiceUrl = "data:audio/wav;base64," + btoa(bin);
-    } else {
-      voiceUrl = `${BASE}audio/voice/${DEFAULT_VOICE}.wav`;
-    }
+    const data = await decodeAudio(voiceData);
+    const startMs = voiceStart ?? 0;
+    const endMs = voiceEnd ?? (data.length / 8000 * 1000);
+    const cropped = cropSamples(data, startMs, endMs);
+    voiceUrl = cropped.length > 0 ? encodeWav(cropped) : `${BASE}audio/voice/${DEFAULT_VOICE}.wav`;
   } else {
     voiceUrl = `${BASE}audio/voice/${voice || DEFAULT_VOICE}.wav`;
   }
