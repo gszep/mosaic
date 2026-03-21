@@ -28,9 +28,19 @@ export function applyViewport(app: Application): void {
   canvas.style.top = `${(vh - canvasH) / 2}px`;
   canvas.style.imageRendering = "pixelated";
 
+  const canvasLeft = (vw - canvasW) / 2;
+  const canvasTop = (vh - canvasH) / 2;
+
   const controls = document.querySelector(".controls") as HTMLElement | null;
   if (controls) {
-    const canvasBottom = (vh - canvasH) / 2 + canvasH;
-    controls.style.top = `${canvasBottom + 24}px`;
+    controls.style.top = `${canvasTop + canvasH + 24}px`;
+  }
+
+  const loading = document.getElementById("loading-screen");
+  if (loading) {
+    loading.style.left = `${canvasLeft}px`;
+    loading.style.top = `${canvasTop}px`;
+    loading.style.width = `${canvasW}px`;
+    loading.style.height = `${canvasH}px`;
   }
 }
