@@ -6,7 +6,10 @@ import { spriteDataToTexture } from "./sprites";
 
 const TILE = 16;
 const BASE = import.meta.env.BASE_URL;
-const INTERACT_RANGE = 32; // pixels
+const INTERACT_RANGE = 32;
+
+let emoteSprite: Sprite | null = null;
+let emoteTexture: Texture | null = null;
 
 export interface NpcData {
   token: string;
@@ -101,4 +104,30 @@ export function findNearestNpc(px: number, py: number): NpcData | null {
     }
   }
   return best;
+}
+
+export async function initEmote(world: Container): Promise<void> {
+  emoteTexture = await Assets.load<Texture>(`${BASE}ui/emote-interact.png`);
+  emoteTexture.source.scaleMode = "nearest";
+  emoteSprite = new Sprite(emoteTexture);
+  emoteSprite.visible = false;
+  world.addChild(emoteSprite);
+}
+
+export function updateEmote(px: number, py: number, dialogueActive: boolean): void {
+  if (!emoteSprite) return;
+
+  if (dialogueActive) {
+    emoteSprite.visible = false;
+    return;
+  }
+
+  const npc = findNearestNpc(px, py);
+  if (npc) {
+    emoteSprite.visible = true;
+    emoteSprite.x = npc.sprite.x + 8 - emoteSprite.width / 2;
+    emoteSprite.y = npc.sprite.y - emoteSprite.height - 2;
+  } else {
+    emoteSprite.visible = false;
+  }
 }

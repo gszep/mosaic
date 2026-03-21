@@ -3,7 +3,7 @@ import { Application, Container, TextureSource } from "pixi.js";
 TextureSource.defaultOptions.scaleMode = "nearest";
 import { applyViewport } from "./viewport";
 import { loadTilemap } from "./tilemap";
-import { loadNpcSprites, findNearestNpc } from "./npcs";
+import { loadNpcSprites, findNearestNpc, initEmote, updateEmote } from "./npcs";
 import { loadPlayerSprite, updatePlayerSprite } from "./player";
 import { initInput, createPlayer, createCamera, updatePlayer, updateCamera, applyCamera } from "./camera";
 import { startDialogue, updateDialogue, handleDialogueInput, isDialogueActive } from "./dialogue";
@@ -37,6 +37,7 @@ async function boot() {
 
   const npcContainer = await loadNpcSprites(map);
   world.addChild(npcContainer);
+  await initEmote(world);
 
   const cleanupInput = initInput();
   const player = createPlayer(
@@ -62,8 +63,13 @@ async function boot() {
         return;
       }
       const npc = findNearestNpc(player.x, player.y);
-      if (npc?.dialogueTree) {
-        void startDialogue(npc.dialogueTree, npc.name, uiLayer);
+      if (npc) {
+        const tree = npc.dialogueTree ?? {
+          id: "default",
+          text: "Happy birthday!",
+          responses: null,
+        };
+        void startDialogue(tree, npc.name, uiLayer);
       }
     }
     if (isDialogueActive() && (e.key === "ArrowUp" || e.key === "ArrowDown" || e.key === "w" || e.key === "s")) {
@@ -80,6 +86,7 @@ async function boot() {
     updatePlayerSprite(playerSprite, player);
     updateCamera(camera, player, mapWidth, mapHeight);
     applyCamera(world, camera);
+    updateEmote(player.x, player.y, isDialogueActive());
     updateDialogue();
   });
 

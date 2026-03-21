@@ -5103,6 +5103,22 @@
               "value": "test-token-abc"
             }
           ]
+        },
+        {
+          "id": 2,
+          "name": "Matilda",
+          "type": "spawn",
+          "x": 240,
+          "y": 208,
+          "width": 16,
+          "height": 16,
+          "properties": [
+            {
+              "name": "npcId",
+              "type": "string",
+              "value": "matilda"
+            }
+          ]
         }
       ],
       "width": 40,
