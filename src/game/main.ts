@@ -65,12 +65,15 @@ async function boot() {
   const cleanupInput = initInput();
   let talkingTo: NpcData | null = null;
   const inventory = new Set<string>();
+  let transitioning = false;
 
-  // Scene transition
   async function transitionTo(targetMap: string, tx: number, ty: number) {
+    if (transitioning) return;
+    transitioning = true;
     unloadScene(scene, app.stage);
     scene = await loadScene(targetMap, app.stage, tx * 16, ty * 16);
     startSceneMusic(targetMap);
+    transitioning = false;
   }
 
   // Check if player is on a warp tile
@@ -139,6 +142,7 @@ async function boot() {
   window.addEventListener("keydown", onInteract);
 
   app.ticker.add(() => {
+    if (transitioning) return;
     if (!isDialogueActive() && !isGiftPopupActive()) {
       const npcs = scene.name === "village" ? getNpcPositions() : undefined;
       updatePlayer(scene.player, scene.mapWidth, scene.mapHeight, scene.collision, npcs);
