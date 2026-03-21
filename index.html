@@ -7,6 +7,18 @@
   <style>
     * { margin: 0; padding: 0; }
     html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+    #loading-screen {
+      position: fixed; inset: 0; z-index: 100;
+      background: #000;
+      display: flex; align-items: center; justify-content: center;
+      transition: opacity 0.8s;
+    }
+    #loading-screen.fade-out { opacity: 0; pointer-events: none; }
+    #loading-text {
+      font-family: 'NinjaFont', monospace;
+      font-size: 24px;
+      color: #555;
+    }
     .controls {
       position: fixed;
       left: 50%;
@@ -66,6 +78,7 @@
   </style>
 </head>
 <body>
+  <div id="loading-screen"><span id="loading-text">Loading...</span></div>
   <div class="controls">
     <div class="control-group move-group">
       <div class="control-keys">

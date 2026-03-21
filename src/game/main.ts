@@ -60,6 +60,32 @@ async function boot() {
   const onResize = () => applyViewport(app);
   window.addEventListener("resize", onResize);
 
+  const params2 = new URLSearchParams(window.location.search);
+  const skipIntro = params2.has("x") || params2.has("y");
+
+  if (skipIntro) {
+    document.getElementById("loading-screen")?.remove();
+  } else {
+    // Show "Wake up" and wait for input
+    const loadingText = document.getElementById("loading-text");
+    const loadingScreen = document.getElementById("loading-screen");
+    if (loadingText) {
+      loadingText.textContent = "Wake up";
+      loadingText.style.color = "#fff";
+    }
+    await new Promise<void>((resolve) => {
+      const dismiss = (e: KeyboardEvent | TouchEvent) => {
+        if (e instanceof KeyboardEvent && !["Enter", " ", "e"].includes(e.key)) return;
+        window.removeEventListener("keydown", dismiss);
+        window.removeEventListener("touchstart", dismiss);
+        loadingScreen?.classList.add("fade-out");
+        setTimeout(() => { loadingScreen?.remove(); resolve(); }, 800);
+      };
+      window.addEventListener("keydown", dismiss);
+      window.addEventListener("touchstart", dismiss);
+    });
+  }
+
   let talkingTo: NpcData | null = null;
   const inventory = new Set<string>();
 
