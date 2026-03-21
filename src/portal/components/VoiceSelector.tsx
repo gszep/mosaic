@@ -166,7 +166,20 @@ export function VoiceSelector({ selected, customVoice, onSelect, onCustomVoice }
     setEndMs(Math.max(startMs, Math.min(ms, startMs + MAX_BLIP_MS)));
   };
 
-  const handleMouseUp = () => { dragging.current = false; };
+  const handleMouseUp = async () => {
+    if (!dragging.current) return;
+    dragging.current = false;
+    // Auto-crop and preview on drag end
+    if (rawAudioUrl) {
+      const len = endMs - startMs;
+      if (len >= 5) {
+        const cropped = await cropDataUrl(rawAudioUrl, startMs, len);
+        onCustomVoice(cropped);
+        onSelect("custom");
+        setTrigger((t) => t + 1);
+      }
+    }
+  };
 
   // Record toggle
   const handleRecord = async () => {
@@ -183,24 +196,11 @@ export function VoiceSelector({ selected, customVoice, onSelect, onCustomVoice }
     }
   };
 
-  // Use selection (crop raw recording)
-  const handleUseSelection = async () => {
-    if (!rawAudioUrl) return;
-    const len = endMs - startMs;
-    if (len < 5) return;
-    const cropped = await cropDataUrl(rawAudioUrl, startMs, len);
-    onCustomVoice(cropped);
-    onSelect("custom");
-    setTrigger((t) => t + 1);
-  };
-
   const selectVoice = (name: string) => {
     onSelect(name);
     setRawAudioUrl(null);
     setTrigger((t) => t + 1);
   };
-
-  const selectionMs = Math.round(endMs - startMs);
 
   return (
     <div>
@@ -255,20 +255,6 @@ export function VoiceSelector({ selected, customVoice, onSelect, onCustomVoice }
         </button>
       </div>
 
-      {/* Selection info + use button for custom raw recordings */}
-      {canDrag && (
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
-          <span style={{ color: "#888", fontSize: "8px" }}>{selectionMs}ms selected</span>
-          <button
-            onClick={handleUseSelection}
-            disabled={selectionMs < 5}
-            className={`nes-btn ${selectionMs < 5 ? "is-disabled" : "is-success"}`}
-            style={{ fontSize: "8px", padding: "3px 8px" }}
-          >
-            Use selection
-          </button>
-        </div>
-      )}
 
       {/* Typewriter preview */}
       <div style={{ marginTop: 6 }}>
