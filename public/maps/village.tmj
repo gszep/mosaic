@@ -5090,7 +5090,7 @@
       "objects": [
         {
           "id": 1,
-          "name": "TestCharacter",
+          "name": "Peter",
           "type": "spawn",
           "x": 320,
           "y": 192,
@@ -5100,7 +5100,7 @@
             {
               "name": "npcId",
               "type": "string",
-              "value": "test-token-abc"
+              "value": "peter"
             }
           ]
         },
@@ -5133,6 +5133,22 @@
               "name": "npcId",
               "type": "string",
               "value": "jordan"
+            }
+          ]
+        },
+        {
+          "id": 4,
+          "name": "Grisha",
+          "type": "spawn",
+          "x": 288,
+          "y": 256,
+          "width": 16,
+          "height": 16,
+          "properties": [
+            {
+              "name": "npcId",
+              "type": "string",
+              "value": "grisha"
             }
           ]
         }
