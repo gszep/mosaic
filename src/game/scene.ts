@@ -1,12 +1,39 @@
-import { Container, Sprite } from "pixi.js";
+import { Assets, Container, Sprite, Texture } from "pixi.js";
 import { loadTilemap } from "./tilemap";
-import { loadNpcSprites, initEmote } from "./npcs";
-import { loadPlayerSprite } from "./player";
-import { createPlayer, createCamera, updateCamera, applyCamera, type PlayerState } from "./camera";
+import { loadNpcSprites, getNpcPositions, initEmote, updateEmote } from "./npcs";
+import { createPlayer, createCamera, updatePlayer, updateCamera, applyCamera, type PlayerState, type NpcCollider } from "./camera";
 import { playMusic } from "./music";
+import { db, ref, get } from "../shared/firebase";
+import type { Submission } from "../shared/types";
+import { spriteDataToTexture } from "./sprites";
 import type { TMJMap } from "../shared/tmj";
 
 const BASE = import.meta.env.BASE_URL;
+const TILE = 16;
+
+const MUSIC: Record<string, string> = {
+  bedroom: "music-bedroom.ogg",
+  home: "music-bedroom.ogg",
+  village: "music-village.ogg",
+};
+
+let cachedPlayerTexture: Texture | null = null;
+
+async function getPlayerTexture(): Promise<Texture> {
+  if (cachedPlayerTexture) return cachedPlayerTexture;
+  try {
+    const snapshot = await get(ref(db, "submissions/player"));
+    if (snapshot.exists()) {
+      const sub = snapshot.val() as Submission;
+      if (sub.spriteData) {
+        cachedPlayerTexture = spriteDataToTexture(sub.spriteData);
+        return cachedPlayerTexture;
+      }
+    }
+  } catch {}
+  cachedPlayerTexture = await Assets.load<Texture>(`${BASE}sprites/player-default.png`);
+  return cachedPlayerTexture;
+}
 
 export interface Scene {
   name: string;
@@ -19,13 +46,8 @@ export interface Scene {
   collision: Set<number>;
   camera: { x: number; y: number };
   map: TMJMap;
+  hasNpcs: boolean;
 }
-
-const MUSIC: Record<string, string> = {
-  bedroom: "music-bedroom.ogg",
-  home: "music-bedroom.ogg",
-  village: "music-village.ogg",
-};
 
 export async function loadScene(
   name: string,
@@ -43,14 +65,19 @@ export async function loadScene(
   );
   world.addChild(mapContainer);
 
-  const playerSprite = await loadPlayerSprite();
-  const px = startX ?? (mapWidth - 16) / 2;
-  const py = startY ?? (mapHeight - 16) / 2;
-  const player = createPlayer(Math.max(0, Math.min(px, mapWidth - 16)), Math.max(0, Math.min(py, mapHeight - 16)));
+  const playerTexture = await getPlayerTexture();
+  const playerSprite = new Sprite(playerTexture);
+  const px = startX ?? (mapWidth - TILE) / 2;
+  const py = startY ?? (mapHeight - TILE) / 2;
+  const player = createPlayer(
+    Math.max(0, Math.min(px, mapWidth - TILE)),
+    Math.max(0, Math.min(py, mapHeight - TILE))
+  );
   playerSprite.x = player.x;
   playerSprite.y = player.y;
 
-  if (name === "village") {
+  const hasNpcs = name === "village";
+  if (hasNpcs) {
     const { bottom, top } = await loadNpcSprites(map);
     world.addChild(bottom);
     world.addChild(playerSprite);
@@ -64,17 +91,45 @@ export async function loadScene(
   updateCamera(camera, player, mapWidth, mapHeight);
   applyCamera(world, camera);
 
-  // Add to stage and reveal only after everything is ready
   stage.addChild(world);
   stage.addChild(uiLayer);
   world.visible = true;
 
-  return { name, world, uiLayer, player, playerSprite, mapWidth, mapHeight, collision, camera, map };
-}
-
-export function startSceneMusic(name: string): void {
   const track = MUSIC[name];
   if (track) playMusic(track);
+
+  return { name, world, uiLayer, player, playerSprite, mapWidth, mapHeight, collision, camera, map, hasNpcs };
+}
+
+export function updateScene(scene: Scene, dialogueActive: boolean): void {
+  const npcs: NpcCollider[] | undefined = scene.hasNpcs ? getNpcPositions() : undefined;
+  updatePlayer(scene.player, scene.mapWidth, scene.mapHeight, scene.collision, npcs);
+  scene.playerSprite.x = scene.player.x;
+  scene.playerSprite.y = scene.player.y;
+  updateCamera(scene.camera, scene.player, scene.mapWidth, scene.mapHeight);
+  applyCamera(scene.world, scene.camera);
+  if (scene.hasNpcs) updateEmote(scene.player.x, scene.player.y, dialogueActive);
+}
+
+export function findWarp(scene: Scene): { target: string; x: number; y: number } | null {
+  const spawns = scene.map.layers.find((l) => l.type === "objectgroup" && l.name === "spawns");
+  if (!spawns?.objects) return null;
+  const cx = scene.player.x + 8;
+  const cy = scene.player.y + 8;
+  for (const obj of spawns.objects) {
+    if (obj.type !== "warp") continue;
+    if (cx >= obj.x && cx < obj.x + obj.width && cy >= obj.y && cy < obj.y + obj.height) {
+      const target = obj.properties?.find((p) => p.name === "target")?.value;
+      if (target) {
+        return {
+          target,
+          x: Number(obj.properties?.find((p) => p.name === "targetX")?.value ?? 0),
+          y: Number(obj.properties?.find((p) => p.name === "targetY")?.value ?? 0),
+        };
+      }
+    }
+  }
+  return null;
 }
 
 export function unloadScene(scene: Scene, stage: Container): void {
