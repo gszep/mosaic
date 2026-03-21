@@ -67,6 +67,7 @@ async function boot() {
         const tree = npc.dialogueTree ?? {
           id: "default",
           text: "Happy birthday!",
+          audio: null,
           responses: null,
         };
         void startDialogue(tree, npc.name, uiLayer);

@@ -102,6 +102,12 @@ function renderNode() {
   state.selectedOption = 0;
   state.phase = "typing";
   layoutBox();
+
+  // Play audio if available
+  if (state.currentNode.audio) {
+    const audio = new Audio(state.currentNode.audio);
+    audio.play().catch(() => {});
+  }
 }
 
 function renderOptions() {

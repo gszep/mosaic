@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import type { DialogueNode, DialogueResponse } from "../../shared/types";
+import { AudioRecorder } from "./AudioRecorder";
 
 const MAX_DEPTH = 4;
 const MAX_RESPONSES = 3;
@@ -12,6 +13,7 @@ function createDefaultTree(): DialogueNode {
   return {
     id: createId(),
     text: "Happy birthday!",
+    audio: null,
     responses: null,
   };
 }
@@ -28,6 +30,7 @@ function NodeEditor({
   onChange: (updated: DialogueNode) => void;
 }) {
   const updateText = (text: string) => onChange({ ...node, text });
+  const updateAudio = (audio: string | null) => onChange({ ...node, audio });
 
   const updateResponse = (idx: number, resp: DialogueResponse) => {
     const responses = (node.responses ?? []).slice();
@@ -38,7 +41,7 @@ function NodeEditor({
   const addResponse = () => {
     const responses = (node.responses ?? []).slice();
     if (responses.length >= MAX_RESPONSES) return;
-    responses.push({ option: "", next: { id: createId(), text: "", responses: null } });
+    responses.push({ option: "", next: { id: createId(), text: "", audio: null, responses: null } });
     onChange({ ...node, responses });
   };
 
@@ -51,7 +54,10 @@ function NodeEditor({
   return (
     <div style={{ marginLeft: depth > 0 ? 16 : 0, borderLeft: depth > 0 ? "2px solid #555" : "none", paddingLeft: depth > 0 ? 8 : 0, marginTop: 4 }}>
       <div style={{ display: "flex", alignItems: "start", gap: 4, marginBottom: 4 }}>
-        <span style={{ color: "#E95420", fontWeight: "bold", flexShrink: 0 }}>You:</span>
+        <span style={{ color: "#E95420", fontWeight: "bold", flexShrink: 0, display: "flex", alignItems: "center", gap: 2 }}>
+          You:
+          <AudioRecorder audio={node.audio ?? null} onRecord={updateAudio} />
+        </span>
         <textarea
           value={node.text}
           onChange={(e) => updateText(e.target.value)}
@@ -107,7 +113,7 @@ function ResponseEditor({
   const toggleGoto = () => {
     if (useGoto) {
       setUseGoto(false);
-      onChange({ option: response.option, next: { id: createId(), text: "", responses: null } });
+      onChange({ option: response.option, next: { id: createId(), text: "", audio: null, responses: null } });
     } else {
       setUseGoto(true);
       onChange({ option: response.option, goto: allIds[0]?.id ?? "" });

@@ -13,6 +13,7 @@ export interface DialogueResponse {
 export interface DialogueNode {
   id: string;
   text: string;
+  audio: string | null;
   responses: DialogueResponse[] | null;
 }
 
