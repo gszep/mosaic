@@ -28,19 +28,22 @@ export function DialogueEditor({ tree, onChange, giftObject }: DialogueEditorPro
 
   return (
     <div className="dialogue-editor">
-      <TreeNode node={root} depth={0} onChange={handleChange} giftObject={giftObject} />
+      <TreeNode node={root} depth={0} onChange={handleChange} giftObject={giftObject} givesGift={true} />
     </div>
   );
 }
 
 function TreeNode({
-  node, depth, onChange, giftObject,
+  node, depth, onChange, giftObject, givesGift, onToggleGift,
 }: {
   node: DialogueNode;
   depth: number;
   onChange: (n: DialogueNode) => void;
   giftObject?: string | null;
+  givesGift?: boolean;
+  onToggleGift?: () => void;
 }) {
+  const gift = givesGift !== false;
   const updateText = (text: string) => onChange({ ...node, text });
   const updateResponse = (i: number, r: DialogueResponse) => {
     const responses = (node.responses ?? []).slice();
@@ -59,15 +62,18 @@ function TreeNode({
     onChange({ ...node, responses: responses.length > 0 ? responses : null });
   };
 
+  const autoResize = (el: HTMLTextAreaElement | null) => {
+    if (el) { el.style.height = "0"; el.style.height = el.scrollHeight + "px"; }
+  };
+
   return (
-    <div className="dtree-branch">
-      {/* NPC node */}
+    <div className={`dtree-branch${gift ? " dtree-gives-gift" : ""}`}>
       <div className="dtree-node dtree-npc">
         <span className="dtree-tag dtree-tag-you">You</span>
         <textarea
-          ref={(el) => { if (el) { el.style.height = "0"; el.style.height = el.scrollHeight + "px"; } }}
+          ref={autoResize}
           value={node.text}
-          onChange={(e) => { updateText(e.target.value); const t = e.target; t.style.height = "0"; t.style.height = t.scrollHeight + "px"; }}
+          onChange={(e) => { updateText(e.target.value); autoResize(e.target); }}
           placeholder="What do you say?"
           rows={1}
           className="nes-textarea is-dark"
@@ -75,16 +81,14 @@ function TreeNode({
         />
       </div>
 
-      {/* Connector down */}
       {(node.responses || depth < MAX_DEPTH) && <div className="dtree-connector" />}
 
-      {/* Player responses */}
       {node.responses && (
         <div className="dtree-responses">
           {node.responses.map((resp, i) => {
-            const gift = resp.givesGift !== false;
+            const respGift = resp.givesGift !== false;
             return (
-              <div key={i} className={`dtree-response-branch${gift ? " dtree-gives-gift" : ""}`}>
+              <div key={i} className={`dtree-response-branch${respGift ? " dtree-gives-gift" : ""}`}>
                 <div className="dtree-connector-h" />
                 <div className="dtree-node dtree-player">
                   <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
@@ -92,9 +96,9 @@ function TreeNode({
                     <button onClick={() => removeResponse(i)} className="nes-btn is-error" style={{ fontSize: "7px", padding: "1px 4px", marginLeft: "auto" }}>x</button>
                   </div>
                   <textarea
-                    ref={(el) => { if (el) { el.style.height = "0"; el.style.height = el.scrollHeight + "px"; } }}
+                    ref={autoResize}
                     value={resp.option}
-                    onChange={(e) => { updateResponse(i, { ...resp, option: e.target.value }); const t = e.target; t.style.height = "0"; t.style.height = t.scrollHeight + "px"; }}
+                    onChange={(e) => { updateResponse(i, { ...resp, option: e.target.value }); autoResize(e.target); }}
                     placeholder="Fraser says..."
                     rows={1}
                     className="nes-textarea is-dark"
@@ -109,20 +113,9 @@ function TreeNode({
                       depth={depth + 1}
                       onChange={(next) => updateResponse(i, { ...resp, next })}
                       giftObject={giftObject}
+                      givesGift={respGift}
+                      onToggleGift={() => updateResponse(i, { ...resp, givesGift: !respGift })}
                     />
-                  </>
-                )}
-                {!resp.next && (
-                  <>
-                    <div className="dtree-connector" />
-                    <button
-                      className={`dtree-leaf${gift ? " dtree-leaf-gift" : ""}`}
-                      onClick={() => updateResponse(i, { ...resp, givesGift: !gift })}
-                    >
-                      {gift
-                        ? (giftObject ? `Gives Fraser ${giftObject}` : "Gives present")
-                        : "End (no present)"}
-                    </button>
                   </>
                 )}
               </div>
@@ -131,7 +124,6 @@ function TreeNode({
         </div>
       )}
 
-      {/* Add response button */}
       {(!node.responses || node.responses.length < MAX_RESPONSES) && depth < MAX_DEPTH && (
         <button onClick={addResponse} className="nes-btn is-dark dtree-add" style={{ fontSize: "8px" }}>
           + response option for turn {depth + 1}
@@ -140,10 +132,15 @@ function TreeNode({
 
       {!node.responses && (
         <>
-          <div className="dtree-connector" style={{ background: "#fff" }} />
-          <div className="dtree-leaf dtree-leaf-gift">
-            {giftObject ? `Gives Fraser ${giftObject}` : "Gives present"}
-          </div>
+          <div className="dtree-connector" />
+          <button
+            className={`dtree-leaf${gift ? " dtree-leaf-gift" : ""}`}
+            onClick={onToggleGift}
+          >
+            {gift
+              ? (giftObject ? `Gives Fraser ${giftObject}` : "Gives present")
+              : "End (no present)"}
+          </button>
         </>
       )}
     </div>
