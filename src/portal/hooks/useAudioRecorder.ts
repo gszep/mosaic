@@ -3,7 +3,7 @@ import { useState, useRef, useCallback } from "react";
 const MAX_DURATION = 3000; // ms
 const CRUSHED_RATE = 8000; // low sample rate for retro feel
 const BIT_DEPTH = 4; // bits for crushing
-const MAX_BLIP_MS = 400;
+const MAX_BLIP_MS = 350;
 
 function trimSilence(data: Float32Array, sampleRate: number): Float32Array {
   const windowSize = Math.floor(sampleRate * 0.01); // 10ms windows
@@ -188,10 +188,12 @@ export function getDurationMs(dataUrl: string): Promise<number> {
 export function cropDataUrl(
   dataUrl: string,
   startMs: number,
+  lengthMs?: number,
 ): Promise<string> {
   return getWaveform(dataUrl).then((data) => {
     const startSample = Math.floor((startMs / 1000) * CRUSHED_RATE);
-    const maxSamples = Math.floor((MAX_BLIP_MS / 1000) * CRUSHED_RATE);
+    const dur = Math.min(lengthMs ?? MAX_BLIP_MS, MAX_BLIP_MS);
+    const maxSamples = Math.floor((dur / 1000) * CRUSHED_RATE);
     const cropped = data.slice(startSample, startSample + maxSamples);
     const buf = new AudioBuffer({
       length: cropped.length,
