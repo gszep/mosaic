@@ -383,8 +383,7 @@ function renderSpawns(ctx: CanvasRenderingContext2D) {
       const sw = spriteCanvas.width * s;
       const sh = spriteCanvas.height * s;
       ctx.drawImage(spriteCanvas, 0, 0, spriteCanvas.width, spriteCanvas.height, px, py, sw, sh);
-      // Selection outline
-      ctx.strokeStyle = "#E95420";
+      ctx.strokeStyle = npcId === "player" ? "#64ff64" : "#E95420";
       ctx.lineWidth = 1;
       ctx.strokeRect(px, py, sw, sh);
     } else {
