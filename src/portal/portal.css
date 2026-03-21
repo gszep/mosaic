@@ -145,6 +145,13 @@ button {
   background: #0a1a2e;
 }
 
+.dtree-node .nes-textarea,
+.dtree-node .nes-input {
+  border: none;
+  margin: 0;
+  padding: 4px;
+}
+
 .dtree-tag {
   font-size: 8px;
   font-weight: bold;
