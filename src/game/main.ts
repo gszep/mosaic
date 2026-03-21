@@ -78,6 +78,7 @@ async function boot() {
 
   // Check if player is on a warp tile
   function checkWarps() {
+    if (transitioning) return;
     const spawns = scene.map.layers.find((l) => l.type === "objectgroup" && l.name === "spawns");
     if (!spawns?.objects) return;
     for (const obj of spawns.objects) {
@@ -89,6 +90,7 @@ async function boot() {
         const targetX = obj.properties?.find((p) => p.name === "targetX")?.value;
         const targetY = obj.properties?.find((p) => p.name === "targetY")?.value;
         if (target) {
+          transitioning = true;
           void transitionTo(target, Number(targetX ?? 0), Number(targetY ?? 0));
           return;
         }
@@ -147,6 +149,7 @@ async function boot() {
       const npcs = scene.name === "village" ? getNpcPositions() : undefined;
       updatePlayer(scene.player, scene.mapWidth, scene.mapHeight, scene.collision, npcs);
       checkWarps();
+      if (transitioning) return;
     }
     updatePlayerSprite(scene.playerSprite, scene.player);
     updateCamera(scene.camera, scene.player, scene.mapWidth, scene.mapHeight);
