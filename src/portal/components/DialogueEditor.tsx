@@ -28,7 +28,14 @@ export function DialogueEditor({ tree, onChange, giftObject }: DialogueEditorPro
 
   return (
     <div className="dialogue-editor">
-      <TreeNode node={root} depth={0} onChange={handleChange} giftObject={giftObject} givesGift={true} />
+      <TreeNode
+        node={root}
+        depth={0}
+        onChange={handleChange}
+        giftObject={giftObject}
+        givesGift={root.givesGift !== false}
+        onToggleGift={() => handleChange({ ...root, givesGift: root.givesGift === false })}
+      />
     </div>
   );
 }

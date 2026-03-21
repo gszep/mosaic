@@ -16,6 +16,7 @@ export interface DialogueNode {
   text: string;
   audio?: string | null;
   responses: DialogueResponse[] | null;
+  givesGift?: boolean;
 }
 
 export interface Submission {
