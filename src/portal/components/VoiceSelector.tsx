@@ -190,15 +190,15 @@ export function VoiceSelector({ voice, voiceData, voiceStart, voiceEnd, onVoice 
     }
   };
 
-  // Select preset
+  // Select preset (preserve custom data for switching back)
   const selectPreset = (name: string) => {
-    onVoice(name, null, null, null);
+    onVoice(name);
     setTrigger((t) => t + 1);
   };
 
   // Select custom
   const selectCustom = () => {
-    onVoice("custom", voiceData, voiceStart, voiceEnd);
+    onVoice("custom");
     setTrigger((t) => t + 1);
   };
 
