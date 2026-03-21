@@ -89,12 +89,13 @@ function TreeNode({
                   <span className="dtree-tag dtree-tag-fraser">Fraser</span>
                   <button onClick={() => removeResponse(i)} className="nes-btn is-error" style={{ fontSize: "7px", padding: "1px 4px", marginLeft: "auto" }}>x</button>
                 </div>
-                <input
-                  type="text"
+                <textarea
+                  ref={(el) => { if (el) { el.style.height = "0"; el.style.height = el.scrollHeight + "px"; } }}
                   value={resp.option}
-                  onChange={(e) => updateResponse(i, { ...resp, option: e.target.value })}
+                  onChange={(e) => { updateResponse(i, { ...resp, option: e.target.value }); const t = e.target; t.style.height = "0"; t.style.height = t.scrollHeight + "px"; }}
                   placeholder="Fraser says..."
-                  className="nes-input is-dark"
+                  rows={1}
+                  className="nes-textarea is-dark"
                   style={{ fontSize: "10px", width: "100%" }}
                 />
               </div>
