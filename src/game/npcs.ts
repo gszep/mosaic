@@ -1,4 +1,4 @@
-import { Assets, Container, Sprite, Texture } from "pixi.js";
+import { Assets, Container, Sprite, Texture, Rectangle } from "pixi.js";
 import { db, ref, get } from "../shared/firebase";
 import type { Submission, DialogueNode } from "../shared/types";
 import type { TMJMap } from "../shared/tmj";
@@ -16,6 +16,8 @@ export interface NpcData {
   token: string;
   name: string;
   sprite: Sprite;
+  spriteTop: Sprite;
+  spriteBottom: Sprite;
   dialogueTree: DialogueNode | null;
   emote: string | null;
   voice: string | null;
@@ -31,8 +33,9 @@ let npcs: NpcData[] = [];
 
 export async function loadNpcSprites(
   map: TMJMap
-): Promise<Container> {
-  const container = new Container();
+): Promise<{ bottom: Container; top: Container }> {
+  const bottom = new Container();
+  const top = new Container();
   npcs = [];
 
   try {
@@ -40,7 +43,7 @@ export async function loadNpcSprites(
       get(ref(db, "submissions")),
       Assets.load<Texture>(`${BASE}sprites/npc-default.png`),
     ]);
-    if (!snapshot.exists()) return container;
+    if (!snapshot.exists()) return { bottom, top };
 
     const all = snapshot.val() as Record<string, Submission>;
 
@@ -63,15 +66,33 @@ export async function loadNpcSprites(
       const texture = sub.spriteData
         ? spriteDataToTexture(sub.spriteData)
         : fallbackTexture;
+
+      // Full sprite (hidden, used for position tracking)
       const sprite = new Sprite(texture);
       sprite.x = spawn.x;
       sprite.y = spawn.y;
+      sprite.visible = false;
 
-      container.addChild(sprite);
+      // Bottom half (rendered below player)
+      const bottomTex = new Texture({ source: texture.source, frame: new Rectangle(0, 8, texture.width, texture.height - 8) });
+      const spriteBottom = new Sprite(bottomTex);
+      spriteBottom.x = spawn.x;
+      spriteBottom.y = spawn.y + 8;
+      bottom.addChild(spriteBottom);
+
+      // Top half (rendered above player)
+      const topTex = new Texture({ source: texture.source, frame: new Rectangle(0, 0, texture.width, 8) });
+      const spriteTop = new Sprite(topTex);
+      spriteTop.x = spawn.x;
+      spriteTop.y = spawn.y;
+      top.addChild(spriteTop);
+
       npcs.push({
         token,
         name: sub.name || token,
         sprite,
+        spriteTop,
+        spriteBottom,
         dialogueTree: (sub.dialogueTree as DialogueNode) ?? null,
         emote: sub.emote ?? null,
         voice: sub.voice ?? null,
@@ -87,7 +108,7 @@ export async function loadNpcSprites(
     console.error("Failed to fetch submissions:", (err as Error).message);
   }
 
-  return container;
+  return { bottom, top };
 }
 
 export function getNpcPositions(): { x: number; y: number }[] {

@@ -36,8 +36,8 @@ async function boot() {
   );
   world.addChild(mapContainer);
 
-  const npcContainer = await loadNpcSprites(map);
-  world.addChild(npcContainer);
+  const { bottom: npcBottom, top: npcTop } = await loadNpcSprites(map);
+  world.addChild(npcBottom);
 
   const cleanupInput = initInput();
   const params = new URLSearchParams(window.location.search);
@@ -53,6 +53,7 @@ async function boot() {
   playerSprite.y = player.y;
   world.addChild(playerSprite);
 
+  world.addChild(npcTop);
   await initEmote(world);
   const camera = createCamera();
   updateCamera(camera, player, mapWidth, mapHeight);

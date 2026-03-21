@@ -36,16 +36,12 @@ export function createCamera(): CameraState {
 
 const TILE = 16;
 
-interface NpcRect {
+export interface NpcCollider {
   x: number;
   y: number;
 }
 
-function rectsOverlap(ax: number, ay: number, aw: number, ah: number, bx: number, by: number, bw: number, bh: number): boolean {
-  return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
-}
-
-function blocked(x: number, y: number, mapWidth: number, collision: Set<number>, npcs?: NpcRect[]): boolean {
+function blocked(x: number, y: number, mapWidth: number, collision: Set<number>, npcs?: NpcCollider[]): boolean {
   const cols = mapWidth / TILE;
   for (const [ox, oy] of [[0, 0], [15, 0], [0, 15], [15, 15]]) {
     const tx = Math.floor((x + ox) / TILE);
@@ -54,7 +50,11 @@ function blocked(x: number, y: number, mapWidth: number, collision: Set<number>,
   }
   if (npcs) {
     for (const npc of npcs) {
-      if (rectsOverlap(x, y, 16, 16, npc.x, npc.y, 16, 8)) return true;
+      // 1px horizontal collision line at NPC's vertical center
+      const npcLine = npc.y + 8;
+      const overlapsX = x < npc.x + 16 && x + 16 > npc.x;
+      const overlapsY = y < npcLine + 1 && y + 16 > npcLine;
+      if (overlapsX && overlapsY) return true;
     }
   }
   return false;
@@ -65,7 +65,7 @@ export function updatePlayer(
   mapWidth: number,
   mapHeight: number,
   collision?: Set<number>,
-  npcs?: NpcRect[]
+  npcs?: NpcCollider[]
 ): void {
   let dx = 0;
   let dy = 0;
