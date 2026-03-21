@@ -92,17 +92,20 @@ export const PixelEditor = forwardRef<PixelEditorHandle, PixelEditorProps>(funct
     []
   );
 
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+
   const paint = useCallback(
     (index: number) => {
       setPixels((prev) => {
         if (prev[index] === color) return prev;
         const next = prev.slice();
         next[index] = color;
-        onChange({ width: W as 16, height: H as 16, pixels: next });
+        queueMicrotask(() => onChangeRef.current({ width: W as 16, height: H as 16, pixels: next }));
         return next;
       });
     },
-    [color, onChange]
+    [color]
   );
 
   const handlePointerDown = useCallback(
