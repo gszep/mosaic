@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { useAudioRecorder, playAudio } from "../hooks/useAudioRecorder";
+import { AudioCropper } from "./AudioCropper";
 
 const BASE = import.meta.env.BASE_URL;
 const VOICES = Array.from({ length: 10 }, (_, i) => `Voice${i + 1}`);
@@ -30,18 +32,23 @@ function PresetButton({ name, isSelected, onSelect }: { name: string; isSelected
 
 export function VoiceSelector({ selected, customVoice, onSelect, onCustomVoice }: VoiceSelectorProps) {
   const { recording, processing, start, stop } = useAudioRecorder();
+  const [rawRecording, setRawRecording] = useState<string | null>(null);
   const activeVoice = selected || DEFAULT_VOICE;
 
   const handleRecord = async () => {
     if (recording) {
       const result = await stop();
-      if (result) {
-        onCustomVoice(result);
-        onSelect("custom");
-      }
+      if (result) setRawRecording(result);
     } else {
+      setRawRecording(null);
       await start();
     }
+  };
+
+  const handleCrop = (croppedDataUrl: string) => {
+    onCustomVoice(croppedDataUrl);
+    onSelect("custom");
+    setRawRecording(null);
   };
 
   return (
@@ -61,18 +68,18 @@ export function VoiceSelector({ selected, customVoice, onSelect, onCustomVoice }
       </div>
 
       <p style={{ color: "#666", fontSize: "9px", margin: "0.5rem 0 0.25rem" }}>
-        Or record your own voice blip (max 3s):
+        Or record your own voice blip (max 3s, you'll crop a 400ms segment):
       </p>
-      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
         <button
           onClick={handleRecord}
-          disabled={processing}
+          disabled={processing || !!rawRecording}
           className={`nes-btn ${recording ? "is-error" : "is-dark"}`}
           style={{ fontSize: "9px", padding: "4px 8px" }}
         >
           {processing ? "Processing..." : recording ? "Stop" : "Record"}
         </button>
-        {customVoice && (
+        {customVoice && !rawRecording && (
           <>
             <button
               onClick={() => playAudio(customVoice)}
@@ -82,22 +89,25 @@ export function VoiceSelector({ selected, customVoice, onSelect, onCustomVoice }
               Preview
             </button>
             <button
-              onClick={() => { onSelect(activeVoice === "custom" ? DEFAULT_VOICE : activeVoice); onCustomVoice(null); }}
-              className="nes-btn is-error"
-              style={{ fontSize: "9px", padding: "4px 8px" }}
-            >
-              Remove
-            </button>
-            <button
               onClick={() => onSelect("custom")}
               className={`nes-btn ${activeVoice === "custom" ? "is-warning" : "is-dark"}`}
               style={{ fontSize: "9px", padding: "4px 8px" }}
             >
               Use recording
             </button>
+            <button
+              onClick={() => { onSelect(activeVoice === "custom" ? DEFAULT_VOICE : activeVoice); onCustomVoice(null); }}
+              className="nes-btn is-error"
+              style={{ fontSize: "9px", padding: "4px 8px" }}
+            >
+              Remove
+            </button>
           </>
         )}
       </div>
+      {rawRecording && (
+        <AudioCropper rawAudio={rawRecording} onCrop={handleCrop} onCancel={() => setRawRecording(null)} />
+      )}
     </div>
   );
 }

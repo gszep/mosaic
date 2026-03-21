@@ -3,6 +3,7 @@ import { useState, useRef, useCallback } from "react";
 const MAX_DURATION = 3000; // ms
 const CRUSHED_RATE = 8000; // low sample rate for retro feel
 const BIT_DEPTH = 4; // bits for crushing
+const MAX_BLIP_MS = 400;
 
 function trimSilence(data: Float32Array, sampleRate: number): Float32Array {
   const windowSize = Math.floor(sampleRate * 0.01); // 10ms windows
@@ -169,3 +170,37 @@ export function playAudio(dataUrl: string): void {
   const audio = new Audio(dataUrl);
   audio.play().catch(() => {});
 }
+
+export async function getWaveform(dataUrl: string): Promise<Float32Array> {
+  const resp = await fetch(dataUrl);
+  const buf = await resp.arrayBuffer();
+  const ctx = new OfflineAudioContext(1, 1, CRUSHED_RATE);
+  const decoded = await ctx.decodeAudioData(buf);
+  return decoded.getChannelData(0);
+}
+
+export function getDurationMs(dataUrl: string): Promise<number> {
+  return getWaveform(dataUrl).then(
+    (data) => (data.length / CRUSHED_RATE) * 1000
+  );
+}
+
+export function cropDataUrl(
+  dataUrl: string,
+  startMs: number,
+): Promise<string> {
+  return getWaveform(dataUrl).then((data) => {
+    const startSample = Math.floor((startMs / 1000) * CRUSHED_RATE);
+    const maxSamples = Math.floor((MAX_BLIP_MS / 1000) * CRUSHED_RATE);
+    const cropped = data.slice(startSample, startSample + maxSamples);
+    const buf = new AudioBuffer({
+      length: cropped.length,
+      sampleRate: CRUSHED_RATE,
+      numberOfChannels: 1,
+    });
+    buf.copyToChannel(new Float32Array(cropped), 0);
+    return audioBufferToBase64Wav(buf);
+  });
+}
+
+export { MAX_BLIP_MS };
