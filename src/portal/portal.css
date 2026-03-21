@@ -171,7 +171,6 @@ button {
 
 .dtree-responses {
   display: flex;
-  gap: 12px;
   justify-content: center;
 }
 
@@ -179,6 +178,36 @@ button {
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding: 0 6px;
+  position: relative;
+}
+
+/* Horizontal bar: each branch draws a line from its center to the right */
+.dtree-response-branch:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  right: -6px;
+  height: 2px;
+  background: #555;
+}
+
+/* ...and from the left to its center */
+.dtree-response-branch:not(:first-child)::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -6px;
+  width: calc(50% + 6px);
+  height: 2px;
+  background: #555;
+}
+
+.dtree-connector-h {
+  width: 2px;
+  height: 12px;
+  background: #555;
 }
 
 .dtree-leaf {
