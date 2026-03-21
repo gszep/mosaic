@@ -23,6 +23,9 @@ export async function showGiftPopup(
   await ensureTexture();
   dismissGiftPopup();
 
+  const jingle = new Audio(`${BASE}audio/present.wav`);
+  jingle.play().catch(() => {});
+
   popup = new Container();
   parent.addChild(popup);
 
