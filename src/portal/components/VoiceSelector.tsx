@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAudioRecorder } from "../hooks/useAudioRecorder";
 import { AudioCropper } from "./AudioCropper";
 
@@ -16,12 +16,13 @@ interface VoiceSelectorProps {
   onCustomVoice: (dataUrl: string | null) => void;
 }
 
-function TypewriterPreview({ voiceUrl }: { voiceUrl: string }) {
+function TypewriterPreview({ voiceUrl, trigger }: { voiceUrl: string; trigger: number }) {
   const [text, setText] = useState("");
   const [playing, setPlaying] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const play = useCallback(() => {
+  useEffect(() => {
+    if (trigger === 0) return;
     if (timerRef.current) clearTimeout(timerRef.current);
     setText("");
     setPlaying(true);
@@ -46,7 +47,8 @@ function TypewriterPreview({ voiceUrl }: { voiceUrl: string }) {
       timerRef.current = setTimeout(tick, TYPEWRITER_INTERVAL);
     };
     tick();
-  }, [voiceUrl]);
+    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+  }, [voiceUrl, trigger]);
 
   return (
     <div style={{ marginTop: 6 }}>
@@ -64,14 +66,6 @@ function TypewriterPreview({ voiceUrl }: { voiceUrl: string }) {
       >
         {text}<span style={{ opacity: playing ? 1 : 0 }}>_</span>
       </div>
-      <button
-        onClick={play}
-        disabled={playing}
-        className={`nes-btn ${playing ? "is-disabled" : "is-dark"}`}
-        style={{ fontSize: "9px", padding: "4px 8px", marginTop: 6 }}
-      >
-        {playing ? "Playing..." : "Preview"}
-      </button>
     </div>
   );
 }
@@ -79,6 +73,7 @@ function TypewriterPreview({ voiceUrl }: { voiceUrl: string }) {
 export function VoiceSelector({ selected, customVoice, onSelect, onCustomVoice }: VoiceSelectorProps) {
   const { recording, processing, start, stop } = useAudioRecorder();
   const [rawRecording, setRawRecording] = useState<string | null>(null);
+  const [trigger, setTrigger] = useState(0);
   const activeVoice = selected || DEFAULT_VOICE;
   const isCustom = activeVoice === "custom";
 
@@ -100,6 +95,7 @@ export function VoiceSelector({ selected, customVoice, onSelect, onCustomVoice }
     onCustomVoice(croppedDataUrl);
     onSelect("custom");
     setRawRecording(null);
+    setTrigger((t) => t + 1);
   };
 
   return (
@@ -111,7 +107,7 @@ export function VoiceSelector({ selected, customVoice, onSelect, onCustomVoice }
         {VOICES.map((name) => (
           <button
             key={name}
-            onClick={() => onSelect(name)}
+            onClick={() => { onSelect(name); setTrigger((t) => t + 1); }}
             className={`nes-btn ${activeVoice === name ? "is-warning" : "is-dark"}`}
             style={{ fontSize: "8px", padding: "4px 6px", margin: "2px" }}
           >
@@ -119,7 +115,7 @@ export function VoiceSelector({ selected, customVoice, onSelect, onCustomVoice }
           </button>
         ))}
         <button
-          onClick={() => onSelect("custom")}
+          onClick={() => { onSelect("custom"); setTrigger((t) => t + 1); }}
           className={`nes-btn ${isCustom ? "is-warning" : "is-dark"}`}
           style={{ fontSize: "8px", padding: "4px 6px", margin: "2px" }}
         >
@@ -128,7 +124,7 @@ export function VoiceSelector({ selected, customVoice, onSelect, onCustomVoice }
       </div>
 
       {/* Consistent layout: preview + record section always present */}
-      <TypewriterPreview voiceUrl={voiceUrl} />
+      <TypewriterPreview voiceUrl={voiceUrl} trigger={trigger} />
 
       {isCustom && (
         <div style={{ marginTop: 6 }}>
