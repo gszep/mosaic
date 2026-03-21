@@ -7,9 +7,54 @@
   <style>
     * { margin: 0; padding: 0; }
     html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+    .controls {
+      position: fixed;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: end;
+      gap: 24px;
+      opacity: 0.6;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .controls img { image-rendering: pixelated; }
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1px;
+    }
+    .control-row {
+      display: flex;
+      gap: 1px;
+    }
+    .control-label {
+      color: #888;
+      font-family: monospace;
+      font-size: 9px;
+      margin-top: 4px;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
+  <div class="controls">
+    <div class="control-group">
+      <img src="ui/keys/KeyUp.png" width="26" height="26" alt="Up" />
+      <div class="control-row">
+        <img src="ui/keys/KeyLeft.png" width="26" height="26" alt="Left" />
+        <img src="ui/keys/KeyDown.png" width="26" height="26" alt="Down" />
+        <img src="ui/keys/KeyRight.png" width="26" height="26" alt="Right" />
+      </div>
+      <div class="control-label">Move</div>
+    </div>
+    <div class="control-group">
+      <img src="ui/keys/KeySpace.png" width="66" height="26" alt="Space" />
+      <div class="control-label">Interact</div>
+    </div>
+  </div>
   <script type="module" src="/src/game/main.ts"></script>
 </body>
 </html>
