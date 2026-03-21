@@ -6,7 +6,7 @@ const BASE = import.meta.env.BASE_URL;
 const VOICES = Array.from({ length: 10 }, (_, i) => `Voice${i + 1}`);
 const DEFAULT_VOICE = "Voice9";
 const PREVIEW_TEXT = "Happy birthday!";
-const TYPEWRITER_INTERVAL = 50; // ms per char (matches game ~1 char/frame at 60fps)
+const TYPEWRITER_INTERVAL = 17; // ms per char (~1 char/frame at 60fps)
 const BLIP_EVERY = 3;
 
 interface VoiceSelectorProps {
