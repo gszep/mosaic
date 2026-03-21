@@ -241,9 +241,9 @@ export function VoiceSelector({ voice, voiceData, voiceStart, voiceEnd, onVoice 
         <button
           onClick={selectCustom}
           className={`nes-btn ${isCustom ? "is-warning" : "is-dark"}`}
-          style={{ fontSize: "8px", padding: "4px 6px", margin: "2px" }}
+          style={{ fontSize: "8px", padding: "4px 8px", margin: "2px", lineHeight: 1 }}
         >
-          Rec
+          <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: "#E95420" }} />
         </button>
       </div>
 
