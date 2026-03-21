@@ -5182,6 +5182,38 @@
               "value": "arrive_from_village"
             }
           ]
+        },
+        {
+          "id": 7,
+          "name": "wally",
+          "type": "spawn",
+          "x": 144,
+          "y": 96,
+          "width": 16,
+          "height": 16,
+          "properties": [
+            {
+              "name": "npcId",
+              "type": "string",
+              "value": "wally"
+            }
+          ]
+        },
+        {
+          "id": 8,
+          "name": "Penny",
+          "type": "spawn",
+          "x": 112,
+          "y": 96,
+          "width": 16,
+          "height": 16,
+          "properties": [
+            {
+              "name": "npcId",
+              "type": "string",
+              "value": "penny"
+            }
+          ]
         }
       ],
       "width": 40,
