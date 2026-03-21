@@ -115,6 +115,11 @@ button {
   padding: 12px;
   margin-top: 4px;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.dialogue-editor > .dtree-branch {
+  min-width: max-content;
 }
 
 .dtree-branch {
@@ -126,9 +131,8 @@ button {
 .dtree-node {
   padding: 6px 8px;
   border-radius: 0;
-  min-width: 140px;
-  max-width: 220px;
-  width: 100%;
+  width: 180px;
+  flex-shrink: 0;
 }
 
 .dtree-npc {
@@ -167,9 +171,8 @@ button {
 
 .dtree-responses {
   display: flex;
-  gap: 8px;
+  gap: 12px;
   justify-content: center;
-  flex-wrap: wrap;
 }
 
 .dtree-response-branch {
