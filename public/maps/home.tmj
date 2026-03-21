@@ -685,6 +685,22 @@
               "value": "wally"
             }
           ]
+        },
+        {
+          "id": 6,
+          "name": "Penny",
+          "type": "spawn",
+          "x": 96,
+          "y": 64,
+          "width": 16,
+          "height": 16,
+          "properties": [
+            {
+              "name": "npcId",
+              "type": "string",
+              "value": "penny"
+            }
+          ]
         }
       ],
       "width": 10,
