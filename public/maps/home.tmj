@@ -633,7 +633,7 @@
           "id": 2,
           "name": "stairs_to_bedroom",
           "type": "warp",
-          "x": 48,
+          "x": 64,
           "y": 16,
           "width": 16,
           "height": 16,
@@ -654,8 +654,18 @@
           "id": 3,
           "name": "arrive_from_bedroom",
           "type": "arrival",
-          "x": 64,
+          "x": 80,
           "y": 16,
+          "width": 16,
+          "height": 16,
+          "properties": []
+        },
+        {
+          "id": 4,
+          "name": "arrive_from_village",
+          "type": "arrival",
+          "x": 80,
+          "y": 96,
           "width": 16,
           "height": 16,
           "properties": []

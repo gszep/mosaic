@@ -5161,6 +5161,27 @@
           "width": 16,
           "height": 16,
           "properties": []
+        },
+        {
+          "id": 6,
+          "name": "door_to_home",
+          "type": "warp",
+          "x": 80,
+          "y": 48,
+          "width": 16,
+          "height": 16,
+          "properties": [
+            {
+              "name": "target",
+              "type": "string",
+              "value": "home"
+            },
+            {
+              "name": "targetSpawn",
+              "type": "string",
+              "value": "arrive_from_village"
+            }
+          ]
         }
       ],
       "width": 40,
