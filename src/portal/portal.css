@@ -241,8 +241,9 @@ button {
   border-color: #fff;
 }
 
-.dtree-leaf-gift:hover {
-  background: rgba(233, 84, 32, 0.2);
+.dtree-leaf:focus {
+  outline: none;
+  box-shadow: none;
 }
 
 /* White connectors for gift-giving branches */
