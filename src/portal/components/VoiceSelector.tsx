@@ -4,8 +4,8 @@ import { useAudioRecorder, getWaveform, MAX_BLIP_MS } from "../hooks/useAudioRec
 const BASE = import.meta.env.BASE_URL;
 const VOICES = Array.from({ length: 10 }, (_, i) => `Voice${i + 1}`);
 const VOICE_ICONS: Record<string, string> = {
-  Voice1: "♪", Voice2: "♫", Voice3: "★", Voice4: "◆",  Voice5: "♥",
-  Voice6: "☀", Voice7: "♠", Voice8: "▲", Voice9: "●", Voice10: "☆",
+  Voice1: "♩", Voice2: "♪", Voice3: "♫", Voice4: "♬", Voice5: "♭",
+  Voice6: "♮", Voice7: "♯", Voice8: "𝄞", Voice9: "𝄢", Voice10: "𝅘𝅥",
 };
 const DEFAULT_VOICE = "Voice9";
 const PREVIEW_TEXT = "Happy birthday!";
