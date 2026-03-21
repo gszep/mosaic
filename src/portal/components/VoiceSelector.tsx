@@ -50,12 +50,15 @@ export function VoiceSelector({ selected, customVoice, onSelect, onCustomVoice }
   }, [activeVoice, isCustom]);
 
   // Load waveform for raw recording (stays stable across crops)
+  const rawWaveformRef = useRef<{ data: Float32Array; dur: number } | null>(null);
+
   useEffect(() => {
     if (!rawAudioUrl) return;
     let cancelled = false;
     getWaveform(rawAudioUrl).then((data) => {
       if (cancelled) return;
       const dur = (data.length / 8000) * 1000;
+      rawWaveformRef.current = { data, dur };
       setWaveform(data);
       setDurationMs(dur);
       const center = dur / 2;
@@ -65,6 +68,15 @@ export function VoiceSelector({ selected, customVoice, onSelect, onCustomVoice }
     }).catch(() => {});
     return () => { cancelled = true; };
   }, [rawAudioUrl]);
+
+  // Restore raw waveform when switching back to custom
+  useEffect(() => {
+    if (isCustom && rawWaveformRef.current && rawAudioUrl) {
+      const { data, dur } = rawWaveformRef.current;
+      setWaveform(data);
+      setDurationMs(dur);
+    }
+  }, [isCustom, rawAudioUrl]);
 
   // Draw waveform
   useEffect(() => {
@@ -195,7 +207,6 @@ export function VoiceSelector({ selected, customVoice, onSelect, onCustomVoice }
 
   const selectVoice = (name: string) => {
     onSelect(name);
-    setRawAudioUrl(null);
     setTrigger((t) => t + 1);
   };
 
