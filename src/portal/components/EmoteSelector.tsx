@@ -27,7 +27,7 @@ export function EmoteSelector({ selected, onSelect }: EmoteSelectorProps) {
               <img
                 src={`${BASE}ui/emotes/${name}.png`}
                 alt={name}
-                style={{ imageRendering: "pixelated", maxWidth: 28, maxHeight: 26 }}
+                style={{ imageRendering: "pixelated", width: 40, height: 37 }}
               />
             </button>
           );
