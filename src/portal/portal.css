@@ -225,15 +225,24 @@ button {
   font-size: 7px;
   font-style: italic;
   padding: 4px 8px;
-  border: 1px dashed #555;
+  border: 1px solid #555;
   text-align: center;
   background: transparent;
   cursor: pointer;
+  transition: background 0.1s;
+}
+
+.dtree-leaf:hover {
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .dtree-leaf-gift {
   color: #fff;
   border-color: #fff;
+}
+
+.dtree-leaf-gift:hover {
+  background: rgba(233, 84, 32, 0.2);
 }
 
 /* White connectors for gift-giving branches */
