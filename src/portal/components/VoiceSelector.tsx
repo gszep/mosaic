@@ -25,6 +25,7 @@ export function VoiceSelector({ selected, customVoice, onSelect, onCustomVoice }
   const [startMs, setStartMs] = useState(0);
   const [endMs, setEndMs] = useState(0);
   const [rawAudioUrl, setRawAudioUrl] = useState<string | null>(null);
+  const rawSelectionRef = useRef<{ start: number; end: number } | null>(null);
   const dragging = useRef(false);
   const [trigger, setTrigger] = useState(0);
   const [typewriterText, setTypewriterText] = useState("");
@@ -34,61 +35,43 @@ export function VoiceSelector({ selected, customVoice, onSelect, onCustomVoice }
   const activeVoice = selected || DEFAULT_VOICE;
   const isCustom = activeVoice === "custom";
 
-  // Load waveform for presets
+  // Determine the audio source for the waveform display
+  const waveformSrc = isCustom
+    ? (rawAudioUrl || customVoice || null)
+    : `${BASE}audio/voice/${activeVoice}.wav`;
+  const hasRawRecording = isCustom && !!rawAudioUrl;
+
+  // Load waveform whenever the source changes
   useEffect(() => {
-    if (isCustom) return;
+    if (!waveformSrc) { setWaveform(null); return; }
     let cancelled = false;
-    getWaveform(`${BASE}audio/voice/${activeVoice}.wav`).then((data) => {
+    getWaveform(waveformSrc).then((data) => {
       if (cancelled) return;
       const dur = (data.length / 8000) * 1000;
       setWaveform(data);
       setDurationMs(dur);
-      setStartMs(0);
-      setEndMs(dur);
+
+      if (hasRawRecording && rawSelectionRef.current) {
+        // Restore saved selection
+        setStartMs(rawSelectionRef.current.start);
+        setEndMs(rawSelectionRef.current.end);
+      } else if (hasRawRecording) {
+        // New raw recording: default 350ms centered
+        const center = dur / 2;
+        const half = Math.min(MAX_BLIP_MS, dur) / 2;
+        const s = Math.max(0, center - half);
+        const e = Math.min(dur, center + half);
+        setStartMs(s);
+        setEndMs(e);
+        rawSelectionRef.current = { start: s, end: e };
+      } else {
+        // Preset or saved custom clip: highlight full
+        setStartMs(0);
+        setEndMs(dur);
+      }
     }).catch(() => {});
     return () => { cancelled = true; };
-  }, [activeVoice, isCustom]);
-
-  // Load waveform for raw recording (stays stable across crops)
-  const rawWaveformRef = useRef<{ data: Float32Array; dur: number; start: number; end: number } | null>(null);
-
-  useEffect(() => {
-    if (!rawAudioUrl) return;
-    let cancelled = false;
-    getWaveform(rawAudioUrl).then((data) => {
-      if (cancelled) return;
-      const dur = (data.length / 8000) * 1000;
-      const center = dur / 2;
-      const half = Math.min(MAX_BLIP_MS, dur) / 2;
-      const s = Math.max(0, center - half);
-      const e = Math.min(dur, center + half);
-      rawWaveformRef.current = { data, dur, start: s, end: e };
-      setWaveform(data);
-      setDurationMs(dur);
-      setStartMs(s);
-      setEndMs(e);
-    }).catch(() => {});
-    return () => { cancelled = true; };
-  }, [rawAudioUrl]);
-
-  // Save custom selection when it changes
-  useEffect(() => {
-    if (isCustom && rawWaveformRef.current) {
-      rawWaveformRef.current.start = startMs;
-      rawWaveformRef.current.end = endMs;
-    }
-  }, [startMs, endMs, isCustom]);
-
-  // Restore raw waveform + selection when switching back to custom
-  useEffect(() => {
-    if (isCustom && rawWaveformRef.current && rawAudioUrl) {
-      const { data, dur, start, end } = rawWaveformRef.current;
-      setWaveform(data);
-      setDurationMs(dur);
-      setStartMs(start);
-      setEndMs(end);
-    }
-  }, [isCustom, rawAudioUrl]);
+  }, [waveformSrc, hasRawRecording]);
 
   // Draw waveform
   useEffect(() => {
@@ -166,7 +149,7 @@ export function VoiceSelector({ selected, customVoice, onSelect, onCustomVoice }
   }, [trigger, activeVoice, isCustom, customVoice]);
 
   // Canvas drag handlers (only for custom raw recordings)
-  const canDrag = isCustom && !!rawAudioUrl;
+  const canDrag = hasRawRecording;
 
   const pxToMs = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const rect = canvasRef.current!.getBoundingClientRect();
@@ -190,8 +173,9 @@ export function VoiceSelector({ selected, customVoice, onSelect, onCustomVoice }
   const handleMouseUp = async () => {
     if (!dragging.current) return;
     dragging.current = false;
-    // Auto-crop and preview on drag end
     if (rawAudioUrl) {
+      // Save selection for restoring later
+      rawSelectionRef.current = { start: startMs, end: endMs };
       const len = endMs - startMs;
       if (len >= 5) {
         const cropped = await cropDataUrl(rawAudioUrl, startMs, len);
@@ -212,6 +196,7 @@ export function VoiceSelector({ selected, customVoice, onSelect, onCustomVoice }
       }
     } else {
       setRawAudioUrl(null);
+      rawSelectionRef.current = null;
       onCustomVoice(null);
       await start();
     }
