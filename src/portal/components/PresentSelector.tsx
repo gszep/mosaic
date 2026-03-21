@@ -63,7 +63,7 @@ export function PresentSelector({ giftObject, giftSprite, onGiftObject, onGiftSp
             <img
               src={`${BASE}sprites/items/${item.key}.png`}
               alt={item.name}
-              style={{ imageRendering: "pixelated", maxWidth: 30, maxHeight: 30, objectFit: "contain" }}
+              style={{ imageRendering: "pixelated", width: 40, height: 40, objectFit: "contain" }}
             />
           </button>
         ))}
