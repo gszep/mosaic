@@ -95,9 +95,6 @@ export async function loadScene(
   stage.addChild(uiLayer);
   world.visible = true;
 
-  const track = MUSIC[name];
-  if (track) playMusic(track);
-
   return { name, world, uiLayer, player, playerSprite, mapWidth, mapHeight, collision, camera, map, hasNpcs };
 }
 
@@ -130,6 +127,11 @@ export function findWarp(scene: Scene): { target: string; x: number; y: number }
     }
   }
   return null;
+}
+
+export function startSceneMusic(name: string): void {
+  const track = MUSIC[name];
+  if (track) playMusic(track);
 }
 
 export function unloadScene(scene: Scene, stage: Container): void {

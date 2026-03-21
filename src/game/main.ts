@@ -6,7 +6,7 @@ import { findNearestNpc, type NpcData } from "./npcs";
 import { initInput } from "./camera";
 import { startDialogue, updateDialogue, handleDialogueInput, isDialogueActive, dialogueEndedWithGift } from "./dialogue";
 import { showGiftPopup, dismissGiftPopup, isGiftPopupActive } from "./giftPopup";
-import { loadScene, updateScene, findWarp, unloadScene, type Scene } from "./scene";
+import { loadScene, updateScene, findWarp, unloadScene, startSceneMusic, type Scene } from "./scene";
 import { loadBitmapFont } from "./bitmapfont";
 
 const TILE = 16;
@@ -33,6 +33,7 @@ async function boot() {
   // Wake-up screen
   if (skipIntro) {
     document.getElementById("loading-screen")?.remove();
+    startSceneMusic(scene.name);
   } else {
     const loadingText = document.getElementById("loading-text");
     const loadingScreen = document.getElementById("loading-screen");
@@ -43,6 +44,7 @@ async function boot() {
         window.removeEventListener("keydown", dismiss);
         window.removeEventListener("touchstart", dismiss);
         loadingScreen?.classList.add("fade-out");
+        startSceneMusic(scene.name);
         setTimeout(() => { loadingScreen?.remove(); resolve(); }, 800);
       };
       window.addEventListener("keydown", dismiss);
@@ -58,6 +60,7 @@ async function boot() {
   async function transition(target: string, tx: number, ty: number) {
     unloadScene(scene, app.stage);
     scene = await loadScene(target, app.stage, tx * TILE, ty * TILE);
+    startSceneMusic(target);
     transitioning = false;
   }
 
