@@ -12,7 +12,7 @@ const BASE = import.meta.env.BASE_URL;
 const TILE = 16;
 
 export function SubmissionForm() {
-  const { token, loading, saving, error, name, spriteData, dialogueTree, emote, voice, customVoice, setName, setSpriteData, setDialogueTree, setEmote, setVoice, setCustomVoice, save } =
+  const { token, loading, saving, error, name, spriteData, dialogueTree, emote, voice, voiceData, voiceStart, voiceEnd, setName, setSpriteData, setDialogueTree, setEmote, setVoice, save } =
     useSubmission();
   const [color, setColor] = useState(PALETTE[0]);
 
@@ -60,7 +60,7 @@ export function SubmissionForm() {
 
       <h2>Choose your voice</h2>
       <section className="nes-container is-dark is-rounded" style={{ marginBottom: "1rem" }}>
-        <VoiceSelector selected={voice} customVoice={customVoice} onSelect={setVoice} onCustomVoice={setCustomVoice} />
+        <VoiceSelector voice={voice} voiceData={voiceData} voiceStart={voiceStart} voiceEnd={voiceEnd} onVoice={setVoice} />
       </section>
 
       <h2>Write your dialogue</h2>

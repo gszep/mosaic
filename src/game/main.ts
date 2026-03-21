@@ -74,7 +74,7 @@ async function boot() {
           text: "Happy birthday!",
           responses: null,
         };
-        void startDialogue(tree, npc.name, uiLayer, npc.voice, npc.customVoice);
+        void startDialogue(tree, npc.name, uiLayer, npc.voice, npc.voiceData, npc.voiceStart, npc.voiceEnd);
       }
     }
     if (isDialogueActive() && (e.key === "ArrowUp" || e.key === "ArrowDown" || e.key === "w" || e.key === "s")) {

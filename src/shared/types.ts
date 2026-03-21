@@ -28,7 +28,9 @@ export interface Submission {
   giftObject: string | null;
   emote: string | null;
   voice: string | null;
-  customVoice: string | null;
+  voiceData: string | null;
+  voiceStart: number | null;
+  voiceEnd: number | null;
   audioBlips: unknown | null;
   locationDescription: string;
 }

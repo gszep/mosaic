@@ -19,7 +19,9 @@ export interface NpcData {
   dialogueTree: DialogueNode | null;
   emote: string | null;
   voice: string | null;
-  customVoice: string | null;
+  voiceData: string | null;
+  voiceStart: number | null;
+  voiceEnd: number | null;
   interacted: boolean;
 }
 
@@ -87,7 +89,9 @@ export async function loadNpcSprites(
         dialogueTree: (sub.dialogueTree as DialogueNode) ?? null,
         emote: sub.emote ?? null,
         voice: sub.voice ?? null,
-        customVoice: sub.customVoice ?? null,
+        voiceData: sub.voiceData ?? null,
+        voiceStart: sub.voiceStart ?? null,
+        voiceEnd: sub.voiceEnd ?? null,
         interacted: false,
       });
     }
