@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
 import type { DialogueNode, DialogueResponse } from "../../shared/types";
 
 const MAX_DEPTH = 4;
@@ -20,13 +20,11 @@ function createDefaultTree(): DialogueNode {
 function NodeEditor({
   node,
   depth,
-  allIds,
   onChange,
   giftObject,
 }: {
   node: DialogueNode;
   depth: number;
-  allIds: { id: string; preview: string }[];
   onChange: (updated: DialogueNode) => void;
   giftObject?: string | null;
 }) {
@@ -70,7 +68,6 @@ function NodeEditor({
           key={i}
           response={resp}
           depth={depth}
-          allIds={allIds}
           onChange={(r) => updateResponse(i, r)}
           onRemove={() => removeResponse(i)}
           giftObject={giftObject}
@@ -95,32 +92,16 @@ function NodeEditor({
 function ResponseEditor({
   response,
   depth,
-  allIds,
   onChange,
   onRemove,
   giftObject,
 }: {
   response: DialogueResponse;
   depth: number;
-  allIds: { id: string; preview: string }[];
   onChange: (updated: DialogueResponse) => void;
   onRemove: () => void;
   giftObject?: string | null;
 }) {
-  const [useGoto, setUseGoto] = useState(!!response.goto);
-
-  const updateOption = (option: string) => onChange({ ...response, option });
-
-  const toggleGoto = () => {
-    if (useGoto) {
-      setUseGoto(false);
-      onChange({ option: response.option, next: { id: createId(), text: "", audio: null, responses: null } });
-    } else {
-      setUseGoto(true);
-      onChange({ option: response.option, goto: allIds[0]?.id ?? "" });
-    }
-  };
-
   return (
     <div className="dialogue-response">
       <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
@@ -128,7 +109,7 @@ function ResponseEditor({
         <input
           type="text"
           value={response.option}
-          onChange={(e) => updateOption(e.target.value)}
+          onChange={(e) => onChange({ ...response, option: e.target.value })}
           placeholder="Fraser's response..."
           className="nes-input is-dark"
           style={{ flex: 1, fontSize: "10px" }}
@@ -138,50 +119,16 @@ function ResponseEditor({
         </button>
       </div>
 
-      <div style={{ fontSize: "0.8rem", marginTop: 2 }}>
-        <label>
-          <input type="checkbox" checked={useGoto} onChange={toggleGoto} />
-          {" "}Redirect to earlier line
-        </label>
-      </div>
-
-      {useGoto ? (
-        <select
-          value={response.goto ?? ""}
-          onChange={(e) => onChange({ option: response.option, goto: e.target.value })}
-          style={{ marginTop: 2, fontSize: "0.85rem" }}
-        >
-          {allIds.map((n) => (
-            <option key={n.id} value={n.id}>
-              {n.preview}
-            </option>
-          ))}
-        </select>
-      ) : response.next ? (
+      {response.next && (
         <NodeEditor
           node={response.next}
           depth={depth + 1}
-          allIds={allIds}
           onChange={(next) => onChange({ ...response, next })}
           giftObject={giftObject}
         />
-      ) : null}
+      )}
     </div>
   );
-}
-
-function collectIds(node: DialogueNode): { id: string; preview: string }[] {
-  const result: { id: string; preview: string }[] = [];
-  const visit = (n: DialogueNode) => {
-    result.push({ id: n.id, preview: n.text.slice(0, 40) || "(empty)" });
-    if (n.responses) {
-      for (const r of n.responses) {
-        if (r.next) visit(r.next);
-      }
-    }
-  };
-  visit(node);
-  return result;
 }
 
 interface DialogueEditorProps {
@@ -192,7 +139,6 @@ interface DialogueEditorProps {
 
 export function DialogueEditor({ tree, onChange, giftObject }: DialogueEditorProps) {
   const root = tree ?? createDefaultTree();
-  const allIds = collectIds(root);
 
   const handleChange = useCallback(
     (updated: DialogueNode) => {
@@ -203,7 +149,7 @@ export function DialogueEditor({ tree, onChange, giftObject }: DialogueEditorPro
 
   return (
     <div className="dialogue-editor">
-      <NodeEditor node={root} depth={0} allIds={allIds} onChange={handleChange} giftObject={giftObject} />
+      <NodeEditor node={root} depth={0} onChange={handleChange} giftObject={giftObject} />
     </div>
   );
 }
