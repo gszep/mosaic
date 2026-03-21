@@ -242,6 +242,11 @@ button {
   background: #fff;
 }
 
+.dtree-gives-gift::before,
+.dtree-gives-gift::after {
+  background: #fff !important;
+}
+
 .dtree-add {
   margin-top: 8px;
 }
