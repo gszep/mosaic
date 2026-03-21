@@ -53,9 +53,10 @@ async function boot() {
   playerSprite.y = player.y;
   world.addChild(playerSprite);
 
-  // Emote layer on top of everything in the world
   await initEmote(world);
   const camera = createCamera();
+  updateCamera(camera, player, mapWidth, mapHeight);
+  applyCamera(world, camera);
 
   const onResize = () => applyViewport(app);
   window.addEventListener("resize", onResize);
