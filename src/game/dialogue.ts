@@ -201,8 +201,9 @@ export function updateDialogue(): void {
       state.currentNode.text.length
     );
 
-    // Play voice blip at intervals
-    if (state.displayedChars - state.lastBlipChar >= BLIP_INTERVAL) {
+    // Play voice blip at intervals (and always on first non-space char)
+    const shouldBlip = state.lastBlipChar === 0 || state.displayedChars - state.lastBlipChar >= BLIP_INTERVAL;
+    if (shouldBlip) {
       const ch = state.currentNode.text[state.displayedChars - 1];
       if (ch && ch !== " ") {
         const blip = new Audio(state.voiceUrl);
