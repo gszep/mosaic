@@ -19,10 +19,11 @@ async function boot() {
   await loadBitmapFont();
 
   const params = new URLSearchParams(window.location.search);
-  const skipIntro = params.has("x") || params.has("y");
+  const skipIntro = params.has("x") || params.has("y") || params.has("map");
+  const startMap = params.get("map") || (skipIntro ? "village" : "bedroom");
 
   let scene: Scene = await loadScene(
-    skipIntro ? "village" : "bedroom",
+    startMap,
     app.stage,
     params.has("x") ? Number(params.get("x")) * TILE : undefined,
     params.has("y") ? Number(params.get("y")) * TILE : undefined,

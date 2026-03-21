@@ -95,14 +95,25 @@ export function SubmissionForm() {
           onClick={async () => {
             await save();
             try {
-              const resp = await fetch(`${BASE}maps/village.tmj`);
-              const map = await resp.json();
-              let spawns = map.layers?.find((l: { name: string; type: string }) => l.type === "objectgroup" && l.name === "spawns");
-              let obj = spawns?.objects?.find((o: { properties?: { name: string; value: string }[] }) =>
-                o.properties?.some((p: { name: string; value: string }) => p.name === "npcId" && p.value === token)
-              );
+              const MAP_NAMES = ["village", "home", "bedroom"];
+              let foundMap: string | null = null;
+              let foundObj: { x: number; y: number } | null = null;
 
-              if (!obj) {
+              for (const mapName of MAP_NAMES) {
+                const resp = await fetch(`${BASE}maps/${mapName}.tmj`);
+                const map = await resp.json();
+                const spawns = map.layers?.find((l: { name: string; type: string }) => l.type === "objectgroup" && l.name === "spawns");
+                const obj = spawns?.objects?.find((o: { properties?: { name: string; value: string }[] }) =>
+                  o.properties?.some((p: { name: string; value: string }) => p.name === "npcId" && p.value === token)
+                );
+                if (obj) { foundMap = mapName; foundObj = obj; break; }
+              }
+
+              if (!foundMap || !foundObj) {
+                // Auto-create spawn in village
+                const resp = await fetch(`${BASE}maps/village.tmj`);
+                const map = await resp.json();
+                let spawns = map.layers?.find((l: { name: string; type: string }) => l.type === "objectgroup" && l.name === "spawns");
                 if (!spawns) {
                   spawns = { id: map.layers.length + 1, name: "spawns", type: "objectgroup", objects: [], width: map.width, height: map.height, visible: true, x: 0, y: 0, opacity: 1 };
                   map.layers.push(spawns);
@@ -111,8 +122,6 @@ export function SubmissionForm() {
                 const MIN_DIST = TILE * 2;
                 let px = Math.floor(map.width / 2) * TILE;
                 let py = Math.floor(map.height / 2) * TILE;
-
-                // Spiral outward from center to find a free spot
                 let found = false;
                 for (let r = 0; r < 20 && !found; r++) {
                   for (let dx = -r; dx <= r && !found; dx++) {
@@ -125,17 +134,16 @@ export function SubmissionForm() {
                     }
                   }
                 }
-
                 const nextId = existing.reduce((m: number, o: { id?: number }) => Math.max(m, o.id ?? 0), 0) + 1;
-                obj = { id: nextId, name: name || token, type: "spawn", x: px, y: py, width: TILE, height: TILE, properties: [{ name: "npcId", type: "string", value: token }] };
-                spawns.objects = spawns.objects ?? [];
-                spawns.objects.push(obj);
+                spawns.objects.push({ id: nextId, name: name || token, type: "spawn", x: px, y: py, width: TILE, height: TILE, properties: [{ name: "npcId", type: "string", value: token }] });
                 await fetch(`/api/save-map/village`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(map, null, 2) }).catch(() => {});
+                foundMap = "village";
+                foundObj = { x: px, y: py };
               }
 
-              const x = Math.floor(obj.x / TILE);
-              const y = Math.floor(obj.y / TILE) + 1;
-              window.open(`${BASE}?x=${x}&y=${y}`, "_blank");
+              const x = Math.floor(foundObj.x / TILE);
+              const y = Math.floor(foundObj.y / TILE) + 1;
+              window.open(`${BASE}?map=${foundMap}&x=${x}&y=${y}`, "_blank");
             } catch {
               window.open(BASE, "_blank");
             }
