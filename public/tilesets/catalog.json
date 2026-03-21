@@ -1133,20 +1133,22 @@
       },
       "patterns": {
         "DDDDDLDD": [
-          291,
           303
         ],
         "DDLDLDDL": [
           301
         ],
-        "LDDLDLLD": [
-          290
-        ],
         "LLLDLDDL": [
           302
         ],
-        "LLLLLDDL": [
+        "DDDLDLLD": [
+          291
+        ],
+        "LLLLLDLL": [
           292
+        ],
+        "LLDLDLLD": [
+          290
         ]
       }
     },
@@ -1158,22 +1160,16 @@
       },
       "patterns": {
         "GGGGGSGG": [
-          300
+          300,
+          135
         ],
         "GGSGSGGS": [
-          298
-        ],
-        "SSSGSGSS": [
-          299
-        ],
-        "SSGGGSSS": [
+          298,
           133
         ],
-        "GGGGGGSS": [
+        "SSSGSGGS": [
+          299,
           134
-        ],
-        "SSSSSSGS": [
-          135
         ]
       }
     },
@@ -1184,20 +1180,16 @@
         "S": "grass_orange"
       },
       "patterns": {
-        "GGGGGGSS": [
-          137,
-          288
-        ],
-        "GGGSGSSG": [
-          289
-        ],
-        "GSSGSGSS": [
-          287
-        ],
-        "SSGGGSSS": [
+        "GGSGSGGS": [
+          287,
           136
         ],
-        "SSSSSSGS": [
+        "SSSGSGGS": [
+          288,
+          137
+        ],
+        "GGGGGSGG": [
+          289,
           138
         ]
       }
