@@ -50,7 +50,7 @@ export function VoiceSelector({ selected, customVoice, onSelect, onCustomVoice }
   }, [activeVoice, isCustom]);
 
   // Load waveform for raw recording (stays stable across crops)
-  const rawWaveformRef = useRef<{ data: Float32Array; dur: number } | null>(null);
+  const rawWaveformRef = useRef<{ data: Float32Array; dur: number; start: number; end: number } | null>(null);
 
   useEffect(() => {
     if (!rawAudioUrl) return;
@@ -58,23 +58,35 @@ export function VoiceSelector({ selected, customVoice, onSelect, onCustomVoice }
     getWaveform(rawAudioUrl).then((data) => {
       if (cancelled) return;
       const dur = (data.length / 8000) * 1000;
-      rawWaveformRef.current = { data, dur };
-      setWaveform(data);
-      setDurationMs(dur);
       const center = dur / 2;
       const half = Math.min(MAX_BLIP_MS, dur) / 2;
-      setStartMs(Math.max(0, center - half));
-      setEndMs(Math.min(dur, center + half));
+      const s = Math.max(0, center - half);
+      const e = Math.min(dur, center + half);
+      rawWaveformRef.current = { data, dur, start: s, end: e };
+      setWaveform(data);
+      setDurationMs(dur);
+      setStartMs(s);
+      setEndMs(e);
     }).catch(() => {});
     return () => { cancelled = true; };
   }, [rawAudioUrl]);
 
-  // Restore raw waveform when switching back to custom
+  // Save custom selection when it changes
+  useEffect(() => {
+    if (isCustom && rawWaveformRef.current) {
+      rawWaveformRef.current.start = startMs;
+      rawWaveformRef.current.end = endMs;
+    }
+  }, [startMs, endMs, isCustom]);
+
+  // Restore raw waveform + selection when switching back to custom
   useEffect(() => {
     if (isCustom && rawWaveformRef.current && rawAudioUrl) {
-      const { data, dur } = rawWaveformRef.current;
+      const { data, dur, start, end } = rawWaveformRef.current;
       setWaveform(data);
       setDurationMs(dur);
+      setStartMs(start);
+      setEndMs(end);
     }
   }, [isCustom, rawAudioUrl]);
 
