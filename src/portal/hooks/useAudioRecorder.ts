@@ -4,6 +4,38 @@ const MAX_DURATION = 3000; // ms
 const CRUSHED_RATE = 8000; // low sample rate for retro feel
 const BIT_DEPTH = 4; // bits for crushing
 
+function trimSilence(data: Float32Array, sampleRate: number): Float32Array {
+  const windowSize = Math.floor(sampleRate * 0.01); // 10ms windows
+  const threshold = 0.02; // RMS threshold for voice activity
+  const pad = Math.floor(sampleRate * 0.05); // 50ms padding
+
+  // Compute RMS energy per window
+  let start = 0;
+  let end = data.length;
+
+  // Find start of voice
+  for (let i = 0; i < data.length - windowSize; i += windowSize) {
+    let sum = 0;
+    for (let j = 0; j < windowSize; j++) sum += data[i + j] * data[i + j];
+    if (Math.sqrt(sum / windowSize) > threshold) {
+      start = Math.max(0, i - pad);
+      break;
+    }
+  }
+
+  // Find end of voice (scan backwards)
+  for (let i = data.length - windowSize; i >= 0; i -= windowSize) {
+    let sum = 0;
+    for (let j = 0; j < windowSize; j++) sum += data[i + j] * data[i + j];
+    if (Math.sqrt(sum / windowSize) > threshold) {
+      end = Math.min(data.length, i + windowSize + pad);
+      break;
+    }
+  }
+
+  return data.slice(start, end);
+}
+
 async function bitcrush(blob: Blob): Promise<string> {
   const arrayBuf = await blob.arrayBuffer();
   const audioCtx = new OfflineAudioContext(1, CRUSHED_RATE * 3, CRUSHED_RATE);
@@ -14,15 +46,26 @@ async function bitcrush(blob: Blob): Promise<string> {
   source.start();
   const rendered = await audioCtx.startRendering();
 
+  // Trim silence
+  const trimmed = trimSilence(rendered.getChannelData(0), rendered.sampleRate);
+  if (trimmed.length === 0) return "";
+
+  // Create new buffer with trimmed data
+  const trimBuf = new AudioBuffer({
+    length: trimmed.length,
+    sampleRate: rendered.sampleRate,
+    numberOfChannels: 1,
+  });
+  trimBuf.copyToChannel(new Float32Array(trimmed), 0);
+
   // Bitcrush: reduce bit depth
-  const data = rendered.getChannelData(0);
+  const data = trimBuf.getChannelData(0);
   const levels = Math.pow(2, BIT_DEPTH);
   for (let i = 0; i < data.length; i++) {
     data[i] = Math.round(data[i] * levels) / levels;
   }
 
-  // Encode to WAV base64
-  return audioBufferToBase64Wav(rendered);
+  return audioBufferToBase64Wav(trimBuf);
 }
 
 function audioBufferToBase64Wav(buffer: AudioBuffer): string {
