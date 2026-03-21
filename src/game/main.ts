@@ -37,7 +37,6 @@ async function boot() {
 
   const npcContainer = await loadNpcSprites(map);
   world.addChild(npcContainer);
-  await initEmote(world);
 
   const cleanupInput = initInput();
   const params = new URLSearchParams(window.location.search);
@@ -52,6 +51,9 @@ async function boot() {
   playerSprite.x = player.x;
   playerSprite.y = player.y;
   world.addChild(playerSprite);
+
+  // Emote layer on top of everything in the world
+  await initEmote(world);
   const camera = createCamera();
 
   const onResize = () => applyViewport(app);
