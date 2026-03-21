@@ -5119,6 +5119,22 @@
               "value": "matilda"
             }
           ]
+        },
+        {
+          "id": 3,
+          "name": "Jordan",
+          "type": "spawn",
+          "x": 320,
+          "y": 240,
+          "width": 16,
+          "height": 16,
+          "properties": [
+            {
+              "name": "npcId",
+              "type": "string",
+              "value": "jordan"
+            }
+          ]
         }
       ],
       "width": 40,

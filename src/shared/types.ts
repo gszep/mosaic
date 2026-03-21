@@ -35,5 +35,4 @@ export interface Submission {
   voiceStart: number | null;
   voiceEnd: number | null;
   audioBlips: unknown | null;
-  locationDescription: string;
 }

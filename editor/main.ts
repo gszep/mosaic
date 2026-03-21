@@ -340,31 +340,24 @@ async function loadSubmissions() {
       }
     }
 
-    // Create spawn objects for submissions that don't have one
     const spawns = ensureSpawnsLayer();
     const existingIds = new Set(
       spawns.flatMap((o) => o.properties?.filter((p) => p.name === "npcId").map((p) => p.value) ?? [])
     );
 
-    const cols = Math.ceil(Math.sqrt(Object.keys(submissions).length));
-    let i = 0;
     for (const [token, sub] of Object.entries(submissions)) {
-      if (token === "player") continue;
-      if (existingIds.has(token)) { i++; continue; }
-      const col = i % cols;
-      const row = Math.floor(i / cols);
+      if (token === "player" || existingIds.has(token)) continue;
       const nextId = spawns.reduce((max, o) => Math.max(max, o.id), 0) + 1;
       spawns.push({
         id: nextId,
         name: sub.name || token,
         type: "spawn",
-        x: Math.floor(map.width / 2 - cols) * TILE_SIZE + col * TILE_SIZE * 3,
-        y: Math.floor(map.height / 2 - 2) * TILE_SIZE + row * TILE_SIZE * 3,
+        x: Math.floor(map.width / 2) * TILE_SIZE,
+        y: Math.floor(map.height / 2) * TILE_SIZE,
         width: TILE_SIZE,
         height: TILE_SIZE,
         properties: [{ name: "npcId", type: "string", value: token }],
       });
-      i++;
     }
 
     redrawMap();

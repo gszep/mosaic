@@ -55,33 +55,17 @@ export async function loadNpcSprites(
       }
     }
 
-    const unplaced = Object.entries(all).filter(
-      ([token]) => token !== "player" && !spawnsByNpcId.has(token)
-    );
-    const cols = Math.max(1, Math.ceil(Math.sqrt(unplaced.length)));
-    const startX = Math.floor(map.width / 2 - cols) * TILE;
-    const startY = Math.floor(map.height / 2 - 2) * TILE;
-
-    let fallbackIdx = 0;
     for (const [token, sub] of Object.entries(all)) {
       if (token === "player") continue;
+      const spawn = spawnsByNpcId.get(token);
+      if (!spawn) continue;
 
       const texture = sub.spriteData
         ? spriteDataToTexture(sub.spriteData)
         : fallbackTexture;
       const sprite = new Sprite(texture);
-
-      const spawn = spawnsByNpcId.get(token);
-      if (spawn) {
-        sprite.x = spawn.x;
-        sprite.y = spawn.y;
-      } else {
-        const col = fallbackIdx % cols;
-        const row = Math.floor(fallbackIdx / cols);
-        sprite.x = startX + col * TILE * 3;
-        sprite.y = startY + row * TILE * 3;
-        fallbackIdx++;
-      }
+      sprite.x = spawn.x;
+      sprite.y = spawn.y;
 
       container.addChild(sprite);
       npcs.push({

@@ -130,7 +130,6 @@ export function useSubmission() {
         voiceEnd: state.voiceEnd,
         giftObject: state.giftObject || null,
         giftSprite: state.giftSprite || null,
-        locationDescription: "In the village square.",
       });
       setState((s) => ({ ...s, saving: false }));
     } catch (err) {
