@@ -1,14 +1,16 @@
 import { Assets, Container, NineSliceSprite, Texture } from "pixi.js";
 import type { DialogueNode } from "../shared/types";
 import { INTERNAL_WIDTH, INTERNAL_HEIGHT } from "./viewport";
-import { loadBitmapFont, createBitmapText, measureText } from "./bitmapfont";
+import { loadBitmapFont, createBitmapText } from "./bitmapfont";
 
 const BASE = import.meta.env.BASE_URL;
 const BOX_MARGIN = 1;
 const BOX_PAD_X = 5;
 const BOX_PAD_Y = 4;
 const LINE_GAP = 2;
-const BORDER = 3;
+const TAB_W = 35;  // speaker tab width (nine-slice left)
+const TAB_H = 7;   // speaker tab height (nine-slice top)
+const BORDER = 3;   // border thickness on right/bottom
 const TYPEWRITER_SPEED = 1;
 const TEXT_WIDTH = INTERNAL_WIDTH - BOX_MARGIN * 2 - BOX_PAD_X * 2;
 
@@ -45,7 +47,8 @@ function findNode(root: DialogueNode, id: string): DialogueNode | null {
 
 async function ensureAssets() {
   if (assetsReady) return;
-  await loadBitmapFont(BASE);
+  await loadBitmapFont();
+
   boxTexture = await Assets.load<Texture>(`${BASE}ui/dialogue-box.png`);
   boxTexture.source.scaleMode = "nearest";
   assetsReady = true;
@@ -68,9 +71,9 @@ export async function startDialogue(tree: DialogueNode, speaker: string, parent:
 
   panelSprite = new NineSliceSprite({
     texture: boxTexture!,
-    leftWidth: BORDER,
+    leftWidth: TAB_W,
     rightWidth: BORDER,
-    topHeight: BORDER,
+    topHeight: TAB_H,
     bottomHeight: BORDER,
   });
   container.addChild(panelSprite);
@@ -89,7 +92,7 @@ function renderNode() {
   if (!state || !container) return;
   clearText();
 
-  speakerContainer = createBitmapText(state.speaker, TEXT_WIDTH, 0xe95420);
+  speakerContainer = createBitmapText(state.speaker, TAB_W - 8, 0xffffff);
   container.addChild(speakerContainer);
 
   bodyContainer = new Container();
@@ -133,11 +136,9 @@ function renderBody() {
 function layoutBox() {
   if (!panelSprite || !speakerContainer || !bodyContainer || !container) return;
 
+  const boxW = INTERNAL_WIDTH - BOX_MARGIN * 2;
   const contentX = BOX_MARGIN + BOX_PAD_X;
-  speakerContainer.x = contentX;
-  bodyContainer.x = contentX;
 
-  const speakerH = speakerContainer.height;
   const bodyH = bodyContainer.height;
 
   let optionsH = 0;
@@ -145,9 +146,9 @@ function layoutBox() {
     optionsH += c.height + LINE_GAP;
   }
 
-  const contentH = speakerH + LINE_GAP + bodyH + (optionsH > 0 ? LINE_GAP + optionsH : 0);
-  const boxH = Math.max(20, contentH + BOX_PAD_Y * 2);
-  const boxW = INTERNAL_WIDTH - BOX_MARGIN * 2;
+  // Box body height (excludes the tab which sits above the main box)
+  const bodyContentH = bodyH + (optionsH > 0 ? LINE_GAP + optionsH : 0);
+  const boxH = Math.max(20, bodyContentH + BOX_PAD_Y * 2 + TAB_H);
   const boxY = INTERNAL_HEIGHT - boxH - BOX_MARGIN;
 
   panelSprite.x = BOX_MARGIN;
@@ -155,8 +156,13 @@ function layoutBox() {
   panelSprite.width = boxW;
   panelSprite.height = boxH;
 
-  speakerContainer.y = boxY + BOX_PAD_Y;
-  bodyContainer.y = speakerContainer.y + speakerH + LINE_GAP;
+  // Speaker name inside the tab (top-left dark area)
+  speakerContainer.x = BOX_MARGIN + 4;
+  speakerContainer.y = boxY + 1;
+
+  // Body text below the tab
+  bodyContainer.x = contentX;
+  bodyContainer.y = boxY + TAB_H + BOX_PAD_Y;
 
   let oy = bodyContainer.y + bodyH + LINE_GAP * 2;
   for (const c of optionContainers) {

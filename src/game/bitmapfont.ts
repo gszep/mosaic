@@ -1,37 +1,22 @@
 import { Assets, Container, Sprite, Texture, Rectangle } from "pixi.js";
 
-const CHAR_W = 8;
-const CHAR_H = 8;
-const COLS = 15;
+const CHAR_W = 4;
+const CHAR_H = 4;
+const FIRST_CHAR = 32; // space
+const NUM_CHARS = 96;   // space (32) through DEL (127)
 
-// Character map matching the font8x8.png layout (8 rows × 15 cols)
-const CHARMAP =
-  ' !"#$%&\'()*+,-.' +
-  '/0123456789:;<=' +
-  '>?@ABCDEFGHIJKL' +
-  'MNOPQRSTUVWXYZ[' +
-  '\\]^_`abcdefghij' +
-  'klmnopqrstuvwxy' +
-  'z{|}~ Çüéâäàåçê' +
-  'ëèïîìÄÅÉæÆôöòûù';
+let charTextures: Texture[] | null = null;
 
-const charIndex = new Map<string, number>();
-for (let i = 0; i < CHARMAP.length; i++) {
-  charIndex.set(CHARMAP[i], i);
-}
+export async function loadBitmapFont(): Promise<void> {
+  if (charTextures) return;
+  const base = import.meta.env.BASE_URL as string;
+  const tex = await Assets.load<Texture>(`${base}ui/font4x4.png`);
+  tex.source.scaleMode = "nearest";
 
-let fontTexture: Texture | null = null;
-const charTextures = new Map<string, Texture>();
-
-export async function loadBitmapFont(basePath: string): Promise<void> {
-  fontTexture = await Assets.load<Texture>(`${basePath}ui/font8x8.png`);
-  fontTexture.source.scaleMode = "nearest";
-
-  for (const [char, idx] of charIndex) {
-    const col = idx % COLS;
-    const row = Math.floor(idx / COLS);
-    const frame = new Rectangle(col * CHAR_W, row * CHAR_H, CHAR_W, CHAR_H);
-    charTextures.set(char, new Texture({ source: fontTexture.source, frame }));
+  charTextures = [];
+  for (let i = 0; i < NUM_CHARS; i++) {
+    const frame = new Rectangle(i * CHAR_W, 0, CHAR_W, CHAR_H);
+    charTextures.push(new Texture({ source: tex.source, frame }));
   }
 }
 
@@ -41,65 +26,38 @@ export function createBitmapText(
   color: number = 0x3a2a1a,
 ): Container {
   const container = new Container();
+  if (!charTextures) return container;
+
   let cx = 0;
   let cy = 0;
-  const spacing = 1;
-  const lineHeight = CHAR_H + spacing;
+  const advance = CHAR_W; // no extra spacing — 4th column is built-in padding
+  const spaceW = CHAR_W;
+  const lineH = CHAR_H + 1;
 
-  // Simple word wrap
   const words = text.split(' ');
   for (let wi = 0; wi < words.length; wi++) {
     const word = words[wi];
-    const wordWidth = word.length * (CHAR_W + spacing);
+    const wordW = word.length * advance;
 
-    // Wrap if word doesn't fit (unless it's the first word on the line)
-    if (cx > 0 && cx + wordWidth > maxWidth) {
+    if (cx > 0 && cx + wordW > maxWidth) {
       cx = 0;
-      cy += lineHeight;
+      cy += lineH;
     }
 
     for (const ch of word) {
-      const tex = charTextures.get(ch) ?? charTextures.get(ch.toUpperCase());
-      if (tex) {
-        const sprite = new Sprite(tex);
-        sprite.x = cx;
-        sprite.y = cy;
-        sprite.tint = color;
-        container.addChild(sprite);
+      const code = ch.charCodeAt(0) - FIRST_CHAR;
+      if (code >= 0 && code < NUM_CHARS) {
+        const s = new Sprite(charTextures[code]);
+        s.x = cx;
+        s.y = cy;
+        s.tint = color;
+        container.addChild(s);
       }
-      cx += CHAR_W + spacing;
+      cx += advance;
     }
 
-    // Add space after word
-    if (wi < words.length - 1) {
-      cx += CHAR_W + spacing;
-    }
+    if (wi < words.length - 1) cx += spaceW;
   }
 
   return container;
-}
-
-export function measureText(text: string, maxWidth: number): { width: number; height: number } {
-  let cx = 0;
-  let cy = 0;
-  let maxX = 0;
-  const spacing = 1;
-  const lineHeight = CHAR_H + spacing;
-
-  const words = text.split(' ');
-  for (let wi = 0; wi < words.length; wi++) {
-    const word = words[wi];
-    const wordWidth = word.length * (CHAR_W + spacing);
-
-    if (cx > 0 && cx + wordWidth > maxWidth) {
-      cx = 0;
-      cy += lineHeight;
-    }
-
-    cx += wordWidth;
-    if (wi < words.length - 1) cx += CHAR_W + spacing;
-    maxX = Math.max(maxX, cx);
-  }
-
-  return { width: maxX, height: cy + CHAR_H };
 }
