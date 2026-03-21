@@ -279,7 +279,7 @@ export function VoiceSelector({ voice, voiceData, voiceStart, voiceEnd, onVoice 
       <div style={{ marginTop: 6 }}>
         <div style={{
           background: "#1a1a2e", border: "2px solid #E95420", padding: "6px 8px",
-          minHeight: 24, fontFamily: "monospace", fontSize: "11px", color: "#eee", letterSpacing: 1,
+          minHeight: 24, fontFamily: "'Press Start 2P', cursive", fontSize: "10px", color: "#eee",
         }}>
           {typewriterText}<span style={{ opacity: typewriterPlaying ? 1 : 0 }}>_</span>
         </div>
