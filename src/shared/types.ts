@@ -26,6 +26,7 @@ export interface Submission {
   personalityTraits: string[] | null;
   personalityPrompt: string | null;
   giftObject: string | null;
+  giftSprite: string | null;
   emote: string | null;
   voice: string | null;
   voiceData: string | null;

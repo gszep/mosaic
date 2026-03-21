@@ -22,6 +22,8 @@ interface SubmissionState {
   voiceData: string | null;
   voiceStart: number | null;
   voiceEnd: number | null;
+  giftObject: string | null;
+  giftSprite: string | null;
 }
 
 export function useSubmission() {
@@ -38,6 +40,8 @@ export function useSubmission() {
     voiceData: null,
     voiceStart: null,
     voiceEnd: null,
+    giftObject: null,
+    giftSprite: null,
   });
 
   useEffect(() => {
@@ -57,6 +61,8 @@ export function useSubmission() {
         let voiceData: string | null = null;
         let voiceStart: number | null = null;
         let voiceEnd: number | null = null;
+        let giftObject: string | null = null;
+        let giftSprite: string | null = null;
 
         if (snapshot.exists()) {
           const data = snapshot.val() as Submission;
@@ -68,6 +74,8 @@ export function useSubmission() {
           voiceData = data.voiceData ?? null;
           voiceStart = data.voiceStart ?? null;
           voiceEnd = data.voiceEnd ?? null;
+          giftObject = data.giftObject ?? null;
+          giftSprite = data.giftSprite ?? null;
         }
 
         if (!spriteData) {
@@ -77,7 +85,7 @@ export function useSubmission() {
           } catch {}
         }
 
-        setState((s) => ({ ...s, loading: false, name, spriteData, dialogueTree, emote, voice, voiceData, voiceStart, voiceEnd }));
+        setState((s) => ({ ...s, loading: false, name, spriteData, dialogueTree, emote, voice, voiceData, voiceStart, voiceEnd, giftObject, giftSprite }));
       })
       .catch((err) => {
         setState((s) => ({ ...s, loading: false, error: (err as Error).message }));
@@ -88,6 +96,9 @@ export function useSubmission() {
   const setSpriteData = useCallback((spriteData: SpriteData) => setState((s) => ({ ...s, spriteData })), []);
   const setDialogueTree = useCallback((dialogueTree: DialogueNode) => setState((s) => ({ ...s, dialogueTree })), []);
   const setEmote = useCallback((emote: string) => setState((s) => ({ ...s, emote })), []);
+
+  const setGiftObject = useCallback((giftObject: string) => setState((s) => ({ ...s, giftObject })), []);
+  const setGiftSprite = useCallback((giftSprite: string) => setState((s) => ({ ...s, giftSprite })), []);
 
   const setVoice = useCallback((voice: string, voiceData?: string | null, voiceStart?: number | null, voiceEnd?: number | null) => {
     setState((s) => ({
@@ -117,13 +128,15 @@ export function useSubmission() {
         voiceData: state.voice === "custom" ? (state.voiceData || null) : null,
         voiceStart: state.voiceStart,
         voiceEnd: state.voiceEnd,
+        giftObject: state.giftObject || null,
+        giftSprite: state.giftSprite || null,
         locationDescription: "In the village square.",
       });
       setState((s) => ({ ...s, saving: false }));
     } catch (err) {
       setState((s) => ({ ...s, saving: false, error: (err as Error).message }));
     }
-  }, [state.name, state.spriteData, state.dialogueTree, state.emote, state.voice, state.voiceData, state.voiceStart, state.voiceEnd]);
+  }, [state.name, state.spriteData, state.dialogueTree, state.emote, state.voice, state.voiceData, state.voiceStart, state.voiceEnd, state.giftObject, state.giftSprite]);
 
-  return { ...state, setName, setSpriteData, setDialogueTree, setEmote, setVoice, save };
+  return { ...state, setName, setSpriteData, setDialogueTree, setEmote, setVoice, setGiftObject, setGiftSprite, save };
 }
