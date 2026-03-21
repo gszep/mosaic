@@ -8,6 +8,7 @@ import { loadPlayerSprite, updatePlayerSprite } from "./player";
 import { initInput, createPlayer, createCamera, updatePlayer, updateCamera, applyCamera } from "./camera";
 import { startDialogue, updateDialogue, handleDialogueInput, isDialogueActive, dialogueEndedWithGift } from "./dialogue";
 import { showGiftPopup, dismissGiftPopup, isGiftPopupActive } from "./giftPopup";
+import { playMusic } from "./music";
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -67,6 +68,7 @@ async function boot() {
 
   if (skipIntro) {
     document.getElementById("loading-screen")?.remove();
+    playMusic("music-village.ogg");
   } else {
     // Show "Wake up" and wait for input
     const loadingText = document.getElementById("loading-text");
@@ -81,6 +83,7 @@ async function boot() {
         window.removeEventListener("keydown", dismiss);
         window.removeEventListener("touchstart", dismiss);
         loadingScreen?.classList.add("fade-out");
+        playMusic("music-village.ogg");
         setTimeout(() => { loadingScreen?.remove(); resolve(); }, 800);
       };
       window.addEventListener("keydown", dismiss);
