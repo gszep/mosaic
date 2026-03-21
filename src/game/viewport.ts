@@ -24,4 +24,10 @@ export function applyViewport(app: Application): void {
   canvas.style.left = `${(vw - canvasW) / 2}px`;
   canvas.style.top = `${(vh - canvasH) / 2}px`;
   canvas.style.imageRendering = "pixelated";
+
+  const controls = document.querySelector(".controls") as HTMLElement | null;
+  if (controls) {
+    const canvasBottom = (vh - canvasH) / 2 + canvasH;
+    controls.style.top = `${canvasBottom + 8}px`;
+  }
 }
