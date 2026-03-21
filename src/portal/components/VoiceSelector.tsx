@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useAudioRecorder, playAudio } from "../hooks/useAudioRecorder";
+import { useState, useEffect, useRef } from "react";
+import { useAudioRecorder, getWaveform } from "../hooks/useAudioRecorder";
 import { AudioCropper } from "./AudioCropper";
 
 const BASE = import.meta.env.BASE_URL;
@@ -13,27 +13,49 @@ interface VoiceSelectorProps {
   onCustomVoice: (dataUrl: string | null) => void;
 }
 
-function PresetButton({ name, isSelected, onSelect }: { name: string; isSelected: boolean; onSelect: () => void }) {
-  const play = () => {
-    const audio = new Audio(`${BASE}audio/voice/${name}.wav`);
-    audio.play().catch(() => {});
-  };
+function WaveformPreview({ src }: { src: string }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  return (
-    <button
-      onClick={() => { onSelect(); play(); }}
-      className={`nes-btn ${isSelected ? "is-warning" : "is-dark"}`}
-      style={{ fontSize: "8px", padding: "4px 6px", margin: "2px" }}
-    >
-      {name.replace("Voice", "")}
-    </button>
-  );
+  useEffect(() => {
+    let cancelled = false;
+    getWaveform(src).then((data) => {
+      if (cancelled) return;
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d")!;
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.fillStyle = "#1a1a2e";
+      ctx.fillRect(0, 0, w, h);
+      ctx.fillStyle = "#E95420";
+      const samplesPerPx = data.length / w;
+      for (let x = 0; x < w; x++) {
+        const val = Math.abs(data[Math.floor(x * samplesPerPx)]);
+        const barH = Math.max(1, val * h);
+        ctx.fillRect(x, (h - barH) / 2, 1, barH);
+      }
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [src]);
+
+  return <canvas ref={canvasRef} width={280} height={30} style={{ width: "100%", maxWidth: 280, height: 30, display: "block", marginTop: 4 }} />;
 }
 
 export function VoiceSelector({ selected, customVoice, onSelect, onCustomVoice }: VoiceSelectorProps) {
   const { recording, processing, start, stop } = useAudioRecorder();
   const [rawRecording, setRawRecording] = useState<string | null>(null);
   const activeVoice = selected || DEFAULT_VOICE;
+  const isCustom = activeVoice === "custom";
+
+  const handlePresetClick = (name: string) => {
+    onSelect(name);
+    const audio = new Audio(`${BASE}audio/voice/${name}.wav`);
+    audio.play().catch(() => {});
+  };
+
+  const handleCustomClick = () => {
+    onSelect("custom");
+  };
 
   const handleRecord = async () => {
     if (recording) {
@@ -56,56 +78,51 @@ export function VoiceSelector({ selected, customVoice, onSelect, onCustomVoice }
       <p style={{ color: "#888", fontSize: "10px", margin: "0 0 0.5rem" }}>
         Pick a voice for your character's dialogue blips:
       </p>
-      <div style={{ display: "flex", flexWrap: "wrap", marginBottom: "0.5rem" }}>
+      <div style={{ display: "flex", flexWrap: "wrap" }}>
         {VOICES.map((name) => (
-          <PresetButton
+          <button
             key={name}
-            name={name}
-            isSelected={activeVoice === name}
-            onSelect={() => onSelect(name)}
-          />
+            onClick={() => handlePresetClick(name)}
+            className={`nes-btn ${activeVoice === name ? "is-warning" : "is-dark"}`}
+            style={{ fontSize: "8px", padding: "4px 6px", margin: "2px" }}
+          >
+            {name.replace("Voice", "")}
+          </button>
         ))}
+        <button
+          onClick={handleCustomClick}
+          className={`nes-btn ${isCustom ? "is-warning" : "is-dark"}`}
+          style={{ fontSize: "8px", padding: "4px 6px", margin: "2px" }}
+        >
+          Rec
+        </button>
       </div>
 
-      <p style={{ color: "#666", fontSize: "9px", margin: "0.5rem 0 0.25rem" }}>
-        Or record your own voice blip (max 3s, you'll crop a 400ms segment):
-      </p>
-      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
-        <button
-          onClick={handleRecord}
-          disabled={processing || !!rawRecording}
-          className={`nes-btn ${recording ? "is-error" : "is-dark"}`}
-          style={{ fontSize: "9px", padding: "4px 8px" }}
-        >
-          {processing ? "Processing..." : recording ? "Stop" : "Record"}
-        </button>
-        {customVoice && !rawRecording && (
-          <>
-            <button
-              onClick={() => playAudio(customVoice)}
-              className="nes-btn is-success"
-              style={{ fontSize: "9px", padding: "4px 8px" }}
-            >
-              Preview
-            </button>
-            <button
-              onClick={() => onSelect("custom")}
-              className={`nes-btn ${activeVoice === "custom" ? "is-warning" : "is-dark"}`}
-              style={{ fontSize: "9px", padding: "4px 8px" }}
-            >
-              Use recording
-            </button>
-            <button
-              onClick={() => { onSelect(activeVoice === "custom" ? DEFAULT_VOICE : activeVoice); onCustomVoice(null); }}
-              className="nes-btn is-error"
-              style={{ fontSize: "9px", padding: "4px 8px" }}
-            >
-              Remove
-            </button>
-          </>
-        )}
-      </div>
-      {rawRecording && (
+      {!isCustom && (
+        <WaveformPreview src={`${BASE}audio/voice/${activeVoice}.wav`} />
+      )}
+
+      {isCustom && !rawRecording && (
+        <div style={{ marginTop: "0.5rem" }}>
+          {customVoice ? (
+            <WaveformPreview src={customVoice} />
+          ) : (
+            <p style={{ color: "#888", fontSize: "9px" }}>
+              Record a short sound (max 3s), then crop a segment:
+            </p>
+          )}
+          <button
+            onClick={handleRecord}
+            disabled={processing}
+            className={`nes-btn ${recording ? "is-error" : "is-dark"}`}
+            style={{ fontSize: "9px", padding: "4px 8px", marginTop: "0.5rem" }}
+          >
+            {processing ? "Processing..." : recording ? "Stop" : customVoice ? "Re-record" : "Record"}
+          </button>
+        </div>
+      )}
+
+      {isCustom && rawRecording && (
         <AudioCropper rawAudio={rawRecording} onCrop={handleCrop} onCancel={() => setRawRecording(null)} />
       )}
     </div>
