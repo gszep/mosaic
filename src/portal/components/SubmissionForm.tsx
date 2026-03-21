@@ -42,17 +42,24 @@ export function SubmissionForm() {
         <SpriteSelector onSelect={setSpriteData} />
         <div className="sprite-editor-row">
           <div className="pixel-editor">
-            <PixelEditor initial={spriteData} onChange={setSpriteData} color={color} onPickColor={setColor} />
+            <PixelEditor
+              initial={spriteData}
+              onChange={setSpriteData}
+              color={color}
+              onPickColor={setColor}
+              extraButtons={
+                <button
+                  onClick={() => setColor(TRANSPARENT)}
+                  className={`nes-btn ${color === TRANSPARENT ? "is-warning" : "is-dark"}`}
+                  style={{ fontSize: "10px" }}
+                >
+                  Eraser
+                </button>
+              }
+            />
           </div>
           <div className="palette-column">
             <PalettePicker selected={color} onSelect={setColor} />
-            <button
-              onClick={() => setColor(TRANSPARENT)}
-              className={`nes-btn ${color === TRANSPARENT ? "is-warning" : "is-dark"}`}
-              style={{ marginTop: "0.25rem", width: "100%" }}
-            >
-              Eraser
-            </button>
           </div>
         </div>
       </section>

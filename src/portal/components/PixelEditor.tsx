@@ -19,13 +19,14 @@ interface PixelEditorProps {
   onChange: (data: SpriteData) => void;
   color: string;
   onPickColor: (color: string) => void;
+  extraButtons?: React.ReactNode;
 }
 
 function createBlank(): string[] {
   return Array(CELL_COUNT).fill(TRANSPARENT);
 }
 
-export function PixelEditor({ initial, onChange, color, onPickColor }: PixelEditorProps) {
+export function PixelEditor({ initial, onChange, color, onPickColor, extraButtons }: PixelEditorProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [pixels, setPixels] = useState<string[]>(
     () => initial?.pixels.slice() ?? createBlank()
@@ -208,6 +209,7 @@ export function PixelEditor({ initial, onChange, color, onPickColor }: PixelEdit
           Redo
         </button>
         <button onClick={clear}>Clear</button>
+        {extraButtons}
       </div>
     </div>
   );
