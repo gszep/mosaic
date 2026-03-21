@@ -221,12 +221,25 @@ button {
 
 .dtree-leaf {
   color: #888;
-  font-size: 8px;
+  font-family: "Press Start 2P", cursive;
+  font-size: 7px;
   font-style: italic;
-  margin-top: 6px;
   padding: 4px 8px;
   border: 1px dashed #555;
   text-align: center;
+  background: transparent;
+  cursor: pointer;
+}
+
+.dtree-leaf-gift {
+  color: #fff;
+  border-color: #fff;
+}
+
+/* White connectors for gift-giving branches */
+.dtree-gives-gift > .dtree-connector,
+.dtree-gives-gift > .dtree-connector-h {
+  background: #fff;
 }
 
 .dtree-add {

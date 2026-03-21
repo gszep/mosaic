@@ -8,6 +8,7 @@ export interface DialogueResponse {
   option: string;
   next?: DialogueNode;
   goto?: string;
+  givesGift?: boolean;
 }
 
 export interface DialogueNode {

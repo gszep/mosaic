@@ -50,7 +50,7 @@ function TreeNode({
   const addResponse = () => {
     const responses = (node.responses ?? []).slice();
     if (responses.length >= MAX_RESPONSES) return;
-    responses.push({ option: "", next: newNode() });
+    responses.push({ option: "", next: newNode(), givesGift: true });
     onChange({ ...node, responses });
   };
   const removeResponse = (i: number) => {
@@ -81,43 +81,53 @@ function TreeNode({
       {/* Player responses */}
       {node.responses && (
         <div className="dtree-responses">
-          {node.responses.map((resp, i) => (
-            <div key={i} className="dtree-response-branch">
-              <div className="dtree-connector-h" />
-              <div className="dtree-node dtree-player">
-                <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                  <span className="dtree-tag dtree-tag-fraser">Fraser</span>
-                  <button onClick={() => removeResponse(i)} className="nes-btn is-error" style={{ fontSize: "7px", padding: "1px 4px", marginLeft: "auto" }}>x</button>
-                </div>
-                <textarea
-                  ref={(el) => { if (el) { el.style.height = "0"; el.style.height = el.scrollHeight + "px"; } }}
-                  value={resp.option}
-                  onChange={(e) => { updateResponse(i, { ...resp, option: e.target.value }); const t = e.target; t.style.height = "0"; t.style.height = t.scrollHeight + "px"; }}
-                  placeholder="Fraser says..."
-                  rows={1}
-                  className="nes-textarea is-dark"
-                  style={{ fontSize: "10px", width: "100%" }}
-                />
-              </div>
-              {/* Recurse into NPC reply */}
-              {resp.next && (
-                <>
-                  <div className="dtree-connector" />
-                  <TreeNode
-                    node={resp.next}
-                    depth={depth + 1}
-                    onChange={(next) => updateResponse(i, { ...resp, next })}
-                    giftObject={giftObject}
+          {node.responses.map((resp, i) => {
+            const gift = resp.givesGift !== false;
+            return (
+              <div key={i} className={`dtree-response-branch${gift ? " dtree-gives-gift" : ""}`}>
+                <div className="dtree-connector-h" />
+                <div className="dtree-node dtree-player">
+                  <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                    <span className="dtree-tag dtree-tag-fraser">Fraser</span>
+                    <button onClick={() => removeResponse(i)} className="nes-btn is-error" style={{ fontSize: "7px", padding: "1px 4px", marginLeft: "auto" }}>x</button>
+                  </div>
+                  <textarea
+                    ref={(el) => { if (el) { el.style.height = "0"; el.style.height = el.scrollHeight + "px"; } }}
+                    value={resp.option}
+                    onChange={(e) => { updateResponse(i, { ...resp, option: e.target.value }); const t = e.target; t.style.height = "0"; t.style.height = t.scrollHeight + "px"; }}
+                    placeholder="Fraser says..."
+                    rows={1}
+                    className="nes-textarea is-dark"
+                    style={{ fontSize: "10px", width: "100%" }}
                   />
-                </>
-              )}
-              {!resp.next && (
-                <div className="dtree-leaf">
-                  {giftObject ? `Gives Fraser ${giftObject}` : "End (gives gift)"}
                 </div>
-              )}
-            </div>
-          ))}
+                {resp.next && (
+                  <>
+                    <div className="dtree-connector" />
+                    <TreeNode
+                      node={resp.next}
+                      depth={depth + 1}
+                      onChange={(next) => updateResponse(i, { ...resp, next })}
+                      giftObject={giftObject}
+                    />
+                  </>
+                )}
+                {!resp.next && (
+                  <>
+                    <div className="dtree-connector" />
+                    <button
+                      className={`dtree-leaf${gift ? " dtree-leaf-gift" : ""}`}
+                      onClick={() => updateResponse(i, { ...resp, givesGift: !gift })}
+                    >
+                      {gift
+                        ? (giftObject ? `Gives Fraser ${giftObject}` : "Gives present")
+                        : "End (no present)"}
+                    </button>
+                  </>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
 
@@ -128,18 +138,13 @@ function TreeNode({
         </button>
       )}
 
-      {/* Leaf: no responses */}
-      {!node.responses && depth > 0 && (
-        <div className="dtree-leaf">
-          {giftObject ? `Gives Fraser ${giftObject}` : "End (gives gift)"}
-        </div>
-      )}
-
-      {/* Root leaf */}
-      {!node.responses && depth === 0 && (
-        <div className="dtree-leaf">
-          {giftObject ? `Gives Fraser ${giftObject}` : "End (gives gift)"}
-        </div>
+      {!node.responses && (
+        <>
+          <div className="dtree-connector" style={{ background: "#fff" }} />
+          <div className="dtree-leaf dtree-leaf-gift">
+            {giftObject ? `Gives Fraser ${giftObject}` : "Gives present"}
+          </div>
+        </>
       )}
     </div>
   );
