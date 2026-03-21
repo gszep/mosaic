@@ -22,11 +22,13 @@ function NodeEditor({
   depth,
   allIds,
   onChange,
+  giftObject,
 }: {
   node: DialogueNode;
   depth: number;
   allIds: { id: string; preview: string }[];
   onChange: (updated: DialogueNode) => void;
+  giftObject?: string | null;
 }) {
   const updateText = (text: string) => onChange({ ...node, text });
 
@@ -71,6 +73,7 @@ function NodeEditor({
           allIds={allIds}
           onChange={(r) => updateResponse(i, r)}
           onRemove={() => removeResponse(i)}
+          giftObject={giftObject}
         />
       ))}
 
@@ -82,7 +85,7 @@ function NodeEditor({
 
       {!node.responses && (
         <div style={{ color: "#888", fontSize: "0.8rem", fontStyle: "italic", marginTop: 2 }}>
-          End of conversation (gives gift)
+          {giftObject ? `Gives Fraser ${giftObject}` : "End of conversation (gives gift)"}
         </div>
       )}
     </div>
@@ -95,12 +98,14 @@ function ResponseEditor({
   allIds,
   onChange,
   onRemove,
+  giftObject,
 }: {
   response: DialogueResponse;
   depth: number;
   allIds: { id: string; preview: string }[];
   onChange: (updated: DialogueResponse) => void;
   onRemove: () => void;
+  giftObject?: string | null;
 }) {
   const [useGoto, setUseGoto] = useState(!!response.goto);
 
@@ -158,6 +163,7 @@ function ResponseEditor({
           depth={depth + 1}
           allIds={allIds}
           onChange={(next) => onChange({ ...response, next })}
+          giftObject={giftObject}
         />
       ) : null}
     </div>
@@ -181,9 +187,10 @@ function collectIds(node: DialogueNode): { id: string; preview: string }[] {
 interface DialogueEditorProps {
   tree: DialogueNode | null;
   onChange: (tree: DialogueNode) => void;
+  giftObject?: string | null;
 }
 
-export function DialogueEditor({ tree, onChange }: DialogueEditorProps) {
+export function DialogueEditor({ tree, onChange, giftObject }: DialogueEditorProps) {
   const root = tree ?? createDefaultTree();
   const allIds = collectIds(root);
 
@@ -196,7 +203,7 @@ export function DialogueEditor({ tree, onChange }: DialogueEditorProps) {
 
   return (
     <div className="dialogue-editor">
-      <NodeEditor node={root} depth={0} allIds={allIds} onChange={handleChange} />
+      <NodeEditor node={root} depth={0} allIds={allIds} onChange={handleChange} giftObject={giftObject} />
     </div>
   );
 }

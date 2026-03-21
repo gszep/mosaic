@@ -80,7 +80,7 @@ export function SubmissionForm() {
           What do you say when Fraser talks to you?
           Add Fraser's response choices to create branching conversations.
         </p>
-        <DialogueEditor tree={dialogueTree} onChange={setDialogueTree} />
+        <DialogueEditor tree={dialogueTree} onChange={setDialogueTree} giftObject={giftObject} />
       </section>
 
       <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem" }}>
