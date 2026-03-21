@@ -29,9 +29,8 @@ export function PresentSelector({ giftObject, giftSprite, onGiftObject, onGiftSp
     <div>
       <label htmlFor="gift-name" style={{ fontSize: "10px", color: "#888", display: "block", marginBottom: 4 }}>What are you giving Fraser?</label>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: "0.75rem" }}>
-        <div style={{
-          width: 40, height: 40, flexShrink: 0,
-          background: "#1a1a2e", border: "2px solid #555",
+        <div className="nes-input is-dark" style={{
+          width: 40, height: 40, flexShrink: 0, padding: 2,
           display: "flex", alignItems: "center", justifyContent: "center",
         }}>
           {giftSprite && (
