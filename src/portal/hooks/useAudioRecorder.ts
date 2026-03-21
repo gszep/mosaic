@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 
-const MAX_DURATION = 3000; // ms
+const MAX_DURATION = 2000; // ms
 const CRUSHED_RATE = 8000; // low sample rate for retro feel
 const BIT_DEPTH = 4; // bits for crushing
 const MAX_BLIP_MS = 350;

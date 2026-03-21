@@ -267,7 +267,7 @@ export function VoiceSelector({ voice, voiceData, voiceStart, voiceEnd, onVoice 
           className={`nes-btn ${recording ? "is-error" : !isCustom ? "is-disabled" : "is-dark"}`}
           style={{ fontSize: "8px", padding: "4px 8px", flexShrink: 0, lineHeight: 1 }}
         >
-          {processing ? "..." : recording ? "Stop" : <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: isCustom ? "#E95420" : "#666" }} />}
+          {processing ? "..." : <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: recording ? 0 : "50%", background: recording ? "#fff" : isCustom ? "#E95420" : "#666" }} />}
         </button>
       </div>
 
