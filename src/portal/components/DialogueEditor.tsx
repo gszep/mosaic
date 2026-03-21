@@ -51,11 +51,11 @@ function NodeEditor({
   return (
     <div style={{ marginLeft: depth > 0 ? 16 : 0, borderLeft: depth > 0 ? "2px solid #555" : "none", paddingLeft: depth > 0 ? 8 : 0, marginTop: 4 }}>
       <div style={{ display: "flex", alignItems: "start", gap: 4, marginBottom: 4 }}>
-        <span style={{ color: "#E95420", fontWeight: "bold", flexShrink: 0 }}>NPC:</span>
+        <span style={{ color: "#E95420", fontWeight: "bold", flexShrink: 0 }}>You:</span>
         <textarea
           value={node.text}
           onChange={(e) => updateText(e.target.value)}
-          placeholder="What does your character say?"
+          placeholder="What do you say to Fraser?"
           rows={2}
           style={{ width: "100%", resize: "vertical", fontFamily: "inherit", fontSize: "0.9rem" }}
         />
@@ -74,7 +74,7 @@ function NodeEditor({
 
       {(!node.responses || node.responses.length < MAX_RESPONSES) && depth < MAX_DEPTH && (
         <button onClick={addResponse} style={{ fontSize: "0.8rem", marginTop: 2, marginBottom: 4 }}>
-          + Add player response
+          + Add Fraser's response
         </button>
       )}
 
@@ -117,12 +117,12 @@ function ResponseEditor({
   return (
     <div style={{ marginLeft: 16, marginTop: 4, borderLeft: "2px solid #E95420", paddingLeft: 8 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-        <span style={{ color: "#7ec8e3", fontWeight: "bold", flexShrink: 0 }}>Player:</span>
+        <span style={{ color: "#7ec8e3", fontWeight: "bold", flexShrink: 0 }}>Fraser:</span>
         <input
           type="text"
           value={response.option}
           onChange={(e) => updateOption(e.target.value)}
-          placeholder="Player response..."
+          placeholder="Fraser's response..."
           style={{ flex: 1, fontFamily: "inherit", fontSize: "0.9rem" }}
         />
         <button onClick={onRemove} title="Remove response" style={{ fontSize: "0.8rem", color: "#c44" }}>

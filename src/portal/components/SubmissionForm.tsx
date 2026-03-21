@@ -51,8 +51,8 @@ export function SubmissionForm() {
 
       <h2>Write your dialogue</h2>
       <p style={{ color: "#666", fontSize: "0.9rem" }}>
-        What does your character say when the birthday person talks to them?
-        Add player response choices to create branching conversations.
+        What do you say when Fraser talks to you?
+        Add Fraser's response choices to create branching conversations.
       </p>
       <DialogueEditor tree={dialogueTree} onChange={setDialogueTree} />
 
