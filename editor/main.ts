@@ -770,10 +770,11 @@ function bindEvents() {
     tooltip.style.display = "none";
   });
 
-  // Double-click to toggle depth split on a tile
+  // Double-click to toggle depth split + collision override on a tile
   mapCanvas.addEventListener("dblclick", (e) => {
     const idx = getTileIndex(e);
     if (idx === null) return;
+
     let depthLayer = map.layers.find((l) => l.name === "depth" && l.type === "tilelayer");
     if (!depthLayer) {
       depthLayer = {
@@ -784,7 +785,17 @@ function bindEvents() {
       map.layers.push(depthLayer);
     }
     if (!depthLayer.data) return;
-    depthLayer.data[idx] = depthLayer.data[idx] > 0 ? 0 : 1;
+
+    const collisionLayer = map.layers.find((l) => l.name === "collision" && l.type === "tilelayer");
+    const toggling = depthLayer.data[idx] > 0 ? 0 : 1;
+    depthLayer.data[idx] = toggling;
+
+    // Override collision: clear the tile and set a thin center-line collision
+    // by marking only this tile (the game uses the depth flag to apply center-line collision)
+    if (collisionLayer?.data) {
+      collisionLayer.data[idx] = toggling;
+    }
+
     redrawMap();
     scheduleSave();
   });

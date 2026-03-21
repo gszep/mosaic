@@ -41,12 +41,19 @@ export interface NpcCollider {
   y: number;
 }
 
-function blocked(x: number, y: number, mapWidth: number, collision: Set<number>, npcs?: NpcCollider[]): boolean {
+function blocked(x: number, y: number, mapWidth: number, collision: Set<number>, npcs?: NpcCollider[], depthTiles?: Set<number>): boolean {
   const cols = mapWidth / TILE;
   for (const [ox, oy] of [[0, 0], [15, 0], [0, 15], [15, 15]]) {
     const tx = Math.floor((x + ox) / TILE);
     const ty = Math.floor((y + oy) / TILE);
-    if (collision.has(ty * cols + tx)) return true;
+    const idx = ty * cols + tx;
+    if (depthTiles?.has(idx)) {
+      // Center-line collision: 1px line at tile center
+      const tileY = ty * TILE + TILE / 2;
+      if (y < tileY + 1 && y + TILE > tileY) return true;
+    } else if (collision.has(idx)) {
+      return true;
+    }
   }
   if (npcs) {
     for (const npc of npcs) {
@@ -65,7 +72,8 @@ export function updatePlayer(
   mapWidth: number,
   mapHeight: number,
   collision?: Set<number>,
-  npcs?: NpcCollider[]
+  npcs?: NpcCollider[],
+  depthTiles?: Set<number>,
 ): void {
   let dx = 0;
   let dy = 0;
@@ -77,11 +85,11 @@ export function updatePlayer(
   if (collision) {
     // Try X then Y independently for wall sliding
     const nx = Math.max(0, Math.min(player.x + dx, mapWidth - 16));
-    if (!blocked(nx, player.y, mapWidth, collision, npcs)) {
+    if (!blocked(nx, player.y, mapWidth, collision, npcs, depthTiles)) {
       player.x = nx;
     }
     const ny = Math.max(0, Math.min(player.y + dy, mapHeight - 16));
-    if (!blocked(player.x, ny, mapWidth, collision, npcs)) {
+    if (!blocked(player.x, ny, mapWidth, collision, npcs, depthTiles)) {
       player.y = ny;
     }
   } else {

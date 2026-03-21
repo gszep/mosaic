@@ -44,6 +44,7 @@ export interface Scene {
   mapWidth: number;
   mapHeight: number;
   collision: Set<number>;
+  depthTiles: Set<number>;
   camera: { x: number; y: number };
   map: TMJMap;
   hasNpcs: boolean;
@@ -60,7 +61,7 @@ export async function loadScene(
   world.visible = false;
   const uiLayer = new Container();
 
-  const { base, decorBelow, decorAbove, collision, mapWidth, mapHeight, map } = await loadTilemap(
+  const { base, decorBelow, decorAbove, collision, depthTiles, mapWidth, mapHeight, map } = await loadTilemap(
     `${BASE}maps/${name}.tmj`,
     `${BASE}tilesets`
   );
@@ -115,12 +116,12 @@ export async function loadScene(
   stage.addChild(uiLayer);
   world.visible = true;
 
-  return { name, world, uiLayer, player, playerSprite, mapWidth, mapHeight, collision, camera, map, hasNpcs };
+  return { name, world, uiLayer, player, playerSprite, mapWidth, mapHeight, collision, depthTiles, camera, map, hasNpcs };
 }
 
 export function updateScene(scene: Scene, dialogueActive: boolean): void {
   const npcs: NpcCollider[] | undefined = scene.hasNpcs ? getNpcPositions() : undefined;
-  updatePlayer(scene.player, scene.mapWidth, scene.mapHeight, scene.collision, npcs);
+  updatePlayer(scene.player, scene.mapWidth, scene.mapHeight, scene.collision, npcs, scene.depthTiles);
   scene.playerSprite.x = scene.player.x;
   scene.playerSprite.y = scene.player.y;
   updateCamera(scene.camera, scene.player, scene.mapWidth, scene.mapHeight);
