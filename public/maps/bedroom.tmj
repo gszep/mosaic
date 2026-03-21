@@ -620,17 +620,17 @@
             {
               "name": "target",
               "type": "string",
-              "value": "village"
+              "value": "home"
             },
             {
               "name": "targetX",
               "type": "int",
-              "value": 5
+              "value": 7
             },
             {
               "name": "targetY",
               "type": "int",
-              "value": 4
+              "value": 3
             }
           ]
         },
