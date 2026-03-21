@@ -34,40 +34,37 @@ export function VoiceSelector({ selected, customVoice, onSelect, onCustomVoice }
   const activeVoice = selected || DEFAULT_VOICE;
   const isCustom = activeVoice === "custom";
 
-  // Load waveform when voice changes
+  // Load waveform for presets
   useEffect(() => {
+    if (isCustom) return;
     let cancelled = false;
-    let src: string;
-    if (isCustom && customVoice) {
-      src = customVoice;
-    } else if (isCustom && rawAudioUrl) {
-      src = rawAudioUrl;
-    } else if (!isCustom) {
-      src = `${BASE}audio/voice/${activeVoice}.wav`;
-    } else {
-      setWaveform(null);
-      return;
-    }
-
-    getWaveform(src).then((data) => {
+    getWaveform(`${BASE}audio/voice/${activeVoice}.wav`).then((data) => {
       if (cancelled) return;
       const dur = (data.length / 8000) * 1000;
       setWaveform(data);
       setDurationMs(dur);
-      if (isCustom && !customVoice) {
-        // Raw recording: default 350ms centered
-        const center = dur / 2;
-        const half = Math.min(MAX_BLIP_MS, dur) / 2;
-        setStartMs(Math.max(0, center - half));
-        setEndMs(Math.min(dur, center + half));
-      } else {
-        // Preset or saved custom: highlight full
-        setStartMs(0);
-        setEndMs(dur);
-      }
+      setStartMs(0);
+      setEndMs(dur);
     }).catch(() => {});
     return () => { cancelled = true; };
-  }, [activeVoice, isCustom, customVoice, rawAudioUrl]);
+  }, [activeVoice, isCustom]);
+
+  // Load waveform for raw recording (stays stable across crops)
+  useEffect(() => {
+    if (!rawAudioUrl) return;
+    let cancelled = false;
+    getWaveform(rawAudioUrl).then((data) => {
+      if (cancelled) return;
+      const dur = (data.length / 8000) * 1000;
+      setWaveform(data);
+      setDurationMs(dur);
+      const center = dur / 2;
+      const half = Math.min(MAX_BLIP_MS, dur) / 2;
+      setStartMs(Math.max(0, center - half));
+      setEndMs(Math.min(dur, center + half));
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [rawAudioUrl]);
 
   // Draw waveform
   useEffect(() => {
@@ -145,7 +142,7 @@ export function VoiceSelector({ selected, customVoice, onSelect, onCustomVoice }
   }, [trigger, activeVoice, isCustom, customVoice]);
 
   // Canvas drag handlers (only for custom raw recordings)
-  const canDrag = isCustom && rawAudioUrl && !customVoice;
+  const canDrag = isCustom && !!rawAudioUrl;
 
   const pxToMs = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const rect = canvasRef.current!.getBoundingClientRect();
