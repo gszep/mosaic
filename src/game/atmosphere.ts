@@ -3,9 +3,9 @@ import { INTERNAL_WIDTH, INTERNAL_HEIGHT } from "./viewport";
 
 const BASE = import.meta.env.BASE_URL;
 const PETAL_COUNT = 12;
-const PETAL_FRAME_W = 8;
+const PETAL_FRAME_W = 12;
 const PETAL_FRAME_H = 7;
-const PETAL_FRAMES = 9;
+const PETAL_FRAMES = 6;
 const PETAL_ANIM_SPEED = 0.08;
 
 interface Petal {
@@ -30,9 +30,11 @@ export async function initAtmosphere(world: Container): Promise<void> {
 
   const frames: Texture[] = [];
   for (let i = 0; i < PETAL_FRAMES; i++) {
+    const fw = Math.min(PETAL_FRAME_W, leafTex.width - i * PETAL_FRAME_W);
+    if (fw <= 0) break;
     frames.push(new Texture({
       source: leafTex.source,
-      frame: new Rectangle(i * PETAL_FRAME_W, 0, PETAL_FRAME_W, PETAL_FRAME_H),
+      frame: new Rectangle(i * PETAL_FRAME_W, 0, fw, PETAL_FRAME_H),
     }));
   }
 
