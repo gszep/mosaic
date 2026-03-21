@@ -31,6 +31,6 @@ export function applyViewport(app: Application): void {
   const controls = document.querySelector(".controls") as HTMLElement | null;
   if (controls) {
     const canvasBottom = (vh - canvasH) / 2 + canvasH;
-    controls.style.top = `${canvasBottom + 8}px`;
+    controls.style.top = `${canvasBottom + 24}px`;
   }
 }
