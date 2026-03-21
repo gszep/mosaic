@@ -46,6 +46,7 @@ export function SubmissionForm() {
             <PixelEditor ref={editorRef} initial={spriteData} onChange={setSpriteData} color={color} onPickColor={setColor} />
           </div>
           <div className="palette-column">
+            <p style={{ color: "#888", fontSize: "9px", margin: "0 0 4px" }}>Colour:</p>
             <PalettePicker selected={color} onSelect={setColor} />
           </div>
         </div>
