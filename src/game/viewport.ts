@@ -34,6 +34,7 @@ export function applyViewport(app: Application): void {
   const controls = document.querySelector(".controls") as HTMLElement | null;
   if (controls) {
     controls.style.top = `${canvasTop + canvasH + 24}px`;
+    controls.style.visibility = "visible";
   }
 
   const loading = document.getElementById("loading-screen");
