@@ -111,12 +111,29 @@ function audioBufferToBase64Wav(buffer: AudioBuffer): string {
   return "data:audio/wav;base64," + btoa(binary);
 }
 
-export function useAudioRecorder() {
+export function useAudioRecorder(onAutoStop?: (result: string) => void) {
   const [recording, setRecording] = useState(false);
   const [processing, setProcessing] = useState(false);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onAutoStopRef = useRef(onAutoStop);
+  onAutoStopRef.current = onAutoStop;
+
+  const processChunks = useCallback(async (recorder: MediaRecorder): Promise<string> => {
+    setRecording(false);
+    setProcessing(true);
+    const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+    recorder.stream.getTracks().forEach((t) => t.stop());
+    try {
+      const result = await bitcrush(blob);
+      setProcessing(false);
+      return result;
+    } catch {
+      setProcessing(false);
+      return "";
+    }
+  }, []);
 
   const start = useCallback(async () => {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -131,10 +148,14 @@ export function useAudioRecorder() {
 
     timerRef.current = setTimeout(() => {
       if (recorderRef.current?.state === "recording") {
+        recorderRef.current.onstop = async () => {
+          const result = await processChunks(recorderRef.current!);
+          if (result && onAutoStopRef.current) onAutoStopRef.current(result);
+        };
         recorderRef.current.stop();
       }
     }, MAX_DURATION);
-  }, []);
+  }, [processChunks]);
 
   const stop = useCallback((): Promise<string> => {
     return new Promise((resolve) => {
@@ -146,22 +167,12 @@ export function useAudioRecorder() {
         return;
       }
       recorder.onstop = async () => {
-        setRecording(false);
-        setProcessing(true);
-        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
-        recorder.stream.getTracks().forEach((t) => t.stop());
-        try {
-          const result = await bitcrush(blob);
-          setProcessing(false);
-          resolve(result);
-        } catch {
-          setProcessing(false);
-          resolve("");
-        }
+        const result = await processChunks(recorder);
+        resolve(result);
       };
       recorder.stop();
     });
-  }, []);
+  }, [processChunks]);
 
   return { recording, processing, start, stop };
 }

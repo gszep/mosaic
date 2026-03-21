@@ -46,7 +46,19 @@ function cropToBlip(fullDataUrl: string, startMs: number, endMs: number): Promis
 }
 
 export function VoiceSelector({ voice, voiceData, voiceStart, voiceEnd, onVoice }: VoiceSelectorProps) {
-  const { recording, processing, start, stop } = useAudioRecorder();
+  const handleRecordingResult = async (result: string) => {
+    if (!result) return;
+    const data = await getWaveform(result);
+    const dur = (data.length / SAMPLE_RATE) * 1000;
+    const center = dur / 2;
+    const half = Math.min(MAX_BLIP_MS, dur) / 2;
+    const s = Math.max(0, center - half);
+    const e = Math.min(dur, center + half);
+    onVoice("custom", result, s, e);
+    setTrigger((t) => t + 1);
+  };
+
+  const { recording, processing, start, stop } = useAudioRecorder(handleRecordingResult);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [waveform, setWaveform] = useState<Float32Array | null>(null);
   const [durationMs, setDurationMs] = useState(0);
@@ -206,17 +218,7 @@ export function VoiceSelector({ voice, voiceData, voiceStart, voiceEnd, onVoice 
   const handleRecord = async () => {
     if (recording) {
       const result = await stop();
-      if (result) {
-        // Get duration for default center selection
-        const data = await getWaveform(result);
-        const dur = (data.length / SAMPLE_RATE) * 1000;
-        const center = dur / 2;
-        const half = Math.min(MAX_BLIP_MS, dur) / 2;
-        const s = Math.max(0, center - half);
-        const e = Math.min(dur, center + half);
-        onVoice("custom", result, s, e);
-        setTrigger((t) => t + 1);
-      }
+      await handleRecordingResult(result);
     } else {
       await start();
     }
