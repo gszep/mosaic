@@ -239,7 +239,7 @@ export function VoiceSelector({ voice, voiceData, voiceStart, voiceEnd, onVoice 
             key={name}
             onClick={() => selectPreset(name)}
             className={`nes-btn ${activeVoice === name ? "is-warning" : "is-dark"}`}
-            style={{ fontSize: "16px", padding: 0, margin: "2px", width: 32, height: 32, display: "inline-flex", alignItems: "center", justifyContent: "center" }}
+            style={{ fontSize: "16px", padding: "0 0 8px 0", margin: "2px", width: 32, height: 32, display: "inline-flex", alignItems: "center", justifyContent: "center" }}
           >
             {VOICE_ICONS[name]}
           </button>
