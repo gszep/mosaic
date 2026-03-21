@@ -3,6 +3,8 @@ import {
   useEffect,
   useState,
   useCallback,
+  useImperativeHandle,
+  forwardRef,
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import { TRANSPARENT } from "../../shared/palette";
@@ -19,14 +21,19 @@ interface PixelEditorProps {
   onChange: (data: SpriteData) => void;
   color: string;
   onPickColor: (color: string) => void;
-  extraButtons?: React.ReactNode;
+}
+
+export interface PixelEditorHandle {
+  undo: () => void;
+  redo: () => void;
+  clear: () => void;
 }
 
 function createBlank(): string[] {
   return Array(CELL_COUNT).fill(TRANSPARENT);
 }
 
-export function PixelEditor({ initial, onChange, color, onPickColor, extraButtons }: PixelEditorProps) {
+export const PixelEditor = forwardRef<PixelEditorHandle, PixelEditorProps>(function PixelEditor({ initial, onChange, color, onPickColor }, ref) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [pixels, setPixels] = useState<string[]>(
     () => initial?.pixels.slice() ?? createBlank()
@@ -182,9 +189,10 @@ export function PixelEditor({ initial, onChange, color, onPickColor, extraButton
     onChange({ width: W as 16, height: H as 16, pixels: blank });
   }, [onChange]);
 
+  useImperativeHandle(ref, () => ({ undo, redo, clear }), [undo, redo, clear]);
+
   return (
-    <div>
-      <canvas
+    <canvas
         ref={canvasRef}
         width={W * SCALE}
         height={H * SCALE}
@@ -200,17 +208,6 @@ export function PixelEditor({ initial, onChange, color, onPickColor, extraButton
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerUp}
         onContextMenu={(e) => e.preventDefault()}
-      />
-      <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem" }}>
-        <button onClick={undo}>
-          Undo
-        </button>
-        <button onClick={redo}>
-          Redo
-        </button>
-        <button onClick={clear}>Clear</button>
-        {extraButtons}
-      </div>
-    </div>
+    />
   );
-}
+});

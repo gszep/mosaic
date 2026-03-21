@@ -1,5 +1,5 @@
-import { useState, useCallback } from "react";
-import { PixelEditor } from "./PixelEditor";
+import { useState, useCallback, useRef } from "react";
+import { PixelEditor, type PixelEditorHandle } from "./PixelEditor";
 import { PalettePicker } from "./PalettePicker";
 import { SpriteSelector } from "./SpriteSelector";
 import { EmoteSelector } from "./EmoteSelector";
@@ -15,6 +15,7 @@ export function SubmissionForm() {
   const { token, loading, saving, error, name, spriteData, dialogueTree, emote, voice, voiceData, voiceStart, voiceEnd, setName, setSpriteData, setDialogueTree, setEmote, setVoice, save } =
     useSubmission();
   const [color, setColor] = useState(PALETTE[0]);
+  const editorRef = useRef<PixelEditorHandle>(null);
 
   if (!token) return <p className="nes-text is-error">Invalid invite link -- no token found.</p>;
   if (loading) return <p className="nes-text is-primary">Loading...</p>;
@@ -42,25 +43,17 @@ export function SubmissionForm() {
         <SpriteSelector onSelect={setSpriteData} />
         <div className="sprite-editor-row">
           <div className="pixel-editor">
-            <PixelEditor
-              initial={spriteData}
-              onChange={setSpriteData}
-              color={color}
-              onPickColor={setColor}
-              extraButtons={
-                <button
-                  onClick={() => setColor(TRANSPARENT)}
-                  className={`nes-btn ${color === TRANSPARENT ? "is-warning" : "is-dark"}`}
-                  style={{ fontSize: "10px" }}
-                >
-                  Eraser
-                </button>
-              }
-            />
+            <PixelEditor ref={editorRef} initial={spriteData} onChange={setSpriteData} color={color} onPickColor={setColor} />
           </div>
           <div className="palette-column">
             <PalettePicker selected={color} onSelect={setColor} />
           </div>
+        </div>
+        <div className="sprite-editor-buttons">
+          <button onClick={() => editorRef.current?.undo()} className="nes-btn is-dark">Undo</button>
+          <button onClick={() => editorRef.current?.redo()} className="nes-btn is-dark">Redo</button>
+          <button onClick={() => editorRef.current?.clear()} className="nes-btn is-dark">Clear</button>
+          <button onClick={() => setColor(TRANSPARENT)} className={`nes-btn ${color === TRANSPARENT ? "is-warning" : "is-dark"}`}>Eraser</button>
         </div>
       </section>
 
