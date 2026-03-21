@@ -444,19 +444,12 @@ function renderDepthMarkers(ctx: CanvasRenderingContext2D) {
     const x = (i % map.width) * tw;
     const y = Math.floor(i / map.width) * th;
 
-    // Draw a horizontal line at center
-    ctx.strokeStyle = "#ffff00";
+    ctx.strokeStyle = "rgba(187, 154, 247, 0.8)";
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(x, y + halfH);
     ctx.lineTo(x + tw, y + halfH);
     ctx.stroke();
-
-    // Small "D" marker
-    ctx.fillStyle = "#ffff00";
-    ctx.font = `${Math.max(8, 2 * s)}px monospace`;
-    ctx.textBaseline = "top";
-    ctx.fillText("D", x + 2, y + 2);
   }
 }
 
