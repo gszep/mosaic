@@ -3,10 +3,13 @@ import { Application } from "pixi.js";
 export const INTERNAL_WIDTH = 160;
 export const INTERNAL_HEIGHT = 90;
 
+const MAX_CANVAS_WIDTH = 640;
+
 export function calculateScale(viewportW: number, viewportH: number): number {
   const scaleX = Math.floor(viewportW / INTERNAL_WIDTH);
   const scaleY = Math.floor(viewportH / INTERNAL_HEIGHT);
-  return Math.max(1, Math.min(scaleX, scaleY));
+  const maxScale = Math.floor(MAX_CANVAS_WIDTH / INTERNAL_WIDTH);
+  return Math.max(1, Math.min(scaleX, scaleY, maxScale));
 }
 
 export function applyViewport(app: Application): void {
