@@ -65,10 +65,21 @@ export async function loadScene(
   );
   world.addChild(mapContainer);
 
+  // Use provided start position, or player_start spawn, or map center
+  let defaultX = (mapWidth - TILE) / 2;
+  let defaultY = (mapHeight - TILE) / 2;
+  const spawnsLayer = map.layers.find((l) => l.type === "objectgroup" && l.name === "spawns");
+  if (spawnsLayer?.objects) {
+    const playerSpawn = spawnsLayer.objects.find((o) =>
+      o.properties?.some((p) => p.name === "npcId" && p.value === "player")
+    );
+    if (playerSpawn) { defaultX = playerSpawn.x; defaultY = playerSpawn.y; }
+  }
+
   const playerTexture = await getPlayerTexture();
   const playerSprite = new Sprite(playerTexture);
-  const px = startX ?? (mapWidth - TILE) / 2;
-  const py = startY ?? (mapHeight - TILE) / 2;
+  const px = startX ?? defaultX;
+  const py = startY ?? defaultY;
   const player = createPlayer(
     Math.max(0, Math.min(px, mapWidth - TILE)),
     Math.max(0, Math.min(py, mapHeight - TILE))
