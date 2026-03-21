@@ -36,13 +36,26 @@ export function createCamera(): CameraState {
 
 const TILE = 16;
 
-function blocked(x: number, y: number, mapWidth: number, collision: Set<number>): boolean {
+interface NpcRect {
+  x: number;
+  y: number;
+}
+
+function rectsOverlap(ax: number, ay: number, aw: number, ah: number, bx: number, by: number, bw: number, bh: number): boolean {
+  return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+}
+
+function blocked(x: number, y: number, mapWidth: number, collision: Set<number>, npcs?: NpcRect[]): boolean {
   const cols = mapWidth / TILE;
-  // Check all 4 corners of the 16x16 player sprite
   for (const [ox, oy] of [[0, 0], [15, 0], [0, 15], [15, 15]]) {
     const tx = Math.floor((x + ox) / TILE);
     const ty = Math.floor((y + oy) / TILE);
     if (collision.has(ty * cols + tx)) return true;
+  }
+  if (npcs) {
+    for (const npc of npcs) {
+      if (rectsOverlap(x, y, 16, 16, npc.x, npc.y, 16, 8)) return true;
+    }
   }
   return false;
 }
@@ -51,7 +64,8 @@ export function updatePlayer(
   player: PlayerState,
   mapWidth: number,
   mapHeight: number,
-  collision?: Set<number>
+  collision?: Set<number>,
+  npcs?: NpcRect[]
 ): void {
   let dx = 0;
   let dy = 0;
@@ -63,11 +77,11 @@ export function updatePlayer(
   if (collision) {
     // Try X then Y independently for wall sliding
     const nx = Math.max(0, Math.min(player.x + dx, mapWidth - 16));
-    if (!blocked(nx, player.y, mapWidth, collision)) {
+    if (!blocked(nx, player.y, mapWidth, collision, npcs)) {
       player.x = nx;
     }
     const ny = Math.max(0, Math.min(player.y + dy, mapHeight - 16));
-    if (!blocked(player.x, ny, mapWidth, collision)) {
+    if (!blocked(player.x, ny, mapWidth, collision, npcs)) {
       player.y = ny;
     }
   } else {

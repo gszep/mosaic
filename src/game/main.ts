@@ -3,7 +3,7 @@ import { Application, Container, TextureSource } from "pixi.js";
 TextureSource.defaultOptions.scaleMode = "nearest";
 import { applyViewport } from "./viewport";
 import { loadTilemap } from "./tilemap";
-import { loadNpcSprites, findNearestNpc, initEmote, updateEmote, type NpcData } from "./npcs";
+import { loadNpcSprites, findNearestNpc, getNpcPositions, initEmote, updateEmote, type NpcData } from "./npcs";
 import { loadPlayerSprite, updatePlayerSprite } from "./player";
 import { initInput, createPlayer, createCamera, updatePlayer, updateCamera, applyCamera } from "./camera";
 import { startDialogue, updateDialogue, handleDialogueInput, isDialogueActive, dialogueEndedWithGift } from "./dialogue";
@@ -135,7 +135,7 @@ async function boot() {
 
   app.ticker.add(() => {
     if (!isDialogueActive() && !isGiftPopupActive()) {
-      updatePlayer(player, mapWidth, mapHeight, collision);
+      updatePlayer(player, mapWidth, mapHeight, collision, getNpcPositions());
     }
     updatePlayerSprite(playerSprite, player);
     updateCamera(camera, player, mapWidth, mapHeight);

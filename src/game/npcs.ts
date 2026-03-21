@@ -90,6 +90,10 @@ export async function loadNpcSprites(
   return container;
 }
 
+export function getNpcPositions(): { x: number; y: number }[] {
+  return npcs.map((n) => ({ x: n.sprite.x, y: n.sprite.y }));
+}
+
 export function findNearestNpc(px: number, py: number): NpcData | null {
   let best: NpcData | null = null;
   let bestDist = INTERACT_RANGE;
