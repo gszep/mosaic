@@ -1,4 +1,4 @@
-export type { TMJLayer, TMJTileset, TMJMap } from "../src/shared/tmj";
+export type { TMJLayer, TMJTileset, TMJMap, TMJObject } from "../src/shared/tmj";
 import type { TMJTileset, TMJMap } from "../src/shared/tmj";
 
 export function createEmptyMap(

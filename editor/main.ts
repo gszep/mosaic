@@ -1,4 +1,4 @@
-import type { TMJMap } from "./tmj";
+import type { TMJMap, TMJObject } from "./tmj";
 import { createEmptyMap } from "./tmj";
 import {
   loadTilesetImage,
@@ -8,6 +8,8 @@ import {
   type RenderOptions,
   type CatalogData,
 } from "./renderer";
+import { db, ref, get } from "../src/shared/firebase";
+import type { Submission, SpriteData } from "../src/shared/types";
 
 const BASE = import.meta.env.BASE_URL;
 const TILE_SIZE = 16;
@@ -45,6 +47,10 @@ let selectedGid: number | null = null;
 let activeTilesetIndex = 0;
 let tool: "paint" | "erase" | "inspect" = "paint";
 let painting = false;
+let draggingSpawn: TMJObject | null = null;
+let showSpawns = true;
+const spriteCanvases = new Map<string, HTMLCanvasElement>();
+let submissions: Record<string, Submission> = {};
 let currentMapName = "village";
 let catalog: CatalogData | null = null;
 let catalogTreeEl: HTMLDivElement | null = null;
@@ -189,6 +195,7 @@ async function init() {
   redrawMap();
   redrawPalette();
   bindEvents();
+  loadSubmissions();
 
   if (import.meta.hot) {
     import.meta.hot.on("map-update", async (data: { name: string }) => {
@@ -246,6 +253,27 @@ async function switchMap(name: string) {
 
 function buildLayerList() {
   layerList.innerHTML = "";
+
+  // Spawns toggle (always at top)
+  {
+    const li = document.createElement("li");
+    const cb = document.createElement("span");
+    cb.className = "check";
+    cb.textContent = showSpawns ? "[x]" : "[ ]";
+    cb.addEventListener("click", (e) => {
+      e.stopPropagation();
+      showSpawns = !showSpawns;
+      cb.textContent = showSpawns ? "[x]" : "[ ]";
+      redrawMap();
+    });
+    const span = document.createElement("span");
+    span.textContent = "spawns";
+    span.style.color = "#E95420";
+    li.appendChild(cb);
+    li.appendChild(span);
+    layerList.appendChild(li);
+  }
+
   for (const layer of map.layers) {
     if (layer.type !== "tilelayer") continue;
     const li = document.createElement("li");
@@ -280,8 +308,157 @@ function buildLayerList() {
   }
 }
 
+function spriteDataToCanvas(data: SpriteData): HTMLCanvasElement {
+  const c = document.createElement("canvas");
+  c.width = data.width;
+  c.height = data.height;
+  const ctx = c.getContext("2d")!;
+  const img = ctx.createImageData(data.width, data.height);
+  for (let i = 0; i < data.pixels.length; i++) {
+    const hex = data.pixels[i];
+    const off = i * 4;
+    if (!hex) { img.data[off + 3] = 0; continue; }
+    img.data[off] = parseInt(hex.slice(1, 3), 16);
+    img.data[off + 1] = parseInt(hex.slice(3, 5), 16);
+    img.data[off + 2] = parseInt(hex.slice(5, 7), 16);
+    img.data[off + 3] = 255;
+  }
+  ctx.putImageData(img, 0, 0);
+  return c;
+}
+
+async function loadSubmissions() {
+  try {
+    const snapshot = await get(ref(db, "submissions"));
+    if (!snapshot.exists()) return;
+    submissions = snapshot.val() as Record<string, Submission>;
+
+    // Build sprite canvases
+    for (const [token, sub] of Object.entries(submissions)) {
+      if (sub.spriteData) {
+        spriteCanvases.set(token, spriteDataToCanvas(sub.spriteData));
+      }
+    }
+
+    // Create spawn objects for submissions that don't have one
+    const spawns = ensureSpawnsLayer();
+    const existingIds = new Set(
+      spawns.flatMap((o) => o.properties?.filter((p) => p.name === "npcId").map((p) => p.value) ?? [])
+    );
+
+    const cols = Math.ceil(Math.sqrt(Object.keys(submissions).length));
+    let i = 0;
+    for (const [token, sub] of Object.entries(submissions)) {
+      if (token === "player") continue;
+      if (existingIds.has(token)) { i++; continue; }
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      const nextId = spawns.reduce((max, o) => Math.max(max, o.id), 0) + 1;
+      spawns.push({
+        id: nextId,
+        name: sub.name || token,
+        type: "spawn",
+        x: Math.floor(map.width / 2 - cols) * TILE_SIZE + col * TILE_SIZE * 3,
+        y: Math.floor(map.height / 2 - 2) * TILE_SIZE + row * TILE_SIZE * 3,
+        width: TILE_SIZE,
+        height: TILE_SIZE,
+        properties: [{ name: "npcId", type: "string", value: token }],
+      });
+      i++;
+    }
+
+    redrawMap();
+  } catch (err) {
+    console.warn("Could not load submissions:", (err as Error).message);
+  }
+}
+
+function ensureSpawnsLayer(): TMJObject[] {
+  let layer = map.layers.find((l) => l.type === "objectgroup" && l.name === "spawns");
+  if (!layer) {
+    layer = {
+      id: map.layers.length + 1,
+      name: "spawns",
+      type: "objectgroup",
+      objects: [],
+      width: map.width,
+      height: map.height,
+      visible: true,
+      x: 0,
+      y: 0,
+      opacity: 1,
+    };
+    map.layers.push(layer);
+  }
+  if (!layer.objects) layer.objects = [];
+  return layer.objects;
+}
+
+function renderSpawns(ctx: CanvasRenderingContext2D) {
+  if (!showSpawns) return;
+  const spawns = ensureSpawnsLayer();
+  const s = opts.scale;
+  ctx.imageSmoothingEnabled = false;
+  for (const obj of spawns) {
+    const px = obj.x * s;
+    const py = obj.y * s;
+    const npcId = obj.properties?.find((p) => p.name === "npcId")?.value;
+
+    // Draw sprite if available
+    const spriteCanvas = npcId ? spriteCanvases.get(npcId) : null;
+    if (spriteCanvas) {
+      const sw = spriteCanvas.width * s;
+      const sh = spriteCanvas.height * s;
+      ctx.drawImage(spriteCanvas, 0, 0, spriteCanvas.width, spriteCanvas.height, px, py, sw, sh);
+      // Selection outline
+      ctx.strokeStyle = "#E95420";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(px, py, sw, sh);
+    } else {
+      // Fallback marker
+      const w = (obj.width || TILE_SIZE) * s;
+      const h = (obj.height || TILE_SIZE) * s;
+      ctx.fillStyle = "rgba(233, 84, 32, 0.35)";
+      ctx.fillRect(px, py, w, h);
+      ctx.strokeStyle = "#E95420";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(px + 1, py + 1, w - 2, h - 2);
+    }
+
+    // Label
+    const label = obj.name || npcId || `#${obj.id}`;
+    ctx.fillStyle = "#fff";
+    ctx.font = `${Math.max(10, 3 * s)}px Ubuntu Mono, monospace`;
+    ctx.textBaseline = "bottom";
+    ctx.shadowColor = "#000";
+    ctx.shadowBlur = 3;
+    ctx.fillText(label, px + 2, py - 2);
+    ctx.shadowBlur = 0;
+  }
+}
+
+function getSpawnAtPixel(e: MouseEvent): TMJObject | null {
+  const spawns = ensureSpawnsLayer();
+  const rect = mapCanvas.getBoundingClientRect();
+  const scaleX = mapCanvas.width / rect.width;
+  const scaleY = mapCanvas.height / rect.height;
+  const mx = (e.clientX - rect.left) * scaleX / opts.scale;
+  const my = (e.clientY - rect.top) * scaleY / opts.scale;
+
+  for (let i = spawns.length - 1; i >= 0; i--) {
+    const obj = spawns[i];
+    const w = obj.width || TILE_SIZE;
+    const h = obj.height || TILE_SIZE * 2;
+    if (mx >= obj.x && mx < obj.x + w && my >= obj.y && my < obj.y + h) {
+      return obj;
+    }
+  }
+  return null;
+}
+
 function redrawMap() {
   renderMap(mapCtx, map, tilesetImages, opts);
+  renderSpawns(mapCtx);
 }
 
 function redrawPalette() {
@@ -535,21 +712,89 @@ function bindEvents() {
   });
 
   mapCanvas.addEventListener("mousedown", (e) => {
+    // Check if clicking on a spawn point first
+    const spawn = getSpawnAtPixel(e);
+    if (spawn) {
+      draggingSpawn = spawn;
+      mapCanvas.style.cursor = "grabbing";
+      return;
+    }
     if (tool === "inspect") return;
     painting = true;
     applyTool(e);
   });
   mapCanvas.addEventListener("mousemove", (e) => {
+    if (draggingSpawn) {
+      const rect = mapCanvas.getBoundingClientRect();
+      const scaleX = mapCanvas.width / rect.width;
+      const scaleY = mapCanvas.height / rect.height;
+      const mx = (e.clientX - rect.left) * scaleX / opts.scale;
+      const my = (e.clientY - rect.top) * scaleY / opts.scale;
+      // Snap to tile grid
+      draggingSpawn.x = Math.round(mx / TILE_SIZE) * TILE_SIZE;
+      draggingSpawn.y = Math.round(my / TILE_SIZE) * TILE_SIZE;
+      redrawMap();
+      tileInfo.textContent = `Moving ${draggingSpawn.name || "#" + draggingSpawn.id} to (${draggingSpawn.x}, ${draggingSpawn.y})`;
+      return;
+    }
     if (tool === "inspect") {
       showInspector(e);
     } else if (painting) {
       applyTool(e);
+    } else if (showSpawns) {
+      const hover = getSpawnAtPixel(e);
+      mapCanvas.style.cursor = hover ? "grab" : tool === "erase" ? "not-allowed" : "crosshair";
     }
   });
-  mapCanvas.addEventListener("mouseup", () => { painting = false; });
+  mapCanvas.addEventListener("mouseup", () => {
+    if (draggingSpawn) {
+      draggingSpawn = null;
+      mapCanvas.style.cursor = "crosshair";
+      scheduleSave();
+      return;
+    }
+    painting = false;
+  });
   mapCanvas.addEventListener("mouseleave", () => {
+    if (draggingSpawn) {
+      draggingSpawn = null;
+      mapCanvas.style.cursor = "crosshair";
+      scheduleSave();
+    }
     painting = false;
     tooltip.style.display = "none";
+  });
+
+  // Double-click to add new spawn point
+  mapCanvas.addEventListener("dblclick", (e) => {
+    const rect = mapCanvas.getBoundingClientRect();
+    const scaleX = mapCanvas.width / rect.width;
+    const scaleY = mapCanvas.height / rect.height;
+    const mx = (e.clientX - rect.left) * scaleX / opts.scale;
+    const my = (e.clientY - rect.top) * scaleY / opts.scale;
+    const tileX = Math.floor(mx / TILE_SIZE) * TILE_SIZE;
+    const tileY = Math.floor(my / TILE_SIZE) * TILE_SIZE;
+
+    // Don't add if there's already a spawn here
+    if (getSpawnAtPixel(e)) return;
+
+    const spawns = ensureSpawnsLayer();
+    const nextId = spawns.reduce((max, o) => Math.max(max, o.id), 0) + 1;
+    const name = prompt("NPC name (or cancel):");
+    if (!name) return;
+
+    spawns.push({
+      id: nextId,
+      name,
+      type: "spawn",
+      x: tileX,
+      y: tileY,
+      width: TILE_SIZE,
+      height: TILE_SIZE * 2,
+      properties: [{ name: "npcId", type: "string", value: name.toLowerCase().replace(/\s+/g, "-") }],
+    });
+    redrawMap();
+    scheduleSave();
   });
 
   canvasWrap.addEventListener("wheel", (e) => {
@@ -644,6 +889,12 @@ function showInspector(e: MouseEvent) {
       const tsName = findTilesetName(gid);
       lines.push(`  ${layer.name}: GID ${gid} (${tsName})`);
     }
+  }
+
+  const spawn = getSpawnAtPixel(e);
+  if (spawn) {
+    const npcId = spawn.properties?.find((p) => p.name === "npcId")?.value;
+    lines.push(`  spawn: ${spawn.name} (${npcId ?? "no id"}) at (${spawn.x}, ${spawn.y})`);
   }
 
   tooltip.textContent = lines.join("\n");

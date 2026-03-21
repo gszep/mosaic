@@ -7,7 +7,7 @@ const RENDER_LAYERS = ["ground", "buildings", "decoration"];
 export async function loadTilemap(
   mapUrl: string,
   tilesetBasePath: string
-): Promise<{ container: Container; collision: Set<number>; mapWidth: number; mapHeight: number }> {
+): Promise<{ container: Container; collision: Set<number>; mapWidth: number; mapHeight: number; map: TMJMap }> {
   const map: TMJMap = await (await fetch(mapUrl)).json();
   const container = new Container();
   const collision = new Set<number>();
@@ -77,5 +77,6 @@ export async function loadTilemap(
     collision,
     mapWidth: map.width * map.tilewidth,
     mapHeight: map.height * map.tileheight,
+    map,
   };
 }

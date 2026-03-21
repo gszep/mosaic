@@ -152,7 +152,9 @@ body {
 .catalog-row-stamp { align-items: start; }
 .catalog-label { color: #888; flex-shrink: 0; }
 .catalog-tiles { display: flex; flex-wrap: wrap; gap: 1px; }
-.catalog-stamp-grid { display: grid; gap: 0px; }
+.catalog-stamp-grid { display: grid; gap: 0; }
+.catalog-stamp-grid .catalog-tile-wrap { display: block; }
+.catalog-stamp-grid .catalog-tile { display: block; outline: none; }
 .catalog-tile-wrap { position: relative; display: inline-block; line-height: 0; }
 .catalog-tile { image-rendering: pixelated; cursor: pointer; outline: 1px solid transparent; }
 .catalog-tile:hover { outline-color: rgba(255,255,255,0.4); }

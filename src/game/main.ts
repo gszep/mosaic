@@ -22,13 +22,13 @@ async function boot() {
   const world = new Container();
   app.stage.addChild(world);
 
-  const { container: mapContainer, mapWidth, mapHeight } = await loadTilemap(
+  const { container: mapContainer, mapWidth, mapHeight, map } = await loadTilemap(
     `${BASE}maps/village.tmj`,
     `${BASE}tilesets`
   );
   world.addChild(mapContainer);
 
-  const npcContainer = await loadNpcSprites(mapWidth, mapHeight);
+  const npcContainer = await loadNpcSprites(map);
   world.addChild(npcContainer);
 
   const cleanupInput = initInput();

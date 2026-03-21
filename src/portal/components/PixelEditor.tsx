@@ -18,13 +18,14 @@ interface PixelEditorProps {
   initial: SpriteData | null;
   onChange: (data: SpriteData) => void;
   color: string;
+  onPickColor: (color: string) => void;
 }
 
 function createBlank(): string[] {
   return Array(CELL_COUNT).fill(TRANSPARENT);
 }
 
-export function PixelEditor({ initial, onChange, color }: PixelEditorProps) {
+export function PixelEditor({ initial, onChange, color, onPickColor }: PixelEditorProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [pixels, setPixels] = useState<string[]>(
     () => initial?.pixels.slice() ?? createBlank()
@@ -36,8 +37,8 @@ export function PixelEditor({ initial, onChange, color }: PixelEditorProps) {
     }
   }, [initial]);
 
-  const [undoStack, setUndoStack] = useState<string[][]>([]);
-  const [redoStack, setRedoStack] = useState<string[][]>([]);
+  const undoRef = useRef<string[][]>([]);
+  const redoRef = useRef<string[][]>([]);
   const isPainting = useRef(false);
   const preStrokeSnapshot = useRef<string[] | null>(null);
 
@@ -50,7 +51,7 @@ export function PixelEditor({ initial, onChange, color }: PixelEditorProps) {
         const i = y * W + x;
         const px = pixels[i];
         if (px === TRANSPARENT) {
-          ctx.fillStyle = (x + y) % 2 === 0 ? "#C8C8C8" : "#A0A0A0";
+          ctx.fillStyle = (x + y) % 2 === 0 ? "#ECECEC" : "#DCDCDC";
         } else {
           ctx.fillStyle = px;
         }
@@ -99,12 +100,18 @@ export function PixelEditor({ initial, onChange, color }: PixelEditorProps) {
   const handlePointerDown = useCallback(
     (e: ReactPointerEvent<HTMLCanvasElement>) => {
       e.preventDefault();
+      // Right-click or alt+click = pick color
+      if (e.button === 2 || e.altKey) {
+        const i = cellFromPointer(e);
+        if (i !== null) onPickColor(pixels[i] || TRANSPARENT);
+        return;
+      }
       isPainting.current = true;
       preStrokeSnapshot.current = pixels.slice();
       const i = cellFromPointer(e);
       if (i !== null) paint(i);
     },
-    [cellFromPointer, paint, pixels]
+    [cellFromPointer, paint, pixels, onPickColor]
   );
 
   const handlePointerMove = useCallback(
@@ -118,47 +125,60 @@ export function PixelEditor({ initial, onChange, color }: PixelEditorProps) {
 
   const handlePointerUp = useCallback(() => {
     if (isPainting.current && preStrokeSnapshot.current) {
-      setUndoStack((prev) => [...prev, preStrokeSnapshot.current!]);
-      setRedoStack([]);
+      undoRef.current = [...undoRef.current, preStrokeSnapshot.current];
+      redoRef.current = [];
     }
     isPainting.current = false;
     preStrokeSnapshot.current = null;
   }, []);
 
   const undo = useCallback(() => {
-    setUndoStack((prev) => {
-      if (prev.length === 0) return prev;
-      const snapshot = prev[prev.length - 1];
-      setPixels((current) => {
-        setRedoStack((r) => [...r, current]);
-        onChange({ width: W as 16, height: H as 16, pixels: snapshot });
-        return snapshot;
-      });
-      return prev.slice(0, -1);
+    if (undoRef.current.length === 0) return;
+    const snapshot = undoRef.current[undoRef.current.length - 1];
+    undoRef.current = undoRef.current.slice(0, -1);
+    setPixels((current) => {
+      redoRef.current = [...redoRef.current, current];
+      return snapshot;
     });
+    onChange({ width: W as 16, height: H as 16, pixels: snapshot });
   }, [onChange]);
 
   const redo = useCallback(() => {
-    setRedoStack((prev) => {
-      if (prev.length === 0) return prev;
-      const snapshot = prev[prev.length - 1];
-      setPixels((current) => {
-        setUndoStack((u) => [...u, current]);
-        onChange({ width: W as 16, height: H as 16, pixels: snapshot });
-        return snapshot;
-      });
-      return prev.slice(0, -1);
+    if (redoRef.current.length === 0) return;
+    const snapshot = redoRef.current[redoRef.current.length - 1];
+    redoRef.current = redoRef.current.slice(0, -1);
+    setPixels((current) => {
+      undoRef.current = [...undoRef.current, current];
+      return snapshot;
     });
+    onChange({ width: W as 16, height: H as 16, pixels: snapshot });
   }, [onChange]);
+
+  // Ctrl+Z / Ctrl+Shift+Z keyboard shortcuts
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && (e.key === "z" || e.key === "Z")) {
+        e.preventDefault();
+        if (e.shiftKey) redo();
+        else undo();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === "y") {
+        e.preventDefault();
+        redo();
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [undo, redo]);
 
   const clear = useCallback(() => {
     setPixels((current) => {
-      setUndoStack((prev) => [...prev, current]);
-      setRedoStack([]);
-      const blank = createBlank();
-      onChange({ width: W as 16, height: H as 16, pixels: blank });
-      return blank;
+      undoRef.current = [...undoRef.current, current];
+      redoRef.current = [];
+      return createBlank();
     });
+    const blank = createBlank();
+    onChange({ width: W as 16, height: H as 16, pixels: blank });
   }, [onChange]);
 
   return (
@@ -178,12 +198,13 @@ export function PixelEditor({ initial, onChange, color }: PixelEditorProps) {
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerUp}
+        onContextMenu={(e) => e.preventDefault()}
       />
       <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem" }}>
-        <button onClick={undo} disabled={undoStack.length === 0}>
+        <button onClick={undo}>
           Undo
         </button>
-        <button onClick={redo} disabled={redoStack.length === 0}>
+        <button onClick={redo}>
           Redo
         </button>
         <button onClick={clear}>Clear</button>

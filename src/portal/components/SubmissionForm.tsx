@@ -40,7 +40,7 @@ export function SubmissionForm() {
       >
         Eraser
       </button>
-      <PixelEditor initial={spriteData} onChange={setSpriteData} color={color} />
+      <PixelEditor initial={spriteData} onChange={setSpriteData} color={color} onPickColor={setColor} />
 
       <button
         onClick={save}

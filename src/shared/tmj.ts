@@ -1,7 +1,19 @@
+export interface TMJObject {
+  id: number;
+  name: string;
+  type: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  properties?: { name: string; type: string; value: string }[];
+}
+
 export interface TMJLayer {
   name: string;
   type: "tilelayer" | "objectgroup";
   data?: number[];
+  objects?: TMJObject[];
   width: number;
   height: number;
   visible: boolean;

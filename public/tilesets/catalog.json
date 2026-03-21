@@ -1759,105 +1759,6 @@
         ]
       ]
     },
-    "tree_large_autumn": {
-      "description": "Large autumn tree (3 tiles wide)",
-      "tileset": "TilesetNature",
-      "size": [
-        3,
-        2
-      ],
-      "layer": "decoration",
-      "tiles": [
-        [
-          826,
-          827,
-          828
-        ],
-        [
-          850,
-          851,
-          852
-        ]
-      ],
-      "collision": [
-        [
-          1,
-          1,
-          1
-        ],
-        [
-          1,
-          1,
-          1
-        ]
-      ]
-    },
-    "tree_large_snow": {
-      "description": "Large snow-covered tree",
-      "tileset": "TilesetNature",
-      "size": [
-        3,
-        2
-      ],
-      "layer": "decoration",
-      "tiles": [
-        [
-          829,
-          830,
-          831
-        ],
-        [
-          853,
-          854,
-          855
-        ]
-      ],
-      "collision": [
-        [
-          1,
-          1,
-          1
-        ],
-        [
-          1,
-          1,
-          1
-        ]
-      ]
-    },
-    "tree_large_cherry": {
-      "description": "Large cherry blossom tree",
-      "tileset": "TilesetNature",
-      "size": [
-        3,
-        2
-      ],
-      "layer": "decoration",
-      "tiles": [
-        [
-          832,
-          833,
-          834
-        ],
-        [
-          856,
-          857,
-          858
-        ]
-      ],
-      "collision": [
-        [
-          1,
-          1,
-          1
-        ],
-        [
-          1,
-          1,
-          1
-        ]
-      ]
-    },
     "rock_blue_a": {
       "description": "Blue-grey boulder (2x2)",
       "tileset": "TilesetNature",
@@ -1911,39 +1812,6 @@
           1
         ],
         [
-          1,
-          1
-        ]
-      ]
-    },
-    "cliff_brown": {
-      "description": "Brown cliff face (3x2)",
-      "tileset": "TilesetNature",
-      "size": [
-        3,
-        2
-      ],
-      "layer": "decoration",
-      "tiles": [
-        [
-          882,
-          883,
-          884
-        ],
-        [
-          906,
-          907,
-          908
-        ]
-      ],
-      "collision": [
-        [
-          1,
-          1,
-          1
-        ],
-        [
-          1,
           1,
           1
         ]
@@ -2003,112 +1871,6 @@
         ]
       ],
       "collision": [
-        [
-          1,
-          1,
-          1
-        ],
-        [
-          1,
-          1,
-          1
-        ]
-      ]
-    },
-    "tree_huge_snow": {
-      "description": "Huge snow-covered tree (3x4)",
-      "tileset": "TilesetNature",
-      "size": [
-        3,
-        4
-      ],
-      "layer": "decoration",
-      "tiles": [
-        [
-          1144,
-          1145,
-          1146
-        ],
-        [
-          1168,
-          1169,
-          1170
-        ],
-        [
-          1192,
-          1193,
-          1194
-        ],
-        [
-          1216,
-          1217,
-          1218
-        ]
-      ],
-      "collision": [
-        [
-          1,
-          1,
-          1
-        ],
-        [
-          1,
-          1,
-          1
-        ],
-        [
-          1,
-          1,
-          1
-        ],
-        [
-          1,
-          1,
-          1
-        ]
-      ]
-    },
-    "tree_huge_orange": {
-      "description": "Huge orange/autumn tree (3x4)",
-      "tileset": "TilesetNature",
-      "size": [
-        3,
-        4
-      ],
-      "layer": "decoration",
-      "tiles": [
-        [
-          1147,
-          1148,
-          1149
-        ],
-        [
-          1171,
-          1172,
-          1173
-        ],
-        [
-          1195,
-          1196,
-          1197
-        ],
-        [
-          1219,
-          1220,
-          1221
-        ]
-      ],
-      "collision": [
-        [
-          1,
-          1,
-          1
-        ],
-        [
-          1,
-          1,
-          1
-        ],
         [
           1,
           1,
@@ -2785,6 +2547,631 @@
         [
           1,
           0,
+          1
+        ]
+      ]
+    },
+    "cluster_autumn_greensnow": {
+      "description": "Small tree cluster (3 trees), cols 0-3, rows 0-2",
+      "tileset": "TilesetNature",
+      "size": [
+        4,
+        3
+      ],
+      "layer": "decoration",
+      "tiles": [
+        [
+          730,
+          731,
+          732,
+          733
+        ],
+        [
+          754,
+          755,
+          756,
+          757
+        ],
+        [
+          778,
+          779,
+          780,
+          781
+        ]
+      ],
+      "collision": [
+        [
+          1,
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          1,
+          1,
+          1
+        ]
+      ]
+    },
+    "cluster_cherry_rounddark": {
+      "description": "Small tree cluster (3 trees), cols 4-7, rows 0-2",
+      "tileset": "TilesetNature",
+      "size": [
+        4,
+        3
+      ],
+      "layer": "decoration",
+      "tiles": [
+        [
+          734,
+          735,
+          736,
+          737
+        ],
+        [
+          758,
+          759,
+          760,
+          761
+        ],
+        [
+          782,
+          783,
+          784,
+          785
+        ]
+      ],
+      "collision": [
+        [
+          1,
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          1,
+          1,
+          1
+        ]
+      ]
+    },
+    "cluster_snow_cherrysnow": {
+      "description": "Small tree cluster (3 trees), cols 8-11, rows 0-2",
+      "tileset": "TilesetNature",
+      "size": [
+        4,
+        3
+      ],
+      "layer": "decoration",
+      "tiles": [
+        [
+          738,
+          739,
+          740,
+          741
+        ],
+        [
+          762,
+          763,
+          764,
+          765
+        ],
+        [
+          786,
+          787,
+          788,
+          789
+        ]
+      ],
+      "collision": [
+        [
+          1,
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          1,
+          1,
+          1
+        ]
+      ]
+    },
+    "cluster_roundwhite_cherrypink": {
+      "description": "Small tree cluster (3 trees), cols 12-15, rows 0-2",
+      "tileset": "TilesetNature",
+      "size": [
+        4,
+        3
+      ],
+      "layer": "decoration",
+      "tiles": [
+        [
+          742,
+          743,
+          744,
+          745
+        ],
+        [
+          766,
+          767,
+          768,
+          769
+        ],
+        [
+          790,
+          791,
+          792,
+          793
+        ]
+      ],
+      "collision": [
+        [
+          1,
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          1,
+          1,
+          1
+        ]
+      ]
+    },
+    "cluster_tallgreen_bushygreen": {
+      "description": "Small tree cluster (3 trees), cols 16-19, rows 0-2",
+      "tileset": "TilesetNature",
+      "size": [
+        4,
+        3
+      ],
+      "layer": "decoration",
+      "tiles": [
+        [
+          746,
+          747,
+          748,
+          749
+        ],
+        [
+          770,
+          771,
+          772,
+          773
+        ],
+        [
+          794,
+          795,
+          796,
+          797
+        ]
+      ],
+      "collision": [
+        [
+          1,
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          1,
+          1,
+          1
+        ]
+      ]
+    },
+    "cluster_large_a": {
+      "description": "Large tree cluster (3 trees), cols 0-3, rows 3-5",
+      "tileset": "TilesetNature",
+      "size": [
+        4,
+        3
+      ],
+      "layer": "decoration",
+      "tiles": [
+        [
+          802,
+          803,
+          804,
+          805
+        ],
+        [
+          826,
+          827,
+          828,
+          829
+        ],
+        [
+          782,
+          783,
+          784,
+          785
+        ]
+      ],
+      "collision": [
+        [
+          1,
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          1,
+          1,
+          1
+        ]
+      ]
+    },
+    "cluster_large_b": {
+      "description": "Large tree cluster (3 trees), cols 4-7, rows 3-5",
+      "tileset": "TilesetNature",
+      "size": [
+        4,
+        3
+      ],
+      "layer": "decoration",
+      "tiles": [
+        [
+          806,
+          807,
+          808,
+          809
+        ],
+        [
+          830,
+          831,
+          832,
+          833
+        ],
+        [
+          854,
+          855,
+          856,
+          857
+        ]
+      ],
+      "collision": [
+        [
+          1,
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          1,
+          1,
+          1
+        ]
+      ]
+    },
+    "cluster_large_c": {
+      "description": "Large tree cluster (3 trees), cols 8-11, rows 3-5",
+      "tileset": "TilesetNature",
+      "size": [
+        4,
+        3
+      ],
+      "layer": "decoration",
+      "tiles": [
+        [
+          810,
+          811,
+          812,
+          813
+        ],
+        [
+          834,
+          835,
+          836,
+          837
+        ],
+        [
+          858,
+          859,
+          860,
+          861
+        ]
+      ],
+      "collision": [
+        [
+          1,
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          1,
+          1,
+          1
+        ]
+      ]
+    },
+    "tree_big_cherry": {
+      "description": "Large single tree (3x3), cols 0-2, rows 18-20",
+      "tileset": "TilesetNature",
+      "size": [
+        3,
+        3
+      ],
+      "layer": "decoration",
+      "tiles": [
+        [
+          1162,
+          1163,
+          1164
+        ],
+        [
+          1186,
+          1187,
+          1188
+        ],
+        [
+          1210,
+          1211,
+          1212
+        ]
+      ],
+      "collision": [
+        [
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          1,
+          1
+        ]
+      ]
+    },
+    "tree_big_green": {
+      "description": "Large single tree (3x3), cols 3-5, rows 18-20",
+      "tileset": "TilesetNature",
+      "size": [
+        3,
+        3
+      ],
+      "layer": "decoration",
+      "tiles": [
+        [
+          1165,
+          1166,
+          1167
+        ],
+        [
+          1189,
+          1190,
+          1191
+        ],
+        [
+          1213,
+          1214,
+          1215
+        ]
+      ],
+      "collision": [
+        [
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          1,
+          1
+        ]
+      ]
+    },
+    "tree_big_snow": {
+      "description": "Large single tree (3x3), cols 6-8, rows 18-20",
+      "tileset": "TilesetNature",
+      "size": [
+        3,
+        3
+      ],
+      "layer": "decoration",
+      "tiles": [
+        [
+          1168,
+          1169,
+          1170
+        ],
+        [
+          1192,
+          1193,
+          1194
+        ],
+        [
+          1216,
+          1217,
+          1218
+        ]
+      ],
+      "collision": [
+        [
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          1,
+          1
+        ]
+      ]
+    },
+    "tree_big_autumn": {
+      "description": "Large single tree (3x3), cols 9-11, rows 18-20",
+      "tileset": "TilesetNature",
+      "size": [
+        3,
+        3
+      ],
+      "layer": "decoration",
+      "tiles": [
+        [
+          1171,
+          1172,
+          1173
+        ],
+        [
+          1195,
+          1196,
+          1197
+        ],
+        [
+          1219,
+          1220,
+          1221
+        ]
+      ],
+      "collision": [
+        [
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          1,
+          1
+        ]
+      ]
+    },
+    "cluster_large_d": {
+      "description": "Large tree cluster (3 trees), cols 8-11, rows 5-8",
+      "tileset": "TilesetNature",
+      "size": [
+        4,
+        4
+      ],
+      "layer": "decoration",
+      "tiles": [
+        [
+          858,
+          859,
+          860,
+          861
+        ],
+        [
+          882,
+          883,
+          884,
+          885
+        ],
+        [
+          906,
+          907,
+          908,
+          909
+        ],
+        [
+          930,
+          931,
+          932,
+          933
+        ]
+      ],
+      "collision": [
+        [
+          1,
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          1,
+          1,
           1
         ]
       ]
