@@ -14,9 +14,8 @@ interface Petal {
   y: number;
   vx: number;
   vy: number;
-  frame: number;
-  frameTimer: number;
-  textures: Texture[];
+  wobble: number;
+  wobbleSpeed: number;
 }
 
 let petals: Petal[] = [];
@@ -41,7 +40,8 @@ export async function initAtmosphere(world: Container): Promise<void> {
   world.addChild(petalContainer);
 
   for (let i = 0; i < PETAL_COUNT; i++) {
-    const sprite = new Sprite(frames[0]);
+    const variant = Math.floor(Math.random() * PETAL_FRAMES);
+    const sprite = new Sprite(frames[variant]);
     sprite.alpha = 0.7 + Math.random() * 0.3;
     petalContainer.addChild(sprite);
 
@@ -49,11 +49,10 @@ export async function initAtmosphere(world: Container): Promise<void> {
       sprite,
       x: Math.random() * INTERNAL_WIDTH * 4,
       y: Math.random() * INTERNAL_HEIGHT * 4 - INTERNAL_HEIGHT,
-      vx: -0.2 - Math.random() * 0.3,
-      vy: 0.15 + Math.random() * 0.25,
-      frame: Math.random() * PETAL_FRAMES | 0,
-      frameTimer: Math.random(),
-      textures: frames,
+      vx: -0.15 - Math.random() * 0.2,
+      vy: 0.1 + Math.random() * 0.2,
+      wobble: Math.random() * Math.PI * 2,
+      wobbleSpeed: 0.02 + Math.random() * 0.02,
     });
   }
 
@@ -70,10 +69,10 @@ export async function initAtmosphere(world: Container): Promise<void> {
 export function updateAtmosphere(cameraX: number, cameraY: number): void {
   // Update petals
   for (const p of petals) {
-    p.x += p.vx;
+    p.wobble += p.wobbleSpeed;
+    p.x += p.vx + Math.sin(p.wobble) * 0.3;
     p.y += p.vy;
 
-    // Wrap around viewport
     const screenX = p.x - cameraX;
     const screenY = p.y - cameraY;
     if (screenX < -PETAL_FRAME_W) p.x += INTERNAL_WIDTH + PETAL_FRAME_W * 2;
@@ -85,14 +84,6 @@ export function updateAtmosphere(cameraX: number, cameraY: number): void {
 
     p.sprite.x = p.x;
     p.sprite.y = p.y;
-
-    // Animate frame
-    p.frameTimer += PETAL_ANIM_SPEED;
-    if (p.frameTimer >= 1) {
-      p.frameTimer -= 1;
-      p.frame = (p.frame + 1) % PETAL_FRAMES;
-      p.sprite.texture = p.textures[p.frame];
-    }
   }
 
   // Raylight: subtle pulsing glow, fixed to camera
