@@ -34,18 +34,46 @@ export function createCamera(): CameraState {
   return { x: 0, y: 0 };
 }
 
+const TILE = 16;
+
+function blocked(x: number, y: number, mapWidth: number, collision: Set<number>): boolean {
+  const cols = mapWidth / TILE;
+  // Check all 4 corners of the 16x16 player sprite
+  for (const [ox, oy] of [[0, 0], [15, 0], [0, 15], [15, 15]]) {
+    const tx = Math.floor((x + ox) / TILE);
+    const ty = Math.floor((y + oy) / TILE);
+    if (collision.has(ty * cols + tx)) return true;
+  }
+  return false;
+}
+
 export function updatePlayer(
   player: PlayerState,
   mapWidth: number,
-  mapHeight: number
+  mapHeight: number,
+  collision?: Set<number>
 ): void {
-  if (keys["ArrowLeft"] || keys["a"]) player.x -= PLAYER_SPEED;
-  if (keys["ArrowRight"] || keys["d"]) player.x += PLAYER_SPEED;
-  if (keys["ArrowUp"] || keys["w"]) player.y -= PLAYER_SPEED;
-  if (keys["ArrowDown"] || keys["s"]) player.y += PLAYER_SPEED;
+  let dx = 0;
+  let dy = 0;
+  if (keys["ArrowLeft"] || keys["a"]) dx -= PLAYER_SPEED;
+  if (keys["ArrowRight"] || keys["d"]) dx += PLAYER_SPEED;
+  if (keys["ArrowUp"] || keys["w"]) dy -= PLAYER_SPEED;
+  if (keys["ArrowDown"] || keys["s"]) dy += PLAYER_SPEED;
 
-  player.x = Math.max(0, Math.min(player.x, mapWidth - 16));
-  player.y = Math.max(0, Math.min(player.y, mapHeight - 16));
+  if (collision) {
+    // Try X then Y independently for wall sliding
+    const nx = Math.max(0, Math.min(player.x + dx, mapWidth - 16));
+    if (!blocked(nx, player.y, mapWidth, collision)) {
+      player.x = nx;
+    }
+    const ny = Math.max(0, Math.min(player.y + dy, mapHeight - 16));
+    if (!blocked(player.x, ny, mapWidth, collision)) {
+      player.y = ny;
+    }
+  } else {
+    player.x = Math.max(0, Math.min(player.x + dx, mapWidth - 16));
+    player.y = Math.max(0, Math.min(player.y + dy, mapHeight - 16));
+  }
 }
 
 export function updateCamera(

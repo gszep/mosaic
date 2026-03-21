@@ -30,7 +30,7 @@ async function boot() {
   const uiLayer = new Container();
   app.stage.addChild(uiLayer);
 
-  const { container: mapContainer, mapWidth, mapHeight, map } = await loadTilemap(
+  const { container: mapContainer, collision, mapWidth, mapHeight, map } = await loadTilemap(
     `${BASE}maps/village.tmj`,
     `${BASE}tilesets`
   );
@@ -135,7 +135,7 @@ async function boot() {
 
   app.ticker.add(() => {
     if (!isDialogueActive() && !isGiftPopupActive()) {
-      updatePlayer(player, mapWidth, mapHeight);
+      updatePlayer(player, mapWidth, mapHeight, collision);
     }
     updatePlayerSprite(playerSprite, player);
     updateCamera(camera, player, mapWidth, mapHeight);
