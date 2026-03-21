@@ -9,13 +9,15 @@ const BASE = import.meta.env.BASE_URL;
 const INTERACT_RANGE = 32;
 
 let emoteSprite: Sprite | null = null;
-let emoteTexture: Texture | null = null;
+let emoteTextures = new Map<string, Texture>();
+let defaultEmoteTexture: Texture | null = null;
 
 export interface NpcData {
   token: string;
   name: string;
   sprite: Sprite;
   dialogueTree: DialogueNode | null;
+  emote: string | null;
   interacted: boolean;
 }
 
@@ -81,6 +83,7 @@ export async function loadNpcSprites(
         name: sub.name || token,
         sprite,
         dialogueTree: (sub.dialogueTree as DialogueNode) ?? null,
+        emote: sub.emote ?? null,
         interacted: false,
       });
     }
@@ -107,9 +110,18 @@ export function findNearestNpc(px: number, py: number): NpcData | null {
 }
 
 export async function initEmote(world: Container): Promise<void> {
-  emoteTexture = await Assets.load<Texture>(`${BASE}ui/emote-interact.png`);
-  emoteTexture.source.scaleMode = "nearest";
-  emoteSprite = new Sprite(emoteTexture);
+  defaultEmoteTexture = await Assets.load<Texture>(`${BASE}ui/emote-interact.png`);
+  defaultEmoteTexture.source.scaleMode = "nearest";
+
+  // Preload emotes used by NPCs
+  const usedEmotes = new Set(npcs.map((n) => n.emote).filter(Boolean) as string[]);
+  for (const name of usedEmotes) {
+    const tex = await Assets.load<Texture>(`${BASE}ui/emotes/${name}.png`);
+    tex.source.scaleMode = "nearest";
+    emoteTextures.set(name, tex);
+  }
+
+  emoteSprite = new Sprite(defaultEmoteTexture);
   emoteSprite.visible = false;
   world.addChild(emoteSprite);
 }
@@ -124,6 +136,10 @@ export function updateEmote(px: number, py: number, dialogueActive: boolean): vo
 
   const npc = findNearestNpc(px, py);
   if (npc) {
+    const tex = (npc.emote && emoteTextures.get(npc.emote)) || defaultEmoteTexture;
+    if (tex && emoteSprite.texture !== tex) {
+      emoteSprite.texture = tex;
+    }
     emoteSprite.visible = true;
     emoteSprite.x = npc.sprite.x + 8 - emoteSprite.width / 2;
     emoteSprite.y = npc.sprite.y - emoteSprite.height - 2;

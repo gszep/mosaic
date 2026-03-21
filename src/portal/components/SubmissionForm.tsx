@@ -2,12 +2,13 @@ import { useState } from "react";
 import { PixelEditor } from "./PixelEditor";
 import { PalettePicker } from "./PalettePicker";
 import { SpriteSelector } from "./SpriteSelector";
+import { EmoteSelector } from "./EmoteSelector";
 import { DialogueEditor } from "./DialogueEditor";
 import { useSubmission } from "../hooks/useSubmission";
 import { PALETTE, TRANSPARENT } from "../../shared/palette";
 
 export function SubmissionForm() {
-  const { token, loading, saving, error, name, spriteData, dialogueTree, setName, setSpriteData, setDialogueTree, save } =
+  const { token, loading, saving, error, name, spriteData, dialogueTree, emote, setName, setSpriteData, setDialogueTree, setEmote, save } =
     useSubmission();
   const [color, setColor] = useState(PALETTE[0]);
 
@@ -44,6 +45,9 @@ export function SubmissionForm() {
         Eraser
       </button>
       <PixelEditor initial={spriteData} onChange={setSpriteData} color={color} onPickColor={setColor} />
+
+      <h2>Choose your emote</h2>
+      <EmoteSelector selected={emote} onSelect={setEmote} />
 
       <h2>Write your dialogue</h2>
       <p style={{ color: "#666", fontSize: "0.9rem" }}>

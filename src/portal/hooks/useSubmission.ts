@@ -17,6 +17,7 @@ interface SubmissionState {
   name: string;
   spriteData: SpriteData | null;
   dialogueTree: DialogueNode | null;
+  emote: string | null;
 }
 
 export function useSubmission() {
@@ -28,6 +29,7 @@ export function useSubmission() {
     name: "",
     spriteData: null,
     dialogueTree: null,
+    emote: null,
   });
 
   useEffect(() => {
@@ -43,12 +45,14 @@ export function useSubmission() {
         let spriteData: SpriteData | null = null;
 
         let dialogueTree: DialogueNode | null = null;
+        let emote: string | null = null;
 
         if (snapshot.exists()) {
           const data = snapshot.val() as Submission;
           name = data.name ?? "";
           spriteData = data.spriteData ?? null;
           dialogueTree = data.dialogueTree ?? null;
+          emote = data.emote ?? null;
         }
 
         // Load default sprite if no custom one exists
@@ -63,7 +67,7 @@ export function useSubmission() {
           }
         }
 
-        setState((s) => ({ ...s, loading: false, name, spriteData, dialogueTree }));
+        setState((s) => ({ ...s, loading: false, name, spriteData, dialogueTree, emote }));
       })
       .catch((err) => {
         setState((s) => ({ ...s, loading: false, error: (err as Error).message }));
@@ -82,6 +86,10 @@ export function useSubmission() {
     setState((s) => ({ ...s, dialogueTree }));
   }, []);
 
+  const setEmote = useCallback((emote: string) => {
+    setState((s) => ({ ...s, emote }));
+  }, []);
+
   const save = useCallback(async () => {
     const token = getToken();
     if (!token) return;
@@ -95,13 +103,14 @@ export function useSubmission() {
         spriteData: state.spriteData,
         dialogueTree: state.dialogueTree || null,
         dialogueMode: state.dialogueTree ? "hardcoded" : null,
+        emote: state.emote || null,
         locationDescription: "In the village square.",
       });
       setState((s) => ({ ...s, saving: false }));
     } catch (err) {
       setState((s) => ({ ...s, saving: false, error: (err as Error).message }));
     }
-  }, [state.name, state.spriteData, state.dialogueTree]);
+  }, [state.name, state.spriteData, state.dialogueTree, state.emote]);
 
-  return { ...state, setName, setSpriteData, setDialogueTree, save };
+  return { ...state, setName, setSpriteData, setDialogueTree, setEmote, save };
 }
