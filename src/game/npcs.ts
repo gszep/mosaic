@@ -22,6 +22,8 @@ export interface NpcData {
   voiceData: string | null;
   voiceStart: number | null;
   voiceEnd: number | null;
+  giftObject: string | null;
+  giftSprite: string | null;
   interacted: boolean;
 }
 
@@ -92,6 +94,8 @@ export async function loadNpcSprites(
         voiceData: sub.voiceData ?? null,
         voiceStart: sub.voiceStart ?? null,
         voiceEnd: sub.voiceEnd ?? null,
+        giftObject: sub.giftObject ?? null,
+        giftSprite: sub.giftSprite ?? null,
         interacted: false,
       });
     }

@@ -3,10 +3,11 @@ import { Application, Container, TextureSource } from "pixi.js";
 TextureSource.defaultOptions.scaleMode = "nearest";
 import { applyViewport } from "./viewport";
 import { loadTilemap } from "./tilemap";
-import { loadNpcSprites, findNearestNpc, initEmote, updateEmote } from "./npcs";
+import { loadNpcSprites, findNearestNpc, initEmote, updateEmote, type NpcData } from "./npcs";
 import { loadPlayerSprite, updatePlayerSprite } from "./player";
 import { initInput, createPlayer, createCamera, updatePlayer, updateCamera, applyCamera } from "./camera";
 import { startDialogue, updateDialogue, handleDialogueInput, isDialogueActive } from "./dialogue";
+import { showGiftPopup, dismissGiftPopup, isGiftPopupActive } from "./giftPopup";
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -59,16 +60,31 @@ async function boot() {
   const onResize = () => applyViewport(app);
   window.addEventListener("resize", onResize);
 
-  // Interaction key handler
+  let talkingTo: NpcData | null = null;
+
   const onInteract = (e: KeyboardEvent) => {
     if (e.key === " " || e.key === "Enter" || e.key === "e") {
       e.preventDefault();
-      if (isDialogueActive()) {
-        handleDialogueInput(e.key);
+
+      if (isGiftPopupActive()) {
+        dismissGiftPopup();
         return;
       }
+
+      if (isDialogueActive()) {
+        handleDialogueInput(e.key);
+        // Check if dialogue just ended — show gift popup
+        if (!isDialogueActive() && talkingTo?.giftObject) {
+          void showGiftPopup(talkingTo.giftObject, talkingTo.giftSprite, uiLayer);
+          talkingTo.interacted = true;
+          talkingTo = null;
+        }
+        return;
+      }
+
       const npc = findNearestNpc(player.x, player.y);
       if (npc) {
+        talkingTo = npc;
         const tree = npc.dialogueTree ?? {
           id: "default",
           text: "Happy birthday!",
@@ -85,7 +101,7 @@ async function boot() {
   window.addEventListener("keydown", onInteract);
 
   app.ticker.add(() => {
-    if (!isDialogueActive()) {
+    if (!isDialogueActive() && !isGiftPopupActive()) {
       updatePlayer(player, mapWidth, mapHeight);
     }
     updatePlayerSprite(playerSprite, player);
