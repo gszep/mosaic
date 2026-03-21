@@ -1,16 +1,28 @@
 import { Assets, Container, Sprite, Texture } from "pixi.js";
 import { db, ref, get } from "../shared/firebase";
-import type { Submission } from "../shared/types";
+import type { Submission, DialogueNode } from "../shared/types";
 import type { TMJMap } from "../shared/tmj";
 import { spriteDataToTexture } from "./sprites";
 
 const TILE = 16;
 const BASE = import.meta.env.BASE_URL;
+const INTERACT_RANGE = 32; // pixels
+
+export interface NpcData {
+  token: string;
+  name: string;
+  sprite: Sprite;
+  dialogueTree: DialogueNode | null;
+  interacted: boolean;
+}
+
+let npcs: NpcData[] = [];
 
 export async function loadNpcSprites(
   map: TMJMap
 ): Promise<Container> {
   const container = new Container();
+  npcs = [];
 
   try {
     const [snapshot, fallbackTexture] = await Promise.all([
@@ -21,7 +33,6 @@ export async function loadNpcSprites(
 
     const all = snapshot.val() as Record<string, Submission>;
 
-    // Read spawn positions from map
     const spawnsLayer = map.layers.find(
       (l) => l.type === "objectgroup" && l.name === "spawns"
     );
@@ -33,7 +44,6 @@ export async function loadNpcSprites(
       }
     }
 
-    // Fallback grid for NPCs without spawn points
     const unplaced = Object.entries(all).filter(
       ([token]) => token !== "player" && !spawnsByNpcId.has(token)
     );
@@ -63,10 +73,32 @@ export async function loadNpcSprites(
       }
 
       container.addChild(sprite);
+      npcs.push({
+        token,
+        name: sub.name || token,
+        sprite,
+        dialogueTree: (sub.dialogueTree as DialogueNode) ?? null,
+        interacted: false,
+      });
     }
   } catch (err) {
     console.error("Failed to fetch submissions:", (err as Error).message);
   }
 
   return container;
+}
+
+export function findNearestNpc(px: number, py: number): NpcData | null {
+  let best: NpcData | null = null;
+  let bestDist = INTERACT_RANGE;
+  for (const npc of npcs) {
+    const dx = (npc.sprite.x + 8) - (px + 8);
+    const dy = (npc.sprite.y + 8) - (py + 8);
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < bestDist) {
+      bestDist = dist;
+      best = npc;
+    }
+  }
+  return best;
 }

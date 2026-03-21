@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { db, ref, get, update } from "../../shared/firebase";
-import type { Submission, SpriteData } from "../../shared/types";
+import type { Submission, SpriteData, DialogueNode } from "../../shared/types";
 import { pngToSpriteData } from "../../shared/pngToSpriteData";
 
 const BASE = import.meta.env.BASE_URL;
@@ -16,6 +16,7 @@ interface SubmissionState {
   error: string | null;
   name: string;
   spriteData: SpriteData | null;
+  dialogueTree: DialogueNode | null;
 }
 
 export function useSubmission() {
@@ -26,6 +27,7 @@ export function useSubmission() {
     error: null,
     name: "",
     spriteData: null,
+    dialogueTree: null,
   });
 
   useEffect(() => {
@@ -40,10 +42,13 @@ export function useSubmission() {
         let name = "";
         let spriteData: SpriteData | null = null;
 
+        let dialogueTree: DialogueNode | null = null;
+
         if (snapshot.exists()) {
           const data = snapshot.val() as Submission;
           name = data.name ?? "";
           spriteData = data.spriteData ?? null;
+          dialogueTree = data.dialogueTree ?? null;
         }
 
         // Load default sprite if no custom one exists
@@ -58,7 +63,7 @@ export function useSubmission() {
           }
         }
 
-        setState((s) => ({ ...s, loading: false, name, spriteData }));
+        setState((s) => ({ ...s, loading: false, name, spriteData, dialogueTree }));
       })
       .catch((err) => {
         setState((s) => ({ ...s, loading: false, error: (err as Error).message }));
@@ -73,6 +78,10 @@ export function useSubmission() {
     setState((s) => ({ ...s, spriteData }));
   }, []);
 
+  const setDialogueTree = useCallback((dialogueTree: DialogueNode) => {
+    setState((s) => ({ ...s, dialogueTree }));
+  }, []);
+
   const save = useCallback(async () => {
     const token = getToken();
     if (!token) return;
@@ -84,13 +93,15 @@ export function useSubmission() {
         token,
         name: state.name || null,
         spriteData: state.spriteData,
+        dialogueTree: state.dialogueTree || null,
+        dialogueMode: state.dialogueTree ? "hardcoded" : null,
         locationDescription: "In the village square.",
       });
       setState((s) => ({ ...s, saving: false }));
     } catch (err) {
       setState((s) => ({ ...s, saving: false, error: (err as Error).message }));
     }
-  }, [state.name, state.spriteData]);
+  }, [state.name, state.spriteData, state.dialogueTree]);
 
-  return { ...state, setName, setSpriteData, save };
+  return { ...state, setName, setSpriteData, setDialogueTree, save };
 }

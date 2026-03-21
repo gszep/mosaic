@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { PixelEditor } from "./PixelEditor";
 import { PalettePicker } from "./PalettePicker";
+import { DialogueEditor } from "./DialogueEditor";
 import { useSubmission } from "../hooks/useSubmission";
 import { PALETTE, TRANSPARENT } from "../../shared/palette";
 
 export function SubmissionForm() {
-  const { token, loading, saving, error, name, spriteData, setName, setSpriteData, save } =
+  const { token, loading, saving, error, name, spriteData, dialogueTree, setName, setSpriteData, setDialogueTree, save } =
     useSubmission();
   const [color, setColor] = useState(PALETTE[0]);
 
@@ -41,6 +42,13 @@ export function SubmissionForm() {
         Eraser
       </button>
       <PixelEditor initial={spriteData} onChange={setSpriteData} color={color} onPickColor={setColor} />
+
+      <h2>Write your dialogue</h2>
+      <p style={{ color: "#666", fontSize: "0.9rem" }}>
+        What does your character say when the birthday person talks to them?
+        Add player response choices to create branching conversations.
+      </p>
+      <DialogueEditor tree={dialogueTree} onChange={setDialogueTree} />
 
       <button
         onClick={save}

@@ -1,9 +1,12 @@
-import { Application, Container } from "pixi.js";
+import { Application, Container, TextureSource } from "pixi.js";
+
+TextureSource.defaultOptions.scaleMode = "nearest";
 import { applyViewport } from "./viewport";
 import { loadTilemap } from "./tilemap";
-import { loadNpcSprites } from "./npcs";
+import { loadNpcSprites, findNearestNpc } from "./npcs";
 import { loadPlayerSprite, updatePlayerSprite } from "./player";
 import { initInput, createPlayer, createCamera, updatePlayer, updateCamera, applyCamera } from "./camera";
+import { startDialogue, updateDialogue, handleDialogueInput, isDialogueActive } from "./dialogue";
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -21,6 +24,10 @@ async function boot() {
 
   const world = new Container();
   app.stage.addChild(world);
+
+  // UI layer (fixed to screen, not scrolled with world)
+  const uiLayer = new Container();
+  app.stage.addChild(uiLayer);
 
   const { container: mapContainer, mapWidth, mapHeight, map } = await loadTilemap(
     `${BASE}maps/village.tmj`,
@@ -46,16 +53,40 @@ async function boot() {
   const onResize = () => applyViewport(app);
   window.addEventListener("resize", onResize);
 
+  // Interaction key handler
+  const onInteract = (e: KeyboardEvent) => {
+    if (e.key === " " || e.key === "Enter" || e.key === "e") {
+      e.preventDefault();
+      if (isDialogueActive()) {
+        handleDialogueInput(e.key);
+        return;
+      }
+      const npc = findNearestNpc(player.x, player.y);
+      if (npc?.dialogueTree) {
+        void startDialogue(npc.dialogueTree, npc.name, uiLayer);
+      }
+    }
+    if (isDialogueActive() && (e.key === "ArrowUp" || e.key === "ArrowDown" || e.key === "w" || e.key === "s")) {
+      e.preventDefault();
+      handleDialogueInput(e.key);
+    }
+  };
+  window.addEventListener("keydown", onInteract);
+
   app.ticker.add(() => {
-    updatePlayer(player, mapWidth, mapHeight);
+    if (!isDialogueActive()) {
+      updatePlayer(player, mapWidth, mapHeight);
+    }
     updatePlayerSprite(playerSprite, player);
     updateCamera(camera, player, mapWidth, mapHeight);
     applyCamera(world, camera);
+    updateDialogue();
   });
 
   return () => {
     cleanupInput();
     window.removeEventListener("resize", onResize);
+    window.removeEventListener("keydown", onInteract);
   };
 }
 

@@ -4,12 +4,24 @@ export interface SpriteData {
   pixels: string[];
 }
 
+export interface DialogueResponse {
+  option: string;
+  next?: DialogueNode;
+  goto?: string;
+}
+
+export interface DialogueNode {
+  id: string;
+  text: string;
+  responses: DialogueResponse[] | null;
+}
+
 export interface Submission {
   token: string;
   name: string | null;
   spriteData: SpriteData | null;
   dialogueMode: "hardcoded" | "ai" | null;
-  dialogueTree: unknown | null;
+  dialogueTree: DialogueNode | null;
   personalityTraits: string[] | null;
   personalityPrompt: string | null;
   giftObject: string | null;
