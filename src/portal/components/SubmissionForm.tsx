@@ -94,16 +94,31 @@ export function SubmissionForm() {
         <button
           onClick={async () => {
             await save();
-            // Find spawn position from map
             try {
               const resp = await fetch(`${BASE}maps/village.tmj`);
               const map = await resp.json();
-              const spawns = map.layers?.find((l: { name: string }) => l.name === "spawns");
-              const obj = spawns?.objects?.find((o: { properties?: { name: string; value: string }[] }) =>
+              let spawns = map.layers?.find((l: { name: string; type: string }) => l.type === "objectgroup" && l.name === "spawns");
+              let obj = spawns?.objects?.find((o: { properties?: { name: string; value: string }[] }) =>
                 o.properties?.some((p: { name: string; value: string }) => p.name === "npcId" && p.value === token)
               );
-              const x = obj ? Math.floor(obj.x / TILE) : Math.floor(map.width / 2);
-              const y = obj ? Math.floor(obj.y / TILE) + 1 : Math.floor(map.height / 2);
+
+              // Auto-create spawn if missing
+              if (!obj) {
+                if (!spawns) {
+                  spawns = { id: map.layers.length + 1, name: "spawns", type: "objectgroup", objects: [], width: map.width, height: map.height, visible: true, x: 0, y: 0, opacity: 1 };
+                  map.layers.push(spawns);
+                }
+                const cx = Math.floor(map.width / 2) * TILE;
+                const cy = Math.floor(map.height / 2) * TILE;
+                const nextId = (spawns.objects ?? []).reduce((m: number, o: { id: number }) => Math.max(m, o.id), 0) + 1;
+                obj = { id: nextId, name: name || token, type: "spawn", x: cx, y: cy, width: TILE, height: TILE, properties: [{ name: "npcId", type: "string", value: token }] };
+                spawns.objects = spawns.objects ?? [];
+                spawns.objects.push(obj);
+                await fetch(`/api/save-map/village`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(map, null, 2) }).catch(() => {});
+              }
+
+              const x = Math.floor(obj.x / TILE);
+              const y = Math.floor(obj.y / TILE) + 1;
               window.open(`${BASE}?x=${x}&y=${y}`, "_blank");
             } catch {
               window.open(BASE, "_blank");
