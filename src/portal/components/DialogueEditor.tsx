@@ -65,12 +65,13 @@ function TreeNode({
       <div className="dtree-node dtree-npc">
         <span className="dtree-tag dtree-tag-you">You</span>
         <textarea
+          ref={(el) => { if (el) { el.style.height = "0"; el.style.height = el.scrollHeight + "px"; } }}
           value={node.text}
-          onChange={(e) => updateText(e.target.value)}
+          onChange={(e) => { updateText(e.target.value); const t = e.target; t.style.height = "0"; t.style.height = t.scrollHeight + "px"; }}
           placeholder="What do you say?"
-          rows={2}
+          rows={1}
           className="nes-textarea is-dark"
-          style={{ fontSize: "10px", resize: "vertical", width: "100%" }}
+          style={{ fontSize: "10px", width: "100%" }}
         />
       </div>
 
