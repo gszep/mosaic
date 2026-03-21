@@ -3,6 +3,7 @@ import { loadTilemap } from "./tilemap";
 import { loadNpcSprites, getNpcPositions, initEmote, updateEmote } from "./npcs";
 import { createPlayer, createCamera, updatePlayer, updateCamera, applyCamera, type PlayerState, type NpcCollider } from "./camera";
 import { playMusic } from "./music";
+import { initAtmosphere, updateAtmosphere, destroyAtmosphere } from "./atmosphere";
 import { db, ref, get } from "../shared/firebase";
 import type { Submission } from "../shared/types";
 import { spriteDataToTexture } from "./sprites";
@@ -48,6 +49,7 @@ export interface Scene {
   camera: { x: number; y: number };
   map: TMJMap;
   hasNpcs: boolean;
+  hasAtmosphere: boolean;
 }
 
 export async function loadScene(
@@ -97,6 +99,7 @@ export async function loadScene(
 
   // Check if this map has any NPC spawns
   const hasNpcs = spawnsLayer?.objects?.some((o) => o.type === "spawn" && o.properties?.some((p) => p.name === "npcId" && p.value !== "player")) ?? false;
+  const hasAtmosphere = name === "village";
   if (hasNpcs) {
     const { bottom, top } = await loadNpcSprites(map);
     world.addChild(bottom);
@@ -108,6 +111,7 @@ export async function loadScene(
     world.addChild(playerSprite);
     world.addChild(decorAbove);
   }
+  if (hasAtmosphere) await initAtmosphere(world);
 
   const camera = createCamera();
   updateCamera(camera, player, mapWidth, mapHeight);
@@ -117,7 +121,7 @@ export async function loadScene(
   stage.addChild(uiLayer);
   world.visible = true;
 
-  return { name, world, uiLayer, player, playerSprite, mapWidth, mapHeight, collision, depthTiles, camera, map, hasNpcs };
+  return { name, world, uiLayer, player, playerSprite, mapWidth, mapHeight, collision, depthTiles, camera, map, hasNpcs, hasAtmosphere };
 }
 
 export function updateScene(scene: Scene, dialogueActive: boolean): void {
@@ -128,6 +132,7 @@ export function updateScene(scene: Scene, dialogueActive: boolean): void {
   updateCamera(scene.camera, scene.player, scene.mapWidth, scene.mapHeight);
   applyCamera(scene.world, scene.camera);
   if (scene.hasNpcs) updateEmote(scene.player.x, scene.player.y, dialogueActive);
+  if (scene.hasAtmosphere) updateAtmosphere(scene.camera.x, scene.camera.y);
 }
 
 export function findWarp(scene: Scene): { target: string; targetSpawn?: string; x: number; y: number } | null {
@@ -166,6 +171,7 @@ export function startSceneMusic(name: string): void {
 }
 
 export function unloadScene(scene: Scene, stage: Container): void {
+  if (scene.hasAtmosphere) destroyAtmosphere();
   stage.removeChild(scene.world);
   stage.removeChild(scene.uiLayer);
   scene.world.destroy({ children: true });
