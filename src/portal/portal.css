@@ -172,9 +172,15 @@ button {
   background: #1a1a2e;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 520px) {
   .sprite-editor-row {
     flex-direction: column;
+  }
+  .palette-column {
+    width: 100%;
+  }
+  .palette-grid {
+    max-height: 150px;
   }
 }
 

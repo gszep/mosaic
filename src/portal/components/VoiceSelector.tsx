@@ -169,6 +169,38 @@ export function VoiceSelector({ voice, voiceData, voiceStart, voiceEnd, onVoice 
     setEndMs(Math.max(startMs, Math.min(ms, startMs + MAX_BLIP_MS)));
   };
 
+  const touchToMs = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    const rect = canvasRef.current!.getBoundingClientRect();
+    const touch = e.touches[0] || e.changedTouches[0];
+    return Math.max(0, Math.min(((touch.clientX - rect.left) / rect.width) * durationMs, durationMs));
+  };
+
+  const handleTouchStart = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    if (!isCustom || !voiceData) return;
+    e.preventDefault();
+    const ms = touchToMs(e);
+    setStartMs(ms);
+    setEndMs(ms);
+    dragging.current = true;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    if (!dragging.current) return;
+    e.preventDefault();
+    const ms = touchToMs(e);
+    setEndMs(Math.max(startMs, Math.min(ms, startMs + MAX_BLIP_MS)));
+  };
+
+  const handleTouchEnd = () => {
+    if (!dragging.current) return;
+    dragging.current = false;
+    const len = endMs - startMs;
+    if (len >= 5 && voiceData) {
+      onVoice("custom", voiceData, startMs, endMs);
+      triggerPreview(voiceData, startMs, endMs);
+    }
+  };
+
   const triggerPreview = (url: string, s: number, e: number) =>
     setPreview({ url, s, e, n: Date.now() });
 
@@ -228,7 +260,7 @@ export function VoiceSelector({ voice, voiceData, voiceStart, voiceEnd, onVoice 
       </div>
 
       {/* Waveform + record button */}
-      <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 6 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 6, maxWidth: "100%", overflow: "hidden" }}>
         <canvas
           ref={canvasRef}
           width={CANVAS_W}
@@ -237,7 +269,10 @@ export function VoiceSelector({ voice, voiceData, voiceStart, voiceEnd, onVoice 
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
-          style={{ flex: 1, maxWidth: CANVAS_W, height: CANVAS_H, display: "block", cursor: isCustom && voiceData ? "crosshair" : "default" }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          style={{ flex: 1, minWidth: 0, maxWidth: CANVAS_W, height: CANVAS_H, display: "block", cursor: isCustom && voiceData ? "crosshair" : "default", touchAction: "none" }}
         />
         <button
           onClick={handleRecord}
