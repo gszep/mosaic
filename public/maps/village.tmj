@@ -5182,6 +5182,27 @@
               "value": "arrive_from_village"
             }
           ]
+        },
+        {
+          "id": 7,
+          "name": "village_cat",
+          "type": "animal",
+          "x": 192,
+          "y": 128,
+          "width": 16,
+          "height": 16,
+          "properties": [
+            {
+              "name": "sheet",
+              "type": "string",
+              "value": "cat"
+            },
+            {
+              "name": "frames",
+              "type": "int",
+              "value": 2
+            }
+          ]
         }
       ],
       "width": 40,

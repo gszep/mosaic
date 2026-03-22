@@ -4,6 +4,7 @@ import { loadNpcSprites, getNpcPositions, initEmote, updateEmote } from "./npcs"
 import { createPlayer, createCamera, updatePlayer, updateCamera, applyCamera, type PlayerState, type NpcCollider } from "./camera";
 import { playMusic } from "./music";
 import { initAtmosphere, updateAtmosphere, destroyAtmosphere } from "./atmosphere";
+import { loadAnimals, updateAnimals, destroyAnimals } from "./animals";
 import { db, ref, get } from "../shared/firebase";
 import type { Submission } from "../shared/types";
 import { spriteDataToTexture } from "./sprites";
@@ -112,6 +113,7 @@ export async function loadScene(
     world.addChild(decorAbove);
   }
   if (hasAtmosphere) await initAtmosphere(world);
+  await loadAnimals(map, world);
 
   const camera = createCamera();
   updateCamera(camera, player, mapWidth, mapHeight);
@@ -135,6 +137,7 @@ export function updateScene(scene: Scene, frozen: boolean): void {
   applyCamera(scene.world, scene.camera);
   if (scene.hasNpcs) updateEmote(scene.player.x, scene.player.y, frozen);
   if (scene.hasAtmosphere) updateAtmosphere(scene.camera.x, scene.camera.y);
+  updateAnimals();
 }
 
 export function findWarp(scene: Scene): { target: string; targetSpawn?: string; x: number; y: number } | null {
@@ -174,6 +177,7 @@ export function startSceneMusic(name: string): void {
 
 export function unloadScene(scene: Scene, stage: Container): void {
   if (scene.hasAtmosphere) destroyAtmosphere();
+  destroyAnimals();
   stage.removeChild(scene.world);
   stage.removeChild(scene.uiLayer);
   scene.world.destroy({ children: true });
