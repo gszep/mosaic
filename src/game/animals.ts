@@ -76,11 +76,11 @@ export async function loadAnimals(
   }
 }
 
-export function getAnimalColliders(): { x: number; y: number; w: number }[] {
+export function getAnimalColliders(): { x: number; y: number }[] {
+  // NPC collision code adds +8, so subtract 8 to align with depth split
   return animals.map((a) => ({
     x: a.x + (a.w - 16) / 2,
-    y: a.y + Math.floor(a.h * DEPTH_SPLIT),
-    w: 16,
+    y: a.y + Math.floor(a.h * DEPTH_SPLIT) - 8,
   }));
 }
 

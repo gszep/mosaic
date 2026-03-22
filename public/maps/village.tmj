@@ -5187,8 +5187,8 @@
           "id": 7,
           "name": "village_cat",
           "type": "animal",
-          "x": 192,
-          "y": 128,
+          "x": 112,
+          "y": 144,
           "width": 32,
           "height": 32,
           "properties": [

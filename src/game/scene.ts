@@ -130,12 +130,8 @@ export function updateScene(scene: Scene, frozen: boolean): void {
   if (!frozen) {
     const npcs: NpcCollider[] | undefined = scene.hasNpcs ? getNpcPositions() : undefined;
     const animalCols = getAnimalColliders();
-    if (animalCols.length > 0) {
-      const allNpcs = [...(npcs ?? []), ...animalCols.map((a) => ({ x: a.x, y: a.y }))];
-      updatePlayer(scene.player, scene.mapWidth, scene.mapHeight, scene.collision, allNpcs, scene.depthTiles);
-    } else {
-      updatePlayer(scene.player, scene.mapWidth, scene.mapHeight, scene.collision, npcs, scene.depthTiles);
-    }
+    const allNpcs = [...(npcs ?? []), ...animalCols];
+    updatePlayer(scene.player, scene.mapWidth, scene.mapHeight, scene.collision, allNpcs, scene.depthTiles);
     scene.playerSprite.x = scene.player.x;
     scene.playerSprite.y = scene.player.y;
   }
