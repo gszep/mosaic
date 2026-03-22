@@ -5153,6 +5153,22 @@
           ]
         },
         {
+          "id": 11,
+          "name": "Brad",
+          "type": "spawn",
+          "x": 320,
+          "y": 240,
+          "width": 16,
+          "height": 16,
+          "properties": [
+            {
+              "name": "npcId",
+              "type": "string",
+              "value": "brad"
+            }
+          ]
+        },
+        {
           "id": 5,
           "name": "arrive_from_home",
           "type": "arrival",
