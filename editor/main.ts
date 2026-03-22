@@ -340,6 +340,30 @@ async function loadSubmissions() {
       }
     }
 
+    // Load animal spritesheets (first frame only for preview)
+    const spawns = ensureSpawnsLayer();
+    const animalSheets = new Set<string>();
+    for (const obj of spawns) {
+      if (obj.type === "animal") {
+        const sheet = obj.properties?.find((p) => p.name === "sheet")?.value;
+        if (sheet) animalSheets.add(sheet);
+      }
+    }
+    for (const sheet of animalSheets) {
+      try {
+        const img = new Image();
+        img.src = `${BASE}sprites/${sheet}.png`;
+        await new Promise<void>((resolve, reject) => { img.onload = () => resolve(); img.onerror = reject; });
+        const fw = 32;
+        const c = document.createElement("canvas");
+        c.width = fw;
+        c.height = img.height;
+        const ctx = c.getContext("2d")!;
+        ctx.drawImage(img, 0, 0, fw, img.height, 0, 0, fw, img.height);
+        spriteCanvases.set(`animal:${sheet}`, c);
+      } catch {}
+    }
+
     redrawMap();
   } catch (err) {
     console.warn("Could not load submissions:", (err as Error).message);
@@ -376,14 +400,14 @@ function renderSpawns(ctx: CanvasRenderingContext2D) {
     const px = obj.x * s;
     const py = obj.y * s;
     const npcId = obj.properties?.find((p) => p.name === "npcId")?.value;
+    const animalSheet = obj.type === "animal" ? obj.properties?.find((p) => p.name === "sheet")?.value : null;
 
-    // Draw sprite if available
-    const spriteCanvas = npcId ? spriteCanvases.get(npcId) : null;
+    const spriteCanvas = animalSheet ? spriteCanvases.get(`animal:${animalSheet}`) : npcId ? spriteCanvases.get(npcId) : null;
     if (spriteCanvas) {
       const sw = spriteCanvas.width * s;
       const sh = spriteCanvas.height * s;
       ctx.drawImage(spriteCanvas, 0, 0, spriteCanvas.width, spriteCanvas.height, px, py, sw, sh);
-      ctx.strokeStyle = npcId === "player" ? "#64ff64" : "#E95420";
+      ctx.strokeStyle = animalSheet ? "#ff69b4" : npcId === "player" ? "#64ff64" : "#E95420";
       ctx.lineWidth = 1;
       ctx.strokeRect(px, py, sw, sh);
     } else {
