@@ -134,7 +134,7 @@ export function updateAnimals(): void {
     if (heartTimer > 0) {
       heartTimer--;
       heartEmote.x = heartTarget.x + heartTarget.w / 2 - heartEmote.width / 2;
-      heartEmote.y = heartTarget.y - heartEmote.height - 2;
+      heartEmote.y = heartTarget.y + 2;
     } else {
       heartEmote.visible = false;
       heartTarget = null;
