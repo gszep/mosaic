@@ -319,6 +319,36 @@ button {
   font-size: 12px !important;
 }
 
+/* Save confirmation dialog */
+.save-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fade-in 0.15s ease-out;
+}
+
+.save-dialog {
+  background: #1a1a2e !important;
+  text-align: center;
+  padding: 1.5rem 2rem !important;
+  min-width: 240px;
+  animation: pop-in 0.2s ease-out;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pop-in {
+  from { transform: scale(0.85); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
 /* Password gate */
 .password-gate {
   display: flex;

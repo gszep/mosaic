@@ -187,8 +187,10 @@ export function useSubmission() {
       });
       clearDraft(token);
       setState((s) => ({ ...s, saving: false }));
+      return true;
     } catch (err) {
       setState((s) => ({ ...s, saving: false, error: (err as Error).message }));
+      return false;
     }
   }, [state.name, state.spriteData, state.dialogueTree, state.emote, state.voice, state.voiceData, state.voiceStart, state.voiceEnd, state.giftObject, state.giftSprite]);
 

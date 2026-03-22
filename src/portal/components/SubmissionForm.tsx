@@ -17,6 +17,15 @@ export function SubmissionForm() {
     useSubmission();
   const [color, setColor] = useState(PALETTE[0]);
   const editorRef = useRef<PixelEditorHandle>(null);
+  const [showSaved, setShowSaved] = useState(false);
+
+  const handleSave = useCallback(async () => {
+    const ok = await save();
+    if (ok) {
+      setShowSaved(true);
+      setTimeout(() => setShowSaved(false), 3000);
+    }
+  }, [save]);
 
   if (!token) return <p className="nes-text is-error">Invalid invite link -- no token found.</p>;
   if (loading) return <p className="nes-text is-primary">Loading...</p>;
@@ -88,7 +97,7 @@ export function SubmissionForm() {
 
       <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem" }}>
         <button
-          onClick={save}
+          onClick={handleSave}
           disabled={saving}
           className={`nes-btn ${saving ? "is-disabled" : "is-success"} save-btn`}
         >
@@ -159,6 +168,22 @@ export function SubmissionForm() {
       </div>
 
       {error && <p className="nes-text is-error" style={{ marginTop: "0.5rem" }}>{error}</p>}
+
+      {showSaved && (
+        <div className="save-dialog-overlay" onClick={() => setShowSaved(false)}>
+          <div className="nes-container is-rounded save-dialog" onClick={(e) => e.stopPropagation()}>
+            <p className="nes-text is-success" style={{ marginBottom: "0.5rem" }}>Saved!</p>
+            <p style={{ fontSize: "12px" }}>Your character has been saved successfully.</p>
+            <button
+              className="nes-btn is-success"
+              style={{ marginTop: "0.75rem" }}
+              onClick={() => setShowSaved(false)}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
