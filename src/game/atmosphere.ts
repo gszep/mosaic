@@ -16,6 +16,9 @@ interface Petal {
   vy: number;
   wobble: number;
   wobbleSpeed: number;
+  frame: number;
+  frameTimer: number;
+  textures: Texture[];
 }
 
 let petals: Petal[] = [];
@@ -55,6 +58,9 @@ export async function initAtmosphere(world: Container): Promise<void> {
       vy: 0.1 + Math.random() * 0.2,
       wobble: Math.random() * Math.PI * 2,
       wobbleSpeed: 0.02 + Math.random() * 0.02,
+      frame: Math.floor(Math.random() * frames.length),
+      frameTimer: Math.random(),
+      textures: frames,
     });
   }
 
@@ -86,6 +92,13 @@ export function updateAtmosphere(cameraX: number, cameraY: number): void {
 
     p.sprite.x = p.x;
     p.sprite.y = p.y;
+
+    p.frameTimer += PETAL_ANIM_SPEED;
+    if (p.frameTimer >= 1) {
+      p.frameTimer -= 1;
+      p.frame = (p.frame + 1) % p.textures.length;
+      p.sprite.texture = p.textures[p.frame];
+    }
   }
 
   // Raylight: subtle pulsing glow, fixed to camera
