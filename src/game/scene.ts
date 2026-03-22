@@ -124,14 +124,16 @@ export async function loadScene(
   return { name, world, uiLayer, player, playerSprite, mapWidth, mapHeight, collision, depthTiles, camera, map, hasNpcs, hasAtmosphere };
 }
 
-export function updateScene(scene: Scene, dialogueActive: boolean): void {
-  const npcs: NpcCollider[] | undefined = scene.hasNpcs ? getNpcPositions() : undefined;
-  updatePlayer(scene.player, scene.mapWidth, scene.mapHeight, scene.collision, npcs, scene.depthTiles);
-  scene.playerSprite.x = scene.player.x;
-  scene.playerSprite.y = scene.player.y;
+export function updateScene(scene: Scene, frozen: boolean): void {
+  if (!frozen) {
+    const npcs: NpcCollider[] | undefined = scene.hasNpcs ? getNpcPositions() : undefined;
+    updatePlayer(scene.player, scene.mapWidth, scene.mapHeight, scene.collision, npcs, scene.depthTiles);
+    scene.playerSprite.x = scene.player.x;
+    scene.playerSprite.y = scene.player.y;
+  }
   updateCamera(scene.camera, scene.player, scene.mapWidth, scene.mapHeight);
   applyCamera(scene.world, scene.camera);
-  if (scene.hasNpcs) updateEmote(scene.player.x, scene.player.y, dialogueActive);
+  if (scene.hasNpcs) updateEmote(scene.player.x, scene.player.y, frozen);
   if (scene.hasAtmosphere) updateAtmosphere(scene.camera.x, scene.camera.y);
 }
 
