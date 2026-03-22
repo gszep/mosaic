@@ -6,7 +6,7 @@ import { findNearestNpc, type NpcData } from "./npcs";
 import { initInput } from "./camera";
 import { startDialogue, updateDialogue, handleDialogueInput, isDialogueActive, dialogueEndedWithGift } from "./dialogue";
 import { showGiftPopup, dismissGiftPopup, isGiftPopupActive } from "./giftPopup";
-import { loadScene, updateScene, findWarp, unloadScene, startSceneMusic, type Scene } from "./scene";
+import { loadScene, updateScene, findWarp, unloadScene, startSceneMusic, interactWithAnimal, type Scene } from "./scene";
 import { loadBitmapFont } from "./bitmapfont";
 
 const TILE = 16;
@@ -91,8 +91,11 @@ async function boot() {
           talkingTo = npc;
           const tree = npc.dialogueTree ?? { id: "default", text: "Happy birthday!", responses: null };
           void startDialogue(tree, npc.name, scene.uiLayer, npc.voice, npc.voiceData, npc.voiceStart, npc.voiceEnd);
+          return;
         }
       }
+
+      interactWithAnimal(scene.player.x, scene.player.y, inventory);
     }
 
     if (isDialogueActive() && (e.key === "ArrowUp" || e.key === "ArrowDown" || e.key === "w" || e.key === "s")) {

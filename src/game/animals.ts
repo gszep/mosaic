@@ -3,7 +3,8 @@ import type { TMJMap } from "../shared/tmj";
 
 const BASE = import.meta.env.BASE_URL;
 const ANIM_SPEED = 0.02;
-const DEPTH_SPLIT = 0.75; // 75% from top = 25% from bottom
+const DEPTH_SPLIT = 0.75;
+const INTERACT_RANGE = 32;
 
 interface Animal {
   spriteBottom: Sprite;
@@ -19,6 +20,10 @@ interface Animal {
 }
 
 let animals: Animal[] = [];
+let heartEmote: Sprite | null = null;
+let heartTexture: Texture | null = null;
+let heartTimer = 0;
+let heartTarget: Animal | null = null;
 
 export async function loadAnimals(
   map: TMJMap,
@@ -76,6 +81,36 @@ export async function loadAnimals(
   }
 }
 
+export async function loadHeartEmote(world: Container): Promise<void> {
+  heartTexture = await Assets.load<Texture>(`${BASE}ui/emotes/emote27.png`);
+  heartTexture.source.scaleMode = "nearest";
+  heartEmote = new Sprite(heartTexture);
+  heartEmote.visible = false;
+  world.addChild(heartEmote);
+}
+
+function nearestAnimal(px: number, py: number): Animal | null {
+  let best: Animal | null = null;
+  let bestDist = INTERACT_RANGE;
+  for (const a of animals) {
+    const cx = a.x + a.w / 2;
+    const cy = a.y + a.h / 2;
+    const dist = Math.sqrt((cx - px - 8) ** 2 + (cy - py - 8) ** 2);
+    if (dist < bestDist) { bestDist = dist; best = a; }
+  }
+  return best;
+}
+
+export function interactWithAnimal(px: number, py: number, inventory: Set<string>): boolean {
+  if (!inventory.has("matilda")) return false;
+  const animal = nearestAnimal(px, py);
+  if (!animal || !heartEmote) return false;
+  heartTarget = animal;
+  heartTimer = 90; // frames to show heart
+  heartEmote.visible = true;
+  return true;
+}
+
 export function getAnimalColliders(): { x: number; y: number }[] {
   // NPC collision code adds +8, so subtract 8 to align with depth split
   return animals.map((a) => ({
@@ -94,6 +129,17 @@ export function updateAnimals(): void {
       a.spriteBottom.texture = a.framesBottom[a.frame];
     }
   }
+
+  if (heartEmote && heartTarget) {
+    if (heartTimer > 0) {
+      heartTimer--;
+      heartEmote.x = heartTarget.x + heartTarget.w / 2 - heartEmote.width / 2;
+      heartEmote.y = heartTarget.y - heartEmote.height - 2;
+    } else {
+      heartEmote.visible = false;
+      heartTarget = null;
+    }
+  }
 }
 
 export function destroyAnimals(): void {
@@ -102,4 +148,7 @@ export function destroyAnimals(): void {
     a.spriteBottom.destroy();
   }
   animals = [];
+  if (heartEmote) { heartEmote.destroy(); heartEmote = null; }
+  heartTarget = null;
+  heartTimer = 0;
 }

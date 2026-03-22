@@ -4,7 +4,7 @@ import { loadNpcSprites, getNpcPositions, initEmote, updateEmote } from "./npcs"
 import { createPlayer, createCamera, updatePlayer, updateCamera, applyCamera, type PlayerState, type NpcCollider } from "./camera";
 import { playMusic } from "./music";
 import { initAtmosphere, updateAtmosphere, destroyAtmosphere } from "./atmosphere";
-import { loadAnimals, updateAnimals, destroyAnimals, getAnimalColliders } from "./animals";
+import { loadAnimals, loadHeartEmote, updateAnimals, destroyAnimals, getAnimalColliders, interactWithAnimal } from "./animals";
 import { db, ref, get } from "../shared/firebase";
 import type { Submission } from "../shared/types";
 import { spriteDataToTexture } from "./sprites";
@@ -114,6 +114,7 @@ export async function loadScene(
   }
   if (hasAtmosphere) await initAtmosphere(world);
   await loadAnimals(map, decorBelow, decorAbove);
+  await loadHeartEmote(world);
 
   const camera = createCamera();
   updateCamera(camera, player, mapWidth, mapHeight);
@@ -176,6 +177,8 @@ export function startSceneMusic(name: string): void {
   const track = MUSIC[name];
   if (track) playMusic(track);
 }
+
+export { interactWithAnimal } from "./animals";
 
 export function unloadScene(scene: Scene, stage: Container): void {
   if (scene.hasAtmosphere) destroyAtmosphere();
