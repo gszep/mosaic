@@ -5208,6 +5208,84 @@
               "value": 32
             }
           ]
+        },
+        {
+          "id": 8,
+          "name": "black_cat",
+          "type": "animal",
+          "x": 400,
+          "y": 192,
+          "width": 32,
+          "height": 32,
+          "properties": [
+            {
+              "name": "sheet",
+              "type": "string",
+              "value": "black-cat-idle"
+            },
+            {
+              "name": "frames",
+              "type": "int",
+              "value": 7
+            },
+            {
+              "name": "frameW",
+              "type": "int",
+              "value": 32
+            }
+          ]
+        },
+        {
+          "id": 9,
+          "name": "brown_cat",
+          "type": "animal",
+          "x": 128,
+          "y": 352,
+          "width": 32,
+          "height": 32,
+          "properties": [
+            {
+              "name": "sheet",
+              "type": "string",
+              "value": "brown-cat-idle"
+            },
+            {
+              "name": "frames",
+              "type": "int",
+              "value": 7
+            },
+            {
+              "name": "frameW",
+              "type": "int",
+              "value": 32
+            }
+          ]
+        },
+        {
+          "id": 10,
+          "name": "white_cat",
+          "type": "animal",
+          "x": 512,
+          "y": 96,
+          "width": 32,
+          "height": 32,
+          "properties": [
+            {
+              "name": "sheet",
+              "type": "string",
+              "value": "white-cat-idle"
+            },
+            {
+              "name": "frames",
+              "type": "int",
+              "value": 7
+            },
+            {
+              "name": "frameW",
+              "type": "int",
+              "value": 32
+            }
+          ]
         }
       ],
       "width": 40,
