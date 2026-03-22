@@ -66,6 +66,9 @@ export function SubmissionForm() {
 
       <h2>Choose your voice</h2>
       <section className="nes-container is-dark is-rounded" style={{ marginBottom: "1rem" }}>
+        <p style={{ color: "#888", fontSize: "10px" }}>
+          Pick a voice for your character's dialogue blips from the presets or <span style={{ color: "#f7d51d" }}>record your own</span>.
+        </p>
         <VoiceSelector voice={voice} voiceData={voiceData} voiceStart={voiceStart} voiceEnd={voiceEnd} onVoice={setVoice} />
       </section>
 

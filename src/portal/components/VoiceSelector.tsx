@@ -236,9 +236,6 @@ export function VoiceSelector({ voice, voiceData, voiceStart, voiceEnd, onVoice 
 
   return (
     <div>
-      <p style={{ color: "#888", fontSize: "10px", margin: "0 0 0.5rem" }}>
-        Pick a voice for your character's dialogue blips:
-      </p>
       <div style={{ display: "flex", flexWrap: "wrap" }}>
         {VOICES.map((name) => (
           <button
