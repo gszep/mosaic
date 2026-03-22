@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { db, ref, get, update } from "../../shared/firebase";
 import type { Submission, SpriteData, DialogueNode } from "../../shared/types";
 import { pngToSpriteData } from "../../shared/pngToSpriteData";
@@ -26,6 +26,31 @@ interface SubmissionState {
   giftSprite: string | null;
 }
 
+type DraftFields = Pick<SubmissionState, "name" | "spriteData" | "dialogueTree" | "emote" | "voice" | "voiceData" | "voiceStart" | "voiceEnd" | "giftObject" | "giftSprite">;
+const DRAFT_FIELDS: (keyof DraftFields)[] = ["name", "spriteData", "dialogueTree", "emote", "voice", "voiceData", "voiceStart", "voiceEnd", "giftObject", "giftSprite"];
+
+function draftKey(token: string): string {
+  return `mosaic-draft-${token}`;
+}
+
+function saveDraft(token: string, state: SubmissionState): void {
+  const draft: Record<string, unknown> = { _ts: Date.now() };
+  for (const k of DRAFT_FIELDS) draft[k] = state[k];
+  try { localStorage.setItem(draftKey(token), JSON.stringify(draft)); } catch {}
+}
+
+function loadDraft(token: string): (DraftFields & { _ts: number }) | null {
+  try {
+    const raw = localStorage.getItem(draftKey(token));
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return null;
+}
+
+function clearDraft(token: string): void {
+  try { localStorage.removeItem(draftKey(token)); } catch {}
+}
+
 export function useSubmission() {
   const [state, setState] = useState<SubmissionState>({
     token: getToken(),
@@ -44,6 +69,8 @@ export function useSubmission() {
     giftSprite: null,
   });
 
+  const loaded = useRef(false);
+
   useEffect(() => {
     const token = getToken();
     if (!token) {
@@ -51,52 +78,79 @@ export function useSubmission() {
       return;
     }
 
+    const draft = loadDraft(token);
+
     get(ref(db, `submissions/${token}`))
       .then(async (snapshot) => {
-        let name = "";
-        let spriteData: SpriteData | null = null;
-        let dialogueTree: DialogueNode | null = null;
-        let emote: string | null = null;
-        let voice: string | null = null;
-        let voiceData: string | null = null;
-        let voiceStart: number | null = null;
-        let voiceEnd: number | null = null;
-        let giftObject: string | null = null;
-        let giftSprite: string | null = null;
+        let fields: DraftFields = {
+          name: "", spriteData: null, dialogueTree: null, emote: null,
+          voice: null, voiceData: null, voiceStart: null, voiceEnd: null,
+          giftObject: null, giftSprite: null,
+        };
 
         if (snapshot.exists()) {
           const data = snapshot.val() as Submission;
-          name = data.name ?? "";
-          spriteData = data.spriteData ?? null;
-          dialogueTree = data.dialogueTree ?? null;
-          emote = data.emote ?? null;
-          voice = data.voice ?? null;
-          voiceData = data.voiceData ?? null;
-          voiceStart = data.voiceStart ?? null;
-          voiceEnd = data.voiceEnd ?? null;
-          giftObject = data.giftObject ?? null;
-          giftSprite = data.giftSprite ?? null;
+          fields = {
+            name: data.name ?? "",
+            spriteData: data.spriteData ?? null,
+            dialogueTree: data.dialogueTree ?? null,
+            emote: data.emote ?? null,
+            voice: data.voice ?? null,
+            voiceData: data.voiceData ?? null,
+            voiceStart: data.voiceStart ?? null,
+            voiceEnd: data.voiceEnd ?? null,
+            giftObject: data.giftObject ?? null,
+            giftSprite: data.giftSprite ?? null,
+          };
         }
 
-        if (!spriteData) {
+        // Prefer local draft if it exists (unsaved work)
+        if (draft) {
+          for (const k of DRAFT_FIELDS) {
+            if (draft[k] !== undefined && draft[k] !== null) {
+              (fields as Record<string, unknown>)[k] = draft[k];
+            }
+          }
+        }
+
+        if (!fields.spriteData) {
           try {
             const defaultSprite = token === "player" ? "player-default.png" : "npc-default.png";
-            spriteData = await pngToSpriteData(`${BASE}sprites/${defaultSprite}`);
+            fields.spriteData = await pngToSpriteData(`${BASE}sprites/${defaultSprite}`);
           } catch {}
         }
 
-        setState((s) => ({ ...s, loading: false, name, spriteData, dialogueTree, emote, voice, voiceData, voiceStart, voiceEnd, giftObject, giftSprite }));
+        setState((s) => ({ ...s, loading: false, ...fields }));
+        loaded.current = true;
       })
-      .catch((err) => {
-        setState((s) => ({ ...s, loading: false, error: (err as Error).message }));
+      .catch(async () => {
+        // Offline — restore from draft only
+        if (draft) {
+          let spriteData = draft.spriteData;
+          if (!spriteData) {
+            try {
+              const defaultSprite = token === "player" ? "player-default.png" : "npc-default.png";
+              spriteData = await pngToSpriteData(`${BASE}sprites/${defaultSprite}`);
+            } catch {}
+          }
+          setState((s) => ({ ...s, loading: false, ...draft, spriteData: spriteData ?? null }));
+          loaded.current = true;
+        } else {
+          setState((s) => ({ ...s, loading: false, error: "Offline and no saved draft." }));
+        }
       });
   }, []);
+
+  // Auto-save draft to localStorage on every state change
+  useEffect(() => {
+    if (!loaded.current || !state.token) return;
+    saveDraft(state.token, state);
+  }, [state]);
 
   const setName = useCallback((name: string) => setState((s) => ({ ...s, name })), []);
   const setSpriteData = useCallback((spriteData: SpriteData) => setState((s) => ({ ...s, spriteData })), []);
   const setDialogueTree = useCallback((dialogueTree: DialogueNode) => setState((s) => ({ ...s, dialogueTree })), []);
   const setEmote = useCallback((emote: string) => setState((s) => ({ ...s, emote })), []);
-
   const setGiftObject = useCallback((giftObject: string) => setState((s) => ({ ...s, giftObject })), []);
   const setGiftSprite = useCallback((giftSprite: string) => setState((s) => ({ ...s, giftSprite })), []);
 
@@ -131,6 +185,7 @@ export function useSubmission() {
         giftObject: state.giftObject || null,
         giftSprite: state.giftSprite || null,
       });
+      clearDraft(token);
       setState((s) => ({ ...s, saving: false }));
     } catch (err) {
       setState((s) => ({ ...s, saving: false, error: (err as Error).message }));
