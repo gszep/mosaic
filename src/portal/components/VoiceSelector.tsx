@@ -219,12 +219,7 @@ export function VoiceSelector({ voice, voiceData, voiceStart, voiceEnd, onVoice 
     triggerPreview(`${BASE}audio/voice/${name}.wav`, 0, 99999);
   };
 
-  const selectCustom = () => {
-    onVoice("custom");
-    if (voiceData) triggerPreview(voiceData, voiceStart ?? 0, voiceEnd ?? 99999);
-  };
-
-  // Record
+  // Record — always available, auto-switches to custom
   const handleRecord = async () => {
     if (recording) {
       const result = await stop();
@@ -232,6 +227,12 @@ export function VoiceSelector({ voice, voiceData, voiceStart, voiceEnd, onVoice 
     } else {
       await start();
     }
+  };
+
+  const handlePlay = () => {
+    if (!voiceData) return;
+    onVoice("custom", voiceData, voiceStart, voiceEnd);
+    triggerPreview(voiceData, voiceStart ?? 0, voiceEnd ?? 99999);
   };
 
   return (
@@ -247,13 +248,6 @@ export function VoiceSelector({ voice, voiceData, voiceStart, voiceEnd, onVoice 
             {VOICE_ICONS[name]}
           </button>
         ))}
-        <button
-          onClick={selectCustom}
-          className={`nes-btn ${isCustom ? "is-warning" : "is-dark"}`}
-          style={{ fontSize: "8px", padding: "4px 8px", margin: "2px", lineHeight: 1 }}
-        >
-          <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: "#E95420" }} />
-        </button>
       </div>
 
       {/* Waveform + record button */}
@@ -273,11 +267,19 @@ export function VoiceSelector({ voice, voiceData, voiceStart, voiceEnd, onVoice 
         />
         <button
           onClick={handleRecord}
-          disabled={!isCustom || processing}
-          className={`nes-btn ${recording ? "is-error" : !isCustom ? "is-disabled" : "is-dark"}`}
+          disabled={processing}
+          className={`nes-btn ${recording ? "is-error" : isCustom && voiceData ? "is-warning" : "is-dark"}`}
           style={{ fontSize: "8px", padding: "4px 8px", flexShrink: 0, lineHeight: 1 }}
         >
-          {processing ? "..." : <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: recording ? 0 : "50%", background: recording ? "#fff" : isCustom ? "#E95420" : "#666" }} />}
+          {processing ? "..." : <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: recording ? 0 : "50%", background: recording ? "#fff" : "#E95420" }} />}
+        </button>
+        <button
+          onClick={handlePlay}
+          disabled={!voiceData || typewriterPlaying}
+          className={`nes-btn ${!voiceData || typewriterPlaying ? "is-disabled" : isCustom ? "is-warning" : "is-dark"}`}
+          style={{ fontSize: "8px", padding: "4px 8px", flexShrink: 0, lineHeight: 1 }}
+        >
+          ▶
         </button>
       </div>
 
