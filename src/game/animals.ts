@@ -101,13 +101,26 @@ function nearestAnimal(px: number, py: number): Animal | null {
   return best;
 }
 
+let trillAudio: HTMLAudioElement | null = null;
+let trillTimer = 0;
+let trillCount = 0;
+const TRILL_INTERVAL = 3;
+const TRILL_LENGTH = 15; // "happy birthday!" length
+
 export function interactWithAnimal(px: number, py: number, inventory: Set<string>): boolean {
   if (!inventory.has("matilda")) return false;
   const animal = nearestAnimal(px, py);
   if (!animal || !heartEmote) return false;
   heartTarget = animal;
-  heartTimer = 90; // frames to show heart
+  heartTimer = 90;
   heartEmote.visible = true;
+
+  if (!trillAudio) {
+    trillAudio = new Audio(`${BASE}audio/voice/Voice9.wav`);
+    trillAudio.volume = 0.4;
+  }
+  trillCount = 0;
+  trillTimer = 1; // start immediately
   return true;
 }
 
@@ -138,6 +151,16 @@ export function updateAnimals(): void {
     } else {
       heartEmote.visible = false;
       heartTarget = null;
+    }
+  }
+
+  if (trillAudio && trillCount < TRILL_LENGTH) {
+    trillTimer--;
+    if (trillTimer <= 0) {
+      trillAudio.currentTime = 0;
+      trillAudio.play().catch(() => {});
+      trillCount++;
+      trillTimer = TRILL_INTERVAL;
     }
   }
 }
