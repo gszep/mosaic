@@ -24,7 +24,8 @@ export async function loadAnimals(map: TMJMap, world: Container): Promise<void> 
 
   for (const obj of animalSpawns) {
     const sheet = obj.properties?.find((p) => p.name === "sheet")?.value ?? "cat";
-    const cols = Number(obj.properties?.find((p) => p.name === "frames")?.value ?? 2);
+    const numFrames = Number(obj.properties?.find((p) => p.name === "frames")?.value ?? 2);
+    const frameW = Number(obj.properties?.find((p) => p.name === "frameW")?.value ?? 0);
 
     if (!sheets.has(sheet)) {
       const tex = await Assets.load<Texture>(`${BASE}sprites/${sheet}.png`);
@@ -33,10 +34,10 @@ export async function loadAnimals(map: TMJMap, world: Container): Promise<void> 
     }
 
     const baseTex = sheets.get(sheet)!;
-    const fw = baseTex.width / cols;
+    const fw = frameW || baseTex.width / numFrames;
     const fh = baseTex.height;
     const frames: Texture[] = [];
-    for (let i = 0; i < cols; i++) {
+    for (let i = 0; i < numFrames; i++) {
       frames.push(new Texture({ source: baseTex.source, frame: new Rectangle(i * fw, 0, fw, fh) }));
     }
 

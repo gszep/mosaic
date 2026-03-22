@@ -5189,18 +5189,23 @@
           "type": "animal",
           "x": 192,
           "y": 128,
-          "width": 16,
-          "height": 16,
+          "width": 32,
+          "height": 32,
           "properties": [
             {
               "name": "sheet",
               "type": "string",
-              "value": "cat"
+              "value": "siamese-idle"
             },
             {
               "name": "frames",
               "type": "int",
-              "value": 2
+              "value": 7
+            },
+            {
+              "name": "frameW",
+              "type": "int",
+              "value": 32
             }
           ]
         }
