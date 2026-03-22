@@ -105,7 +105,7 @@ let trillAudio: HTMLAudioElement | null = null;
 let trillTimer = 0;
 let trillCount = 0;
 const TRILL_INTERVAL = 3;
-const TRILL_LENGTH = 15; // "happy birthday!" length
+const TRILL_LENGTH = 5;
 
 export function interactWithAnimal(px: number, py: number, inventory: Set<string>): boolean {
   if (!inventory.has("matilda")) return false;
