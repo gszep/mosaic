@@ -4,7 +4,7 @@ import { loadNpcSprites, getNpcPositions, initEmote, updateEmote } from "./npcs"
 import { createPlayer, createCamera, updatePlayer, updateCamera, applyCamera, type PlayerState, type NpcCollider } from "./camera";
 import { playMusic } from "./music";
 import { initAtmosphere, updateAtmosphere, destroyAtmosphere } from "./atmosphere";
-import { loadAnimals, updateAnimals, destroyAnimals } from "./animals";
+import { loadAnimals, updateAnimals, destroyAnimals, getAnimalColliders } from "./animals";
 import { db, ref, get } from "../shared/firebase";
 import type { Submission } from "../shared/types";
 import { spriteDataToTexture } from "./sprites";
@@ -113,7 +113,7 @@ export async function loadScene(
     world.addChild(decorAbove);
   }
   if (hasAtmosphere) await initAtmosphere(world);
-  await loadAnimals(map, world);
+  await loadAnimals(map, decorBelow, decorAbove);
 
   const camera = createCamera();
   updateCamera(camera, player, mapWidth, mapHeight);
@@ -129,7 +129,13 @@ export async function loadScene(
 export function updateScene(scene: Scene, frozen: boolean): void {
   if (!frozen) {
     const npcs: NpcCollider[] | undefined = scene.hasNpcs ? getNpcPositions() : undefined;
-    updatePlayer(scene.player, scene.mapWidth, scene.mapHeight, scene.collision, npcs, scene.depthTiles);
+    const animalCols = getAnimalColliders();
+    if (animalCols.length > 0) {
+      const allNpcs = [...(npcs ?? []), ...animalCols.map((a) => ({ x: a.x, y: a.y }))];
+      updatePlayer(scene.player, scene.mapWidth, scene.mapHeight, scene.collision, allNpcs, scene.depthTiles);
+    } else {
+      updatePlayer(scene.player, scene.mapWidth, scene.mapHeight, scene.collision, npcs, scene.depthTiles);
+    }
     scene.playerSprite.x = scene.player.x;
     scene.playerSprite.y = scene.player.y;
   }

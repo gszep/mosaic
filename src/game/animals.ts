@@ -3,17 +3,28 @@ import type { TMJMap } from "../shared/tmj";
 
 const BASE = import.meta.env.BASE_URL;
 const ANIM_SPEED = 0.02;
+const DEPTH_SPLIT = 0.75; // 75% from top = 25% from bottom
 
 interface Animal {
-  sprite: Sprite;
-  frames: Texture[];
+  spriteBottom: Sprite;
+  spriteTop: Sprite;
+  framesTop: Texture[];
+  framesBottom: Texture[];
   frame: number;
   timer: number;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
 }
 
 let animals: Animal[] = [];
 
-export async function loadAnimals(map: TMJMap, world: Container): Promise<void> {
+export async function loadAnimals(
+  map: TMJMap,
+  belowContainer: Container,
+  aboveContainer: Container,
+): Promise<void> {
   const spawns = map.layers.find((l) => l.type === "objectgroup" && l.name === "spawns");
   if (!spawns?.objects) return;
 
@@ -36,18 +47,41 @@ export async function loadAnimals(map: TMJMap, world: Container): Promise<void> 
     const baseTex = sheets.get(sheet)!;
     const fw = frameW || baseTex.width / numFrames;
     const fh = baseTex.height;
-    const frames: Texture[] = [];
+    const splitY = Math.floor(fh * DEPTH_SPLIT);
+
+    const framesTop: Texture[] = [];
+    const framesBottom: Texture[] = [];
     for (let i = 0; i < numFrames; i++) {
-      frames.push(new Texture({ source: baseTex.source, frame: new Rectangle(i * fw, 0, fw, fh) }));
+      const x = i * fw;
+      framesTop.push(new Texture({ source: baseTex.source, frame: new Rectangle(x, 0, fw, splitY) }));
+      framesBottom.push(new Texture({ source: baseTex.source, frame: new Rectangle(x, splitY, fw, fh - splitY) }));
     }
 
-    const sprite = new Sprite(frames[0]);
-    sprite.x = obj.x;
-    sprite.y = obj.y;
-    world.addChild(sprite);
+    const spriteTop = new Sprite(framesTop[0]);
+    spriteTop.x = obj.x;
+    spriteTop.y = obj.y;
+    aboveContainer.addChild(spriteTop);
 
-    animals.push({ sprite, frames, frame: 0, timer: Math.random() });
+    const spriteBottom = new Sprite(framesBottom[0]);
+    spriteBottom.x = obj.x;
+    spriteBottom.y = obj.y + splitY;
+    belowContainer.addChild(spriteBottom);
+
+    animals.push({
+      spriteBottom, spriteTop, framesTop, framesBottom,
+      frame: Math.floor(Math.random() * numFrames),
+      timer: Math.random(),
+      x: obj.x, y: obj.y, w: fw, h: fh,
+    });
   }
+}
+
+export function getAnimalColliders(): { x: number; y: number; w: number }[] {
+  return animals.map((a) => ({
+    x: a.x + (a.w - 16) / 2,
+    y: a.y + Math.floor(a.h * DEPTH_SPLIT),
+    w: 16,
+  }));
 }
 
 export function updateAnimals(): void {
@@ -55,13 +89,17 @@ export function updateAnimals(): void {
     a.timer += ANIM_SPEED;
     if (a.timer >= 1) {
       a.timer -= 1;
-      a.frame = (a.frame + 1) % a.frames.length;
-      a.sprite.texture = a.frames[a.frame];
+      a.frame = (a.frame + 1) % a.framesTop.length;
+      a.spriteTop.texture = a.framesTop[a.frame];
+      a.spriteBottom.texture = a.framesBottom[a.frame];
     }
   }
 }
 
 export function destroyAnimals(): void {
-  for (const a of animals) a.sprite.destroy();
+  for (const a of animals) {
+    a.spriteTop.destroy();
+    a.spriteBottom.destroy();
+  }
   animals = [];
 }
