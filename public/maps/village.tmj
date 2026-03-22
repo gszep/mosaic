@@ -5239,8 +5239,8 @@
           "id": 9,
           "name": "brown_cat",
           "type": "animal",
-          "x": 128,
-          "y": 352,
+          "x": 224,
+          "y": 384,
           "width": 32,
           "height": 32,
           "properties": [
