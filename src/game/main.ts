@@ -89,7 +89,7 @@ async function boot() {
         const npc = findNearestNpc(scene.player.x, scene.player.y);
         if (npc) {
           talkingTo = npc;
-          const tree = npc.dialogueTree ?? { id: "default", text: "Happy birthday!", responses: null };
+          const tree = npc.dialogueTree && npc.dialogueTree.text ? npc.dialogueTree : { id: "default", text: "Happy birthday!", responses: npc.dialogueTree?.responses ?? null };
           void startDialogue(tree, npc.name, scene.uiLayer, npc.voice, npc.voiceData, npc.voiceStart, npc.voiceEnd);
           return;
         }

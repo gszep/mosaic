@@ -80,8 +80,8 @@ export function SubmissionForm() {
       <h2>Write your dialogue</h2>
       <section className="nes-container is-dark is-rounded" style={{ marginBottom: "1rem" }}>
         <p style={{ color: "#888", fontSize: "10px" }}>
-          What do you say when Fraser talks to you?
-          Add Fraser's response choices to create branching conversations.
+          What do you say when Fraser talks to you? A single line is totally fine!
+          If you want, you can add choices for Fraser to pick from and build a longer conversation.
         </p>
         <DialogueEditor tree={dialogueTree} onChange={setDialogueTree} giftObject={giftObject} />
       </section>

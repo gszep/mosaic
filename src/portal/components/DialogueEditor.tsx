@@ -9,7 +9,7 @@ function createId(): string {
 }
 
 function createDefaultTree(): DialogueNode {
-  return { id: createId(), text: "Happy birthday!", audio: null, responses: null };
+  return { id: createId(), text: "", audio: null, responses: null };
 }
 
 function newNode(): DialogueNode {
@@ -81,7 +81,7 @@ function TreeNode({
           ref={autoResize}
           value={node.text}
           onChange={(e) => { updateText(e.target.value); autoResize(e.target); }}
-          placeholder="What do you say?"
+          placeholder="What do you say? (defaults to 'Happy birthday!')"
           rows={1}
           className="nes-textarea is-dark"
           style={{ fontSize: "10px", width: "100%" }}
@@ -131,9 +131,9 @@ function TreeNode({
         </div>
       )}
 
-      {(!node.responses || node.responses.length < MAX_RESPONSES) && depth < MAX_DEPTH && (
+      {node.responses && node.responses.length < MAX_RESPONSES && depth < MAX_DEPTH && (
         <button onClick={addResponse} className="nes-btn is-dark dtree-add" style={{ fontSize: "8px" }}>
-          + response option for turn {depth + 1}
+          + branch at turn {depth + 1}
         </button>
       )}
 
@@ -148,6 +148,11 @@ function TreeNode({
               ? (giftObject ? `Gives Fraser ${giftObject}` : "Gives present")
               : "End (no present)"}
           </button>
+          {depth < MAX_DEPTH && (
+            <button onClick={addResponse} className="nes-btn is-dark dtree-add" style={{ fontSize: "8px", marginTop: "0.5rem" }}>
+              + conversation turn
+            </button>
+          )}
         </>
       )}
     </div>
