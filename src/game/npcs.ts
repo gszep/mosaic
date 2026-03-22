@@ -58,10 +58,38 @@ export async function loadNpcSprites(
       }
     }
 
+    // Collect all used spawn positions for auto-placement
+    const usedPositions = new Set<string>(
+      [...spawnsByNpcId.values()].map((s) => `${s.x},${s.y}`)
+    );
+
+    const mapCenterX = Math.floor(map.width / 2) * TILE;
+    const mapCenterY = Math.floor(map.height / 2) * TILE;
+
     for (const [token, sub] of Object.entries(all)) {
       if (token === "player") continue;
-      const spawn = spawnsByNpcId.get(token);
-      if (!spawn) continue;
+      let spawn = spawnsByNpcId.get(token);
+
+      // Auto-assign a spawn position for NPCs without a map spawn point
+      if (!spawn) {
+        let placed = false;
+        for (let r = 1; r < 20 && !placed; r++) {
+          for (let dx = -r; dx <= r && !placed; dx++) {
+            for (let dy = -r; dy <= r && !placed; dy++) {
+              if (Math.abs(dx) !== r && Math.abs(dy) !== r) continue;
+              const px = mapCenterX + dx * TILE;
+              const py = mapCenterY + dy * TILE;
+              const key = `${px},${py}`;
+              if (!usedPositions.has(key)) {
+                spawn = { x: px, y: py };
+                usedPositions.add(key);
+                placed = true;
+              }
+            }
+          }
+        }
+        if (!spawn) continue;
+      }
 
       const texture = sub.spriteData
         ? spriteDataToTexture(sub.spriteData)
