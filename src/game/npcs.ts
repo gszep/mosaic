@@ -86,6 +86,16 @@ export async function loadNpcSprites(
       }
     }
 
+    // Also exclude animal positions from auto-placement
+    const spawnsLayer = map.layers.find((l) => l.type === "objectgroup" && l.name === "spawns");
+    if (spawnsLayer?.objects) {
+      for (const obj of spawnsLayer.objects) {
+        if (obj.type === "animal") {
+          usedSpawns.push({ x: obj.x, y: obj.y });
+        }
+      }
+    }
+
     for (const [token, sub] of Object.entries(all)) {
       if (token === "player") continue;
 
