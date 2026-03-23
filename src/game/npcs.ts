@@ -32,7 +32,8 @@ export interface NpcData {
 let npcs: NpcData[] = [];
 
 export async function loadNpcSprites(
-  map: TMJMap
+  map: TMJMap,
+  collision?: Set<number>
 ): Promise<{ bottom: Container; top: Container }> {
   const bottom = new Container();
   const top = new Container();
@@ -58,10 +59,56 @@ export async function loadNpcSprites(
       }
     }
 
+    // Collect all used spawn positions for auto-placement
+    const usedPositions = new Set<string>(
+      [...spawnsByNpcId.values()].map((s) => `${s.x},${s.y}`)
+    );
+
+    const mapCenterX = Math.floor(map.width / 2) * TILE;
+    const mapCenterY = Math.floor(map.height / 2) * TILE;
+
     for (const [token, sub] of Object.entries(all)) {
       if (token === "player") continue;
-      const spawn = spawnsByNpcId.get(token);
-      if (!spawn) continue;
+      let spawn = spawnsByNpcId.get(token);
+
+      // Auto-assign a spawn position for NPCs without a map spawn point
+      if (!spawn) {
+        const cols = map.width;
+        let placed = false;
+        for (let r = 1; r < 20 && !placed; r++) {
+          for (let dx = -r; dx <= r && !placed; dx++) {
+            for (let dy = -r; dy <= r && !placed; dy++) {
+              if (Math.abs(dx) !== r && Math.abs(dy) !== r) continue;
+              const px = mapCenterX + dx * TILE;
+              const py = mapCenterY + dy * TILE;
+              const key = `${px},${py}`;
+              if (usedPositions.has(key)) continue;
+              // Skip positions where the NPC tile or the tile south are blocked
+              if (collision) {
+                const tx = Math.floor(px / TILE);
+                const ty = Math.floor(py / TILE);
+                const npcIdx = ty * cols + tx;
+                const southIdx = (ty + 1) * cols + tx;
+                if (collision.has(npcIdx) || collision.has(southIdx)) continue;
+              }
+              spawn = { x: px, y: py };
+              usedPositions.add(key);
+              placed = true;
+            }
+          }
+        }
+        if (!spawn) continue;
+      }
+
+      // Clear collision on the NPC tile and the tile directly south,
+      // so the player (who spawns south of NPC) can always move
+      if (collision) {
+        const cols = map.width;
+        const tx = Math.floor(spawn.x / TILE);
+        const ty = Math.floor(spawn.y / TILE);
+        collision.delete(ty * cols + tx);
+        collision.delete((ty + 1) * cols + tx);
+      }
 
       const texture = sub.spriteData
         ? spriteDataToTexture(sub.spriteData)
