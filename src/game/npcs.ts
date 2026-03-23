@@ -8,7 +8,7 @@ const TILE = 16;
 const BASE = import.meta.env.BASE_URL;
 const INTERACT_RANGE = 32;
 const MIN_NPC_DIST = TILE * 3; // 48px minimum distance between any two NPCs
-const SPACING = TILE * 3; // auto-placement grid step
+const GRID_STEP = 3; // auto-placement grid step in tiles
 
 let emoteSprite: Sprite | null = null;
 let emoteTextures = new Map<string, Texture>();
@@ -33,45 +33,28 @@ export interface NpcData {
 
 let npcs: NpcData[] = [];
 
-/** Find a free spawn position on the village map, avoiding collisions and other NPCs. */
+/** Find a free spawn position on the map using a grid scan, avoiding collisions and other NPCs. */
 function findSpawnPosition(
   map: TMJMap,
   collision: Set<number> | undefined,
   usedSpawns: { x: number; y: number }[],
 ): { x: number; y: number } | null {
   const cols = map.width;
-  const mapCenterX = Math.floor(map.width / 2) * TILE;
-  const mapCenterY = Math.floor(map.height / 2) * TILE;
 
-  for (let r = 1; r < 20; r++) {
-    for (let dx = -r; dx <= r; dx++) {
-      for (let dy = -r; dy <= r; dy++) {
-        if (Math.abs(dx) !== r && Math.abs(dy) !== r) continue;
-        const px = mapCenterX + dx * SPACING;
-        const py = mapCenterY + dy * SPACING;
-        if (px < 0 || py < 0 || px >= map.width * TILE || py >= map.height * TILE) continue;
+  for (let ty = 0; ty < map.height - 1; ty += GRID_STEP) {
+    for (let tx = 0; tx < map.width; tx += GRID_STEP) {
+      const px = tx * TILE;
+      const py = ty * TILE;
 
-        // Check minimum distance from all existing spawns
-        let tooClose = false;
-        for (const s of usedSpawns) {
-          if (Math.abs(px - s.x) < MIN_NPC_DIST && Math.abs(py - s.y) < MIN_NPC_DIST) {
-            tooClose = true;
-            break;
-          }
-        }
-        if (tooClose) continue;
-
-        // Skip positions where the NPC tile or the tile south are blocked
-        if (collision) {
-          const tx = Math.floor(px / TILE);
-          const ty = Math.floor(py / TILE);
-          const npcIdx = ty * cols + tx;
-          const southIdx = (ty + 1) * cols + tx;
-          if (collision.has(npcIdx) || collision.has(southIdx)) continue;
-        }
-
-        return { x: px, y: py };
+      // Skip if tile or tile south is blocked
+      if (collision) {
+        if (collision.has(ty * cols + tx) || collision.has((ty + 1) * cols + tx)) continue;
       }
+
+      // Skip if too close to an existing NPC
+      if (usedSpawns.some(s => Math.abs(px - s.x) < MIN_NPC_DIST && Math.abs(py - s.y) < MIN_NPC_DIST)) continue;
+
+      return { x: px, y: py };
     }
   }
   return null;
