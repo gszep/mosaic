@@ -102,7 +102,7 @@ export async function loadScene(
   const hasNpcs = name === "village" || (spawnsLayer?.objects?.some((o) => o.type === "spawn" && o.properties?.some((p) => p.name === "npcId" && p.value !== "player")) ?? false);
   const hasAtmosphere = name === "village";
   if (hasNpcs) {
-    const { bottom, top } = await loadNpcSprites(map, collision);
+    const { bottom, top } = await loadNpcSprites(map, collision, name === "village");
     world.addChild(bottom);
     world.addChild(playerSprite);
     world.addChild(top);

@@ -33,7 +33,8 @@ let npcs: NpcData[] = [];
 
 export async function loadNpcSprites(
   map: TMJMap,
-  collision?: Set<number>
+  collision?: Set<number>,
+  autoPlace = true,
 ): Promise<{ bottom: Container; top: Container }> {
   const bottom = new Container();
   const top = new Container();
@@ -78,6 +79,7 @@ export async function loadNpcSprites(
 
       // Auto-assign a spawn position for NPCs without a map spawn point
       // Use 3-tile spacing so the player can walk between NPCs
+      if (!spawn && !autoPlace) continue;
       if (!spawn) {
         const cols = map.width;
         const SPACING = TILE * 3; // 48px minimum gap between NPCs
