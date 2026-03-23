@@ -1,5 +1,5 @@
 import { Assets, Container, Sprite, Texture, Rectangle } from "pixi.js";
-import { db, ref, get } from "../shared/firebase";
+import { db, ref, get, update } from "../shared/firebase";
 import type { Submission, DialogueNode } from "../shared/types";
 import type { TMJMap } from "../shared/tmj";
 import { spriteDataToTexture } from "./sprites";
@@ -7,6 +7,8 @@ import { spriteDataToTexture } from "./sprites";
 const TILE = 16;
 const BASE = import.meta.env.BASE_URL;
 const INTERACT_RANGE = 32;
+const MIN_NPC_DIST = TILE * 3; // 48px minimum distance between any two NPCs
+const SPACING = TILE * 3; // auto-placement grid step
 
 let emoteSprite: Sprite | null = null;
 let emoteTextures = new Map<string, Texture>();
@@ -31,10 +33,54 @@ export interface NpcData {
 
 let npcs: NpcData[] = [];
 
+/** Find a free spawn position on the village map, avoiding collisions and other NPCs. */
+function findSpawnPosition(
+  map: TMJMap,
+  collision: Set<number> | undefined,
+  usedSpawns: { x: number; y: number }[],
+): { x: number; y: number } | null {
+  const cols = map.width;
+  const mapCenterX = Math.floor(map.width / 2) * TILE;
+  const mapCenterY = Math.floor(map.height / 2) * TILE;
+
+  for (let r = 1; r < 20; r++) {
+    for (let dx = -r; dx <= r; dx++) {
+      for (let dy = -r; dy <= r; dy++) {
+        if (Math.abs(dx) !== r && Math.abs(dy) !== r) continue;
+        const px = mapCenterX + dx * SPACING;
+        const py = mapCenterY + dy * SPACING;
+        if (px < 0 || py < 0 || px >= map.width * TILE || py >= map.height * TILE) continue;
+
+        // Check minimum distance from all existing spawns
+        let tooClose = false;
+        for (const s of usedSpawns) {
+          if (Math.abs(px - s.x) < MIN_NPC_DIST && Math.abs(py - s.y) < MIN_NPC_DIST) {
+            tooClose = true;
+            break;
+          }
+        }
+        if (tooClose) continue;
+
+        // Skip positions where the NPC tile or the tile south are blocked
+        if (collision) {
+          const tx = Math.floor(px / TILE);
+          const ty = Math.floor(py / TILE);
+          const npcIdx = ty * cols + tx;
+          const southIdx = (ty + 1) * cols + tx;
+          if (collision.has(npcIdx) || collision.has(southIdx)) continue;
+        }
+
+        return { x: px, y: py };
+      }
+    }
+  }
+  return null;
+}
+
 export async function loadNpcSprites(
+  mapName: string,
   map: TMJMap,
   collision?: Set<number>,
-  autoPlace = true,
 ): Promise<{ bottom: Container; top: Container }> {
   const bottom = new Container();
   const top = new Container();
@@ -49,72 +95,51 @@ export async function loadNpcSprites(
 
     const all = snapshot.val() as Record<string, Submission>;
 
-    const spawnsLayer = map.layers.find(
-      (l) => l.type === "objectgroup" && l.name === "spawns"
-    );
-    const spawnsByNpcId = new Map<string, { x: number; y: number }>();
-    if (spawnsLayer?.objects) {
-      for (const obj of spawnsLayer.objects) {
-        const npcId = obj.properties?.find((p) => p.name === "npcId")?.value;
-        if (npcId) spawnsByNpcId.set(npcId, { x: obj.x, y: obj.y });
+    // Collect positions of all NPCs already placed on this map
+    const usedSpawns: { x: number; y: number }[] = [];
+    for (const sub of Object.values(all)) {
+      if (sub.map === mapName && sub.spawnX != null && sub.spawnY != null) {
+        usedSpawns.push({ x: sub.spawnX, y: sub.spawnY });
       }
     }
-
-    // Collect all used spawn positions for auto-placement (min 48px apart)
-    const MIN_NPC_DIST = TILE * 3; // 48px minimum distance between any two NPCs
-    const usedSpawns: { x: number; y: number }[] = [...spawnsByNpcId.values()];
-    function tooCloseToExisting(px: number, py: number): boolean {
-      for (const s of usedSpawns) {
-        if (Math.abs(px - s.x) < MIN_NPC_DIST && Math.abs(py - s.y) < MIN_NPC_DIST) return true;
-      }
-      return false;
-    }
-
-    const mapCenterX = Math.floor(map.width / 2) * TILE;
-    const mapCenterY = Math.floor(map.height / 2) * TILE;
 
     for (const [token, sub] of Object.entries(all)) {
       if (token === "player") continue;
-      let spawn = spawnsByNpcId.get(token);
 
-      // Auto-assign a spawn position for NPCs without a map spawn point
-      // Use 3-tile spacing so the player can walk between NPCs
-      if (!spawn && !autoPlace) continue;
-      if (!spawn) {
-        const cols = map.width;
-        const SPACING = TILE * 3; // 48px minimum gap between NPCs
-        let placed = false;
-        for (let r = 1; r < 20 && !placed; r++) {
-          for (let dx = -r; dx <= r && !placed; dx++) {
-            for (let dy = -r; dy <= r && !placed; dy++) {
-              if (Math.abs(dx) !== r && Math.abs(dy) !== r) continue;
-              const px = mapCenterX + dx * SPACING;
-              const py = mapCenterY + dy * SPACING;
-              if (px < 0 || py < 0 || px >= map.width * TILE || py >= map.height * TILE) continue;
-              if (tooCloseToExisting(px, py)) continue;
-              // Skip positions where the NPC tile or the tile south are blocked
-              if (collision) {
-                const tx = Math.floor(px / TILE);
-                const ty = Math.floor(py / TILE);
-                const npcIdx = ty * cols + tx;
-                const southIdx = (ty + 1) * cols + tx;
-                if (collision.has(npcIdx) || collision.has(southIdx)) continue;
-              }
-              spawn = { x: px, y: py };
-              usedSpawns.push({ x: px, y: py });
-              placed = true;
-            }
-          }
-        }
-        if (!spawn) continue;
+      let x: number | null = null;
+      let y: number | null = null;
+
+      if (sub.map === mapName && sub.spawnX != null && sub.spawnY != null) {
+        // NPC is assigned to this map with a position
+        x = sub.spawnX;
+        y = sub.spawnY;
+      } else if (sub.map == null && mapName === "village") {
+        // Unplaced NPC — auto-assign to village
+        const pos = findSpawnPosition(map, collision, usedSpawns);
+        if (!pos) continue;
+        x = pos.x;
+        y = pos.y;
+        usedSpawns.push(pos);
+
+        // Write position back to Firebase so it persists
+        update(ref(db, `submissions/${token}`), {
+          map: "village",
+          spawnX: x,
+          spawnY: y,
+        }).catch((err) =>
+          console.warn(`Failed to save spawn for ${token}:`, err)
+        );
+      } else {
+        // NPC belongs to a different map — skip
+        continue;
       }
 
       // Clear collision on the NPC tile and the tile directly south,
-      // so the player (who spawns south of NPC) can always move
+      // so the player can always move near NPCs
       if (collision) {
         const cols = map.width;
-        const tx = Math.floor(spawn.x / TILE);
-        const ty = Math.floor(spawn.y / TILE);
+        const tx = Math.floor(x / TILE);
+        const ty = Math.floor(y / TILE);
         collision.delete(ty * cols + tx);
         collision.delete((ty + 1) * cols + tx);
       }
@@ -125,22 +150,22 @@ export async function loadNpcSprites(
 
       // Full sprite (hidden, used for position tracking)
       const sprite = new Sprite(texture);
-      sprite.x = spawn.x;
-      sprite.y = spawn.y;
+      sprite.x = x;
+      sprite.y = y;
       sprite.visible = false;
 
       // Bottom half (rendered below player)
       const bottomTex = new Texture({ source: texture.source, frame: new Rectangle(0, 8, texture.width, texture.height - 8) });
       const spriteBottom = new Sprite(bottomTex);
-      spriteBottom.x = spawn.x;
-      spriteBottom.y = spawn.y + 8;
+      spriteBottom.x = x;
+      spriteBottom.y = y + 8;
       bottom.addChild(spriteBottom);
 
       // Top half (rendered above player)
       const topTex = new Texture({ source: texture.source, frame: new Rectangle(0, 0, texture.width, 8) });
       const spriteTop = new Sprite(topTex);
-      spriteTop.x = spawn.x;
-      spriteTop.y = spawn.y;
+      spriteTop.x = x;
+      spriteTop.y = y;
       top.addChild(spriteTop);
 
       npcs.push({

@@ -35,4 +35,7 @@ export interface Submission {
   voiceStart: number | null;
   voiceEnd: number | null;
   audioBlips: unknown | null;
+  map: string | null;
+  spawnX: number | null;
+  spawnY: number | null;
 }
