@@ -8,7 +8,7 @@ import {
   type RenderOptions,
   type CatalogData,
 } from "./renderer";
-import { db, ref, get } from "../src/shared/firebase";
+import { db, ref, get, update } from "../src/shared/firebase";
 import type { Submission, SpriteData } from "../src/shared/types";
 
 const BASE = import.meta.env.BASE_URL;
@@ -48,6 +48,7 @@ let activeTilesetIndex = 0;
 let tool: "paint" | "erase" | "inspect" = "paint";
 let painting = false;
 let draggingSpawn: TMJObject | null = null;
+let draggingNpcToken: string | null = null;
 let showSpawns = true;
 const spriteCanvases = new Map<string, HTMLCanvasElement>();
 let submissions: Record<string, Submission> = {};
@@ -396,6 +397,8 @@ function renderSpawns(ctx: CanvasRenderingContext2D) {
   const spawns = ensureSpawnsLayer();
   const s = opts.scale;
   ctx.imageSmoothingEnabled = false;
+
+  // Render map-file spawn objects (warps, arrivals, player start, animals)
   for (const obj of spawns) {
     const px = obj.x * s;
     const py = obj.y * s;
@@ -434,6 +437,42 @@ function renderSpawns(ctx: CanvasRenderingContext2D) {
     ctx.fillText(label, px + 2, py - 2);
     ctx.shadowBlur = 0;
   }
+
+  // Render NPC sprites from Firebase (source of truth for NPC positions)
+  for (const [token, sub] of Object.entries(submissions)) {
+    if (token === "player") continue;
+    if (sub.map !== currentMapName) continue;
+    if (sub.spawnX == null || sub.spawnY == null) continue;
+
+    const px = sub.spawnX * s;
+    const py = sub.spawnY * s;
+    const spriteCanvas = spriteCanvases.get(token);
+    if (spriteCanvas) {
+      const sw = spriteCanvas.width * s;
+      const sh = spriteCanvas.height * s;
+      ctx.drawImage(spriteCanvas, 0, 0, spriteCanvas.width, spriteCanvas.height, px, py, sw, sh);
+      ctx.strokeStyle = "#E95420";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(px, py, sw, sh);
+    } else {
+      const w = TILE_SIZE * s;
+      const h = TILE_SIZE * s;
+      ctx.fillStyle = "rgba(233, 84, 32, 0.35)";
+      ctx.fillRect(px, py, w, h);
+      ctx.strokeStyle = "#E95420";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(px + 1, py + 1, w - 2, h - 2);
+    }
+
+    const label = sub.name || token;
+    ctx.fillStyle = "#fff";
+    ctx.font = `${Math.max(10, 3 * s)}px Ubuntu Mono, monospace`;
+    ctx.textBaseline = "bottom";
+    ctx.shadowColor = "#000";
+    ctx.shadowBlur = 3;
+    ctx.fillText(label, px + 2, py - 2);
+    ctx.shadowBlur = 0;
+  }
 }
 
 function getSpawnAtPixel(e: MouseEvent): TMJObject | null {
@@ -450,6 +489,27 @@ function getSpawnAtPixel(e: MouseEvent): TMJObject | null {
     const h = obj.height || TILE_SIZE * 2;
     if (mx >= obj.x && mx < obj.x + w && my >= obj.y && my < obj.y + h) {
       return obj;
+    }
+  }
+  return null;
+}
+
+function getNpcTokenAtPixel(e: MouseEvent): string | null {
+  const rect = mapCanvas.getBoundingClientRect();
+  const scaleX = mapCanvas.width / rect.width;
+  const scaleY = mapCanvas.height / rect.height;
+  const mx = (e.clientX - rect.left) * scaleX / opts.scale;
+  const my = (e.clientY - rect.top) * scaleY / opts.scale;
+
+  for (const [token, sub] of Object.entries(submissions)) {
+    if (token === "player") continue;
+    if (sub.map !== currentMapName) continue;
+    if (sub.spawnX == null || sub.spawnY == null) continue;
+    const sc = spriteCanvases.get(token);
+    const w = sc ? sc.width : TILE_SIZE;
+    const h = sc ? sc.height : TILE_SIZE;
+    if (mx >= sub.spawnX && mx < sub.spawnX + w && my >= sub.spawnY && my < sub.spawnY + h) {
+      return token;
     }
   }
   return null;
@@ -734,7 +794,14 @@ function bindEvents() {
   });
 
   mapCanvas.addEventListener("mousedown", (e) => {
-    // Check if clicking on a spawn point first
+    // Check if clicking on a Firebase NPC sprite first
+    const npcToken = getNpcTokenAtPixel(e);
+    if (npcToken) {
+      draggingNpcToken = npcToken;
+      mapCanvas.style.cursor = "grabbing";
+      return;
+    }
+    // Check if clicking on a map spawn object (warps, arrivals, animals)
     const spawn = getSpawnAtPixel(e);
     if (spawn) {
       draggingSpawn = spawn;
@@ -746,13 +813,23 @@ function bindEvents() {
     applyTool(e);
   });
   mapCanvas.addEventListener("mousemove", (e) => {
+    const rect = mapCanvas.getBoundingClientRect();
+    const scaleX = mapCanvas.width / rect.width;
+    const scaleY = mapCanvas.height / rect.height;
+    const mx = (e.clientX - rect.left) * scaleX / opts.scale;
+    const my = (e.clientY - rect.top) * scaleY / opts.scale;
+
+    if (draggingNpcToken) {
+      const sub = submissions[draggingNpcToken];
+      if (sub) {
+        sub.spawnX = Math.round(mx / TILE_SIZE) * TILE_SIZE;
+        sub.spawnY = Math.round(my / TILE_SIZE) * TILE_SIZE;
+        redrawMap();
+        tileInfo.textContent = `Moving ${sub.name || draggingNpcToken} to (${sub.spawnX}, ${sub.spawnY})`;
+      }
+      return;
+    }
     if (draggingSpawn) {
-      const rect = mapCanvas.getBoundingClientRect();
-      const scaleX = mapCanvas.width / rect.width;
-      const scaleY = mapCanvas.height / rect.height;
-      const mx = (e.clientX - rect.left) * scaleX / opts.scale;
-      const my = (e.clientY - rect.top) * scaleY / opts.scale;
-      // Snap to tile grid
       draggingSpawn.x = Math.round(mx / TILE_SIZE) * TILE_SIZE;
       draggingSpawn.y = Math.round(my / TILE_SIZE) * TILE_SIZE;
       redrawMap();
@@ -764,11 +841,25 @@ function bindEvents() {
     } else if (painting) {
       applyTool(e);
     } else if (showSpawns) {
-      const hover = getSpawnAtPixel(e);
-      mapCanvas.style.cursor = hover ? "grab" : tool === "erase" ? "not-allowed" : "crosshair";
+      const hoverNpc = getNpcTokenAtPixel(e);
+      const hoverSpawn = getSpawnAtPixel(e);
+      mapCanvas.style.cursor = (hoverNpc || hoverSpawn) ? "grab" : tool === "erase" ? "not-allowed" : "crosshair";
     }
   });
   mapCanvas.addEventListener("mouseup", () => {
+    if (draggingNpcToken) {
+      const sub = submissions[draggingNpcToken];
+      if (sub && sub.spawnX != null && sub.spawnY != null) {
+        update(ref(db, `submissions/${draggingNpcToken}`), {
+          map: currentMapName,
+          spawnX: sub.spawnX,
+          spawnY: sub.spawnY,
+        }).catch((err) => console.warn("Failed to save NPC position:", err));
+      }
+      draggingNpcToken = null;
+      mapCanvas.style.cursor = "crosshair";
+      return;
+    }
     if (draggingSpawn) {
       draggingSpawn = null;
       mapCanvas.style.cursor = "crosshair";
@@ -778,6 +869,18 @@ function bindEvents() {
     painting = false;
   });
   mapCanvas.addEventListener("mouseleave", () => {
+    if (draggingNpcToken) {
+      const sub = submissions[draggingNpcToken];
+      if (sub && sub.spawnX != null && sub.spawnY != null) {
+        update(ref(db, `submissions/${draggingNpcToken}`), {
+          map: currentMapName,
+          spawnX: sub.spawnX,
+          spawnY: sub.spawnY,
+        }).catch((err) => console.warn("Failed to save NPC position:", err));
+      }
+      draggingNpcToken = null;
+      mapCanvas.style.cursor = "crosshair";
+    }
     if (draggingSpawn) {
       draggingSpawn = null;
       mapCanvas.style.cursor = "crosshair";
@@ -915,6 +1018,12 @@ function showInspector(e: MouseEvent) {
   if (spawn) {
     const npcId = spawn.properties?.find((p) => p.name === "npcId")?.value;
     lines.push(`  spawn: ${spawn.name} (${npcId ?? "no id"}) at (${spawn.x}, ${spawn.y})`);
+  }
+
+  const npcToken = getNpcTokenAtPixel(e);
+  if (npcToken) {
+    const sub = submissions[npcToken];
+    lines.push(`  npc: ${sub?.name || npcToken} (${npcToken}) at (${sub?.spawnX}, ${sub?.spawnY})`);
   }
 
   tooltip.textContent = lines.join("\n");
