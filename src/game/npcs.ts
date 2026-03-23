@@ -59,10 +59,15 @@ export async function loadNpcSprites(
       }
     }
 
-    // Collect all used spawn positions for auto-placement
-    const usedPositions = new Set<string>(
-      [...spawnsByNpcId.values()].map((s) => `${s.x},${s.y}`)
-    );
+    // Collect all used spawn positions for auto-placement (min 48px apart)
+    const MIN_NPC_DIST = TILE * 3; // 48px minimum distance between any two NPCs
+    const usedSpawns: { x: number; y: number }[] = [...spawnsByNpcId.values()];
+    function tooCloseToExisting(px: number, py: number): boolean {
+      for (const s of usedSpawns) {
+        if (Math.abs(px - s.x) < MIN_NPC_DIST && Math.abs(py - s.y) < MIN_NPC_DIST) return true;
+      }
+      return false;
+    }
 
     const mapCenterX = Math.floor(map.width / 2) * TILE;
     const mapCenterY = Math.floor(map.height / 2) * TILE;
@@ -72,17 +77,19 @@ export async function loadNpcSprites(
       let spawn = spawnsByNpcId.get(token);
 
       // Auto-assign a spawn position for NPCs without a map spawn point
+      // Use 3-tile spacing so the player can walk between NPCs
       if (!spawn) {
         const cols = map.width;
+        const SPACING = TILE * 3; // 48px minimum gap between NPCs
         let placed = false;
         for (let r = 1; r < 20 && !placed; r++) {
           for (let dx = -r; dx <= r && !placed; dx++) {
             for (let dy = -r; dy <= r && !placed; dy++) {
               if (Math.abs(dx) !== r && Math.abs(dy) !== r) continue;
-              const px = mapCenterX + dx * TILE;
-              const py = mapCenterY + dy * TILE;
-              const key = `${px},${py}`;
-              if (usedPositions.has(key)) continue;
+              const px = mapCenterX + dx * SPACING;
+              const py = mapCenterY + dy * SPACING;
+              if (px < 0 || py < 0 || px >= map.width * TILE || py >= map.height * TILE) continue;
+              if (tooCloseToExisting(px, py)) continue;
               // Skip positions where the NPC tile or the tile south are blocked
               if (collision) {
                 const tx = Math.floor(px / TILE);
@@ -92,7 +99,7 @@ export async function loadNpcSprites(
                 if (collision.has(npcIdx) || collision.has(southIdx)) continue;
               }
               spawn = { x: px, y: py };
-              usedPositions.add(key);
+              usedSpawns.push({ x: px, y: py });
               placed = true;
             }
           }
