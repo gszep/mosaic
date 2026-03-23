@@ -7,6 +7,7 @@ import { VoiceSelector } from "./VoiceSelector";
 import { PresentSelector } from "./PresentSelector";
 import { DialogueEditor } from "./DialogueEditor";
 import { useSubmission } from "../hooks/useSubmission";
+import { db, ref, get, update } from "../../shared/firebase";
 import { PALETTE, TRANSPARENT } from "../../shared/palette";
 
 const BASE = import.meta.env.BASE_URL;
@@ -107,55 +108,24 @@ export function SubmissionForm() {
           onClick={async () => {
             await save();
             try {
-              const MAP_NAMES = ["village", "home", "bedroom"];
-              let foundMap: string | null = null;
-              let foundObj: { x: number; y: number } | null = null;
+              // Read this NPC's spawn position from Firebase
+              const snap = await get(ref(db, `submissions/${token}`));
+              const sub = snap.exists() ? snap.val() : null;
+              let spawnMap = sub?.map ?? null;
+              let spawnX = sub?.spawnX ?? null;
+              let spawnY = sub?.spawnY ?? null;
 
-              for (const mapName of MAP_NAMES) {
-                const resp = await fetch(`${BASE}maps/${mapName}.tmj`);
-                const map = await resp.json();
-                const spawns = map.layers?.find((l: { name: string; type: string }) => l.type === "objectgroup" && l.name === "spawns");
-                const obj = spawns?.objects?.find((o: { properties?: { name: string; value: string }[] }) =>
-                  o.properties?.some((p: { name: string; value: string }) => p.name === "npcId" && p.value === token)
-                );
-                if (obj) { foundMap = mapName; foundObj = obj; break; }
+              // If unplaced, auto-assign to village center and save to Firebase
+              if (!spawnMap || spawnX == null || spawnY == null) {
+                spawnMap = "village";
+                spawnX = 320;
+                spawnY = 240;
+                await update(ref(db, `submissions/${token}`), { map: spawnMap, spawnX, spawnY });
               }
 
-              if (!foundMap || !foundObj) {
-                // Auto-create spawn in village
-                const resp = await fetch(`${BASE}maps/village.tmj`);
-                const map = await resp.json();
-                let spawns = map.layers?.find((l: { name: string; type: string }) => l.type === "objectgroup" && l.name === "spawns");
-                if (!spawns) {
-                  spawns = { id: map.layers.length + 1, name: "spawns", type: "objectgroup", objects: [], width: map.width, height: map.height, visible: true, x: 0, y: 0, opacity: 1 };
-                  map.layers.push(spawns);
-                }
-                const existing = (spawns.objects ?? []) as { id?: number; x: number; y: number }[];
-                const MIN_DIST = TILE * 2;
-                let px = Math.floor(map.width / 2) * TILE;
-                let py = Math.floor(map.height / 2) * TILE;
-                let found = false;
-                for (let r = 0; r < 20 && !found; r++) {
-                  for (let dx = -r; dx <= r && !found; dx++) {
-                    for (let dy = -r; dy <= r && !found; dy++) {
-                      if (Math.abs(dx) !== r && Math.abs(dy) !== r) continue;
-                      const cx = Math.floor(map.width / 2 + dx) * TILE;
-                      const cy = Math.floor(map.height / 2 + dy) * TILE;
-                      const tooClose = existing.some((s) => Math.abs(s.x - cx) < MIN_DIST && Math.abs(s.y - cy) < MIN_DIST);
-                      if (!tooClose) { px = cx; py = cy; found = true; }
-                    }
-                  }
-                }
-                const nextId = existing.reduce((m: number, o: { id?: number }) => Math.max(m, o.id ?? 0), 0) + 1;
-                spawns.objects.push({ id: nextId, name: name || token, type: "spawn", x: px, y: py, width: TILE, height: TILE, properties: [{ name: "npcId", type: "string", value: token }] });
-                await fetch(`/api/save-map/village`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(map, null, 2) }).catch(() => {});
-                foundMap = "village";
-                foundObj = { x: px, y: py };
-              }
-
-              const x = Math.floor(foundObj.x / TILE);
-              const y = Math.floor(foundObj.y / TILE) + 1;
-              window.open(`${BASE}?map=${foundMap}&x=${x}&y=${y}`, "_blank");
+              const x = Math.floor(spawnX / TILE);
+              const y = Math.floor(spawnY / TILE) + 1;
+              window.open(`${BASE}?map=${spawnMap}&x=${x}&y=${y}`, "_blank");
             } catch {
               window.open(BASE, "_blank");
             }
