@@ -44,7 +44,7 @@ export function VoiceSelector({ voice, voiceData, voiceStart, voiceEnd, onVoice 
     triggerPreview(result, s, e);
   };
 
-  const { recording, processing, start, stop } = useAudioRecorder(handleRecordingResult);
+  const { recording, acquiring, processing, start, stop } = useAudioRecorder(handleRecordingResult);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [waveform, setWaveform] = useState<Float32Array | null>(null);
   const [durationMs, setDurationMs] = useState(0);
@@ -267,11 +267,11 @@ export function VoiceSelector({ voice, voiceData, voiceStart, voiceEnd, onVoice 
         />
         <button
           onClick={handleRecord}
-          disabled={processing}
-          className={`nes-btn ${recording ? "is-error" : isCustom && voiceData ? "is-warning" : "is-dark"}`}
+          disabled={processing || acquiring}
+          className={`nes-btn ${recording ? "is-error" : acquiring ? "is-disabled" : isCustom && voiceData ? "is-warning" : "is-dark"}`}
           style={{ fontSize: "8px", padding: "4px 8px", flexShrink: 0, lineHeight: 1 }}
         >
-          {processing ? "..." : <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: recording ? 0 : "50%", background: recording ? "#fff" : "#E95420" }} />}
+          {processing || acquiring ? "..." : <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: recording ? 0 : "50%", background: recording ? "#fff" : "#E95420" }} />}
         </button>
         <button
           onClick={handlePlay}

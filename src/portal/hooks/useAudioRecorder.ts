@@ -5,6 +5,7 @@ const MAX_DURATION = 2000;
 const CRUSHED_RATE = SAMPLE_RATE;
 const BIT_DEPTH = 4;
 export const MAX_BLIP_MS = 350;
+const TAP_TRIM_MS = 80; // trim from start to remove tap noise on mobile
 
 function trimSilence(data: Float32Array, sampleRate: number): Float32Array {
   const windowSize = Math.floor(sampleRate * 0.01);
@@ -45,7 +46,11 @@ async function bitcrush(blob: Blob): Promise<string> {
   source.start();
   const rendered = await audioCtx.startRendering();
 
-  const trimmed = trimSilence(rendered.getChannelData(0), rendered.sampleRate);
+  const raw = rendered.getChannelData(0);
+  // Skip initial samples to remove mobile tap noise
+  const tapSamples = Math.floor(rendered.sampleRate * TAP_TRIM_MS / 1000);
+  const afterTap = raw.length > tapSamples ? raw.slice(tapSamples) : raw;
+  const trimmed = trimSilence(afterTap, rendered.sampleRate);
   if (trimmed.length === 0) return "";
 
   const levels = Math.pow(2, BIT_DEPTH);
@@ -62,10 +67,12 @@ export { decodeAudio as getWaveform };
 
 export function useAudioRecorder(onAutoStop?: (result: string) => void) {
   const [recording, setRecording] = useState(false);
+  const [acquiring, setAcquiring] = useState(false);
   const [processing, setProcessing] = useState(false);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const onAutoStopRef = useRef(onAutoStop);
   onAutoStopRef.current = onAutoStop;
 
@@ -73,7 +80,7 @@ export function useAudioRecorder(onAutoStop?: (result: string) => void) {
     setRecording(false);
     setProcessing(true);
     const blob = new Blob(chunksRef.current, { type: "audio/webm" });
-    recorder.stream.getTracks().forEach((t) => t.stop());
+    // Don't stop the stream — keep it warm for the next recording
     try {
       const result = await bitcrush(blob);
       setProcessing(false);
@@ -85,26 +92,38 @@ export function useAudioRecorder(onAutoStop?: (result: string) => void) {
   }, []);
 
   const start = useCallback(async () => {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    const recorder = new MediaRecorder(stream);
-    chunksRef.current = [];
-    recorder.ondataavailable = (e) => {
-      if (e.data.size > 0) chunksRef.current.push(e.data);
-    };
-    recorder.start();
-    recorderRef.current = recorder;
-    setRecording(true);
-
-    timerRef.current = setTimeout(() => {
-      if (recorderRef.current?.state === "recording") {
-        recorderRef.current.onstop = async () => {
-          const result = await processChunks(recorderRef.current!);
-          if (result && onAutoStopRef.current) onAutoStopRef.current(result);
-        };
-        recorderRef.current.stop();
+    if (acquiring || recording) return;
+    setAcquiring(true);
+    try {
+      // Reuse existing stream if still active, otherwise acquire a new one
+      let stream = streamRef.current;
+      if (!stream || stream.getTracks().every((t) => t.readyState === "ended")) {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        streamRef.current = stream;
       }
-    }, MAX_DURATION);
-  }, [processChunks]);
+      const recorder = new MediaRecorder(stream);
+      chunksRef.current = [];
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
+      recorder.start();
+      recorderRef.current = recorder;
+      setAcquiring(false);
+      setRecording(true);
+
+      timerRef.current = setTimeout(() => {
+        if (recorderRef.current?.state === "recording") {
+          recorderRef.current.onstop = async () => {
+            const result = await processChunks(recorderRef.current!);
+            if (result && onAutoStopRef.current) onAutoStopRef.current(result);
+          };
+          recorderRef.current.stop();
+        }
+      }, MAX_DURATION);
+    } catch {
+      setAcquiring(false);
+    }
+  }, [acquiring, recording, processChunks]);
 
   const stop = useCallback((): Promise<string> => {
     return new Promise((resolve) => {
@@ -123,5 +142,5 @@ export function useAudioRecorder(onAutoStop?: (result: string) => void) {
     });
   }, [processChunks]);
 
-  return { recording, processing, start, stop };
+  return { recording, acquiring, processing, start, stop };
 }
