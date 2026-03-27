@@ -15,10 +15,10 @@ import type { TMJMap } from "../shared/tmj";
 const BASE = import.meta.env.BASE_URL;
 const TILE = 16;
 
-const MUSIC: Record<string, string> = {
+const MUSIC: Record<string, string | string[]> = {
   bedroom: "music-bedroom.ogg",
   home: "music-bedroom.ogg",
-  village: "music-village.ogg",
+  village: ["music-village.ogg", "music-peaceful.ogg", "music-calm-village.ogg", "music-village2.ogg"],
 };
 
 let cachedPlayerTexture: Texture | null = null;

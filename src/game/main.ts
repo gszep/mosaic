@@ -13,6 +13,7 @@ import { loadBitmapFont } from "./bitmapfont";
 import { tryBreakPot, allPotsBroken } from "./pots";
 import type { DialogueNode } from "../shared/types";
 import { setEmoteOverride } from "./npcs";
+import { showEnding } from "./ending";
 
 const TILE = 16;
 
@@ -108,7 +109,13 @@ async function boot() {
 
     if (e.key === " " || e.key === "Enter" || e.key === "e") {
       e.preventDefault();
-      if (isGiftPopupActive()) { dismissGiftPopup(); return; }
+      if (isGiftPopupActive()) {
+        dismissGiftPopup();
+        if (TOTAL_NPCS > 0 && remaining.length === 0) {
+          void showEnding(scene.uiLayer);
+        }
+        return;
+      }
 
       if (isDialogueActive()) {
         handleDialogueInput(e.key);
