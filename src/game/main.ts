@@ -7,6 +7,7 @@ import { initInput } from "./camera";
 import { startDialogue, updateDialogue, handleDialogueInput, isDialogueActive, dialogueEndedWithGift } from "./dialogue";
 import { showGiftPopup, dismissGiftPopup, isGiftPopupActive } from "./giftPopup";
 import { loadScene, updateScene, findWarp, unloadScene, startSceneMusic, interactWithAnimal, type Scene } from "./scene";
+import { unlockAudio } from "./music";
 import { loadBitmapFont } from "./bitmapfont";
 
 const TILE = 16;
@@ -45,6 +46,7 @@ async function boot() {
         window.removeEventListener("keydown", dismiss);
         window.removeEventListener("touchstart", dismiss);
         loadingScreen?.classList.add("fade-out");
+        unlockAudio();
         startSceneMusic(scene.name);
         setTimeout(() => { loadingScreen?.remove(); resolve(); }, 800);
       };

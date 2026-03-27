@@ -791,6 +791,26 @@ function bindEvents() {
         if (gid > 0) selectGid(gid);
       }, GID_TIMEOUT);
     }
+
+    // Arrow keys: navigate selected tile in the palette
+    if (selectedGid !== null && activeTilesetIndex >= 0 && (e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "ArrowUp" || e.key === "ArrowDown")) {
+      e.preventDefault();
+      const tsi = tilesetImages[activeTilesetIndex];
+      if (!tsi) return;
+      const localId = selectedGid - tsi.tileset.firstgid;
+      const col = localId % tsi.tileset.columns;
+      const row = Math.floor(localId / tsi.tileset.columns);
+      let nc = col;
+      let nr = row;
+      if (e.key === "ArrowLeft") nc--;
+      else if (e.key === "ArrowRight") nc++;
+      else if (e.key === "ArrowUp") nr--;
+      else if (e.key === "ArrowDown") nr++;
+      const newLocalId = nr * tsi.tileset.columns + nc;
+      if (nc >= 0 && nc < tsi.tileset.columns && nr >= 0 && newLocalId < tsi.tileset.tilecount) {
+        selectGid(tsi.tileset.firstgid + newLocalId);
+      }
+    }
   });
 
   mapCanvas.addEventListener("mousedown", (e) => {

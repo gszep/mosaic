@@ -1,7 +1,7 @@
 import { Assets, Container, Sprite, Texture } from "pixi.js";
 import { loadTilemap } from "./tilemap";
 import { loadNpcSprites, getNpcPositions, initEmote, updateEmote } from "./npcs";
-import { createPlayer, createCamera, updatePlayer, updateCamera, applyCamera, type PlayerState, type NpcCollider } from "./camera";
+import { createPlayer, createCamera, updatePlayer, updateCamera, applyCamera, type PlayerState, type NpcCollider, type HalfCollision } from "./camera";
 import { playMusic } from "./music";
 import { initAtmosphere, updateAtmosphere, destroyAtmosphere } from "./atmosphere";
 import { loadAnimals, loadHeartEmote, updateAnimals, destroyAnimals, getAnimalColliders, interactWithAnimal } from "./animals";
@@ -46,6 +46,7 @@ export interface Scene {
   mapWidth: number;
   mapHeight: number;
   collision: Set<number>;
+  halfCollision: HalfCollision;
   depthTiles: Set<number>;
   camera: { x: number; y: number };
   map: TMJMap;
@@ -64,7 +65,7 @@ export async function loadScene(
   world.visible = false;
   const uiLayer = new Container();
 
-  const { base, decorBelow, decorAbove, collision, depthTiles, mapWidth, mapHeight, map } = await loadTilemap(
+  const { base, decorBelow, decorAbove, collision, halfCollision, depthTiles, mapWidth, mapHeight, map } = await loadTilemap(
     `${BASE}maps/${name}.tmj`,
     `${BASE}tilesets`
   );
@@ -124,7 +125,7 @@ export async function loadScene(
   stage.addChild(uiLayer);
   world.visible = true;
 
-  return { name, world, uiLayer, player, playerSprite, mapWidth, mapHeight, collision, depthTiles, camera, map, hasNpcs, hasAtmosphere };
+  return { name, world, uiLayer, player, playerSprite, mapWidth, mapHeight, collision, halfCollision, depthTiles, camera, map, hasNpcs, hasAtmosphere };
 }
 
 export function updateScene(scene: Scene, frozen: boolean): void {
@@ -132,7 +133,7 @@ export function updateScene(scene: Scene, frozen: boolean): void {
     const npcs: NpcCollider[] | undefined = scene.hasNpcs ? getNpcPositions() : undefined;
     const animalCols = getAnimalColliders();
     const allNpcs = [...(npcs ?? []), ...animalCols];
-    updatePlayer(scene.player, scene.mapWidth, scene.mapHeight, scene.collision, allNpcs, scene.depthTiles);
+    updatePlayer(scene.player, scene.mapWidth, scene.mapHeight, scene.collision, allNpcs, scene.depthTiles, scene.halfCollision);
     scene.playerSprite.x = scene.player.x;
     scene.playerSprite.y = scene.player.y;
   }

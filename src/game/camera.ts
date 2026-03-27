@@ -1,7 +1,7 @@
 import { Container } from "pixi.js";
 import { INTERNAL_WIDTH, INTERNAL_HEIGHT } from "./viewport";
 
-const PLAYER_SPEED = 2; // pixels per frame
+const PLAYER_SPEED = 1.5; // pixels per frame
 
 export interface PlayerState {
   x: number;
@@ -41,16 +41,29 @@ export interface NpcCollider {
   y: number;
 }
 
-function blocked(x: number, y: number, mapWidth: number, collision: Set<number>, npcs?: NpcCollider[], depthTiles?: Set<number>): boolean {
+export interface HalfCollision {
+  left: Set<number>;   // blocks left 8px of tile
+  right: Set<number>;  // blocks right 8px of tile
+}
+
+function blocked(x: number, y: number, mapWidth: number, collision: Set<number>, npcs?: NpcCollider[], depthTiles?: Set<number>, half?: HalfCollision): boolean {
   const cols = mapWidth / TILE;
+  const HALF = TILE / 2;
   for (const [ox, oy] of [[0, 0], [15, 0], [0, 15], [15, 15]]) {
-    const tx = Math.floor((x + ox) / TILE);
+    const px = x + ox;
+    const tx = Math.floor(px / TILE);
     const ty = Math.floor((y + oy) / TILE);
     const idx = ty * cols + tx;
     if (depthTiles?.has(idx)) {
       // Center-line collision: 1px line at tile center
       const tileY = ty * TILE + TILE / 2;
       if (y < tileY + 1 && y + TILE > tileY) return true;
+    } else if (half?.left.has(idx)) {
+      // Only left 8px of tile blocks
+      if (px < tx * TILE + HALF) return true;
+    } else if (half?.right.has(idx)) {
+      // Only right 8px of tile blocks
+      if (px >= tx * TILE + HALF) return true;
     } else if (collision.has(idx)) {
       return true;
     }
@@ -74,6 +87,7 @@ export function updatePlayer(
   collision?: Set<number>,
   npcs?: NpcCollider[],
   depthTiles?: Set<number>,
+  half?: HalfCollision,
 ): void {
   let dx = 0;
   let dy = 0;
@@ -85,11 +99,11 @@ export function updatePlayer(
   if (collision) {
     // Try X then Y independently for wall sliding
     const nx = Math.max(0, Math.min(player.x + dx, mapWidth - 16));
-    if (!blocked(nx, player.y, mapWidth, collision, npcs, depthTiles)) {
+    if (!blocked(nx, player.y, mapWidth, collision, npcs, depthTiles, half)) {
       player.x = nx;
     }
     const ny = Math.max(0, Math.min(player.y + dy, mapHeight - 16));
-    if (!blocked(player.x, ny, mapWidth, collision, npcs, depthTiles)) {
+    if (!blocked(player.x, ny, mapWidth, collision, npcs, depthTiles, half)) {
       player.y = ny;
     }
   } else {

@@ -4,10 +4,12 @@ import type { TMJMap } from "../shared/tmj";
 
 const RENDER_LAYERS = ["ground", "buildings"];
 
+import type { HalfCollision } from "./camera";
+
 export async function loadTilemap(
   mapUrl: string,
   tilesetBasePath: string
-): Promise<{ base: Container; decorBelow: Container; decorAbove: Container; collision: Set<number>; depthTiles: Set<number>; mapWidth: number; mapHeight: number; map: TMJMap }> {
+): Promise<{ base: Container; decorBelow: Container; decorAbove: Container; collision: Set<number>; halfCollision: HalfCollision; depthTiles: Set<number>; mapWidth: number; mapHeight: number; map: TMJMap }> {
   const map: TMJMap = await (await fetch(mapUrl)).json();
   const base = new Container();
   const decorBelow = new Container();
@@ -56,13 +58,23 @@ export async function loadTilemap(
     }
   }
 
+  const halfCollision: HalfCollision = { left: new Set(), right: new Set() };
+
   for (const layer of map.layers) {
     if (layer.type !== "tilelayer" || !layer.data) continue;
 
-    if (layer.name === "collision" || layer.name === "depth") {
+    if (layer.name === "collision" || layer.name === "collision_left" || layer.name === "collision_right" || layer.name === "depth") {
       if (layer.name === "collision") {
         for (let i = 0; i < layer.data.length; i++) {
           if (layer.data[i] > 0) collision.add(i);
+        }
+      } else if (layer.name === "collision_left") {
+        for (let i = 0; i < layer.data.length; i++) {
+          if (layer.data[i] > 0) halfCollision.left.add(i);
+        }
+      } else if (layer.name === "collision_right") {
+        for (let i = 0; i < layer.data.length; i++) {
+          if (layer.data[i] > 0) halfCollision.right.add(i);
         }
       }
       continue;
@@ -105,18 +117,37 @@ export async function loadTilemap(
     if (!RENDER_LAYERS.includes(layer.name)) continue;
 
     const tilemap = new CompositeTilemap();
+    const belowTilemap = new CompositeTilemap();
+    const aboveTilemap = new CompositeTilemap();
+    let hasDepthSplit = false;
+    const tw = map.tilewidth;
+    const th = map.tileheight;
+    const halfH = Math.floor(th / 2);
+
     for (let i = 0; i < layer.data.length; i++) {
       const gid = layer.data[i];
       if (gid === 0) continue;
       const tex = tileTextures.get(gid);
       if (!tex) continue;
-      tilemap.tile(
-        tex,
-        (i % map.width) * map.tilewidth,
-        Math.floor(i / map.width) * map.tileheight
-      );
+      const px = (i % map.width) * tw;
+      const py = Math.floor(i / map.width) * th;
+
+      if (layer.name !== "ground" && depthSet.has(i)) {
+        hasDepthSplit = true;
+        const frame = tex.frame;
+        const bottomTex = new Texture({ source: tex.source, frame: new Rectangle(frame.x, frame.y + halfH, frame.width, frame.height - halfH) });
+        const topTex = new Texture({ source: tex.source, frame: new Rectangle(frame.x, frame.y, frame.width, halfH) });
+        belowTilemap.tile(bottomTex, px, py + halfH);
+        aboveTilemap.tile(topTex, px, py);
+      } else {
+        tilemap.tile(tex, px, py);
+      }
     }
     base.addChild(tilemap);
+    if (hasDepthSplit) {
+      decorBelow.addChild(belowTilemap);
+      decorAbove.addChild(aboveTilemap);
+    }
   }
 
   return {
@@ -124,6 +155,7 @@ export async function loadTilemap(
     decorBelow,
     decorAbove,
     collision,
+    halfCollision,
     depthTiles: depthSet,
     mapWidth: map.width * map.tilewidth,
     mapHeight: map.height * map.tileheight,
