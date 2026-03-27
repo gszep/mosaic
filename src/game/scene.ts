@@ -1,11 +1,12 @@
-import { Assets, Container, Sprite, Texture } from "pixi.js";
+import { Assets, Container, Graphics, Sprite, Texture } from "pixi.js";
 import { loadTilemap } from "./tilemap";
 import { loadNpcSprites, getNpcPositions, initEmote, updateEmote } from "./npcs";
 import { createPlayer, createCamera, updatePlayer, updateCamera, applyCamera, type PlayerState, type NpcCollider, type HalfCollision } from "./camera";
 import { playMusic } from "./music";
 import { initAtmosphere, updateAtmosphere, destroyAtmosphere } from "./atmosphere";
 import { loadAnimals, loadHeartEmote, updateAnimals, destroyAnimals, getAnimalColliders, interactWithAnimal } from "./animals";
-import { initFoley, updateFoley } from "./foley";
+import { initFoley, updateFoley, initWaterAmbient, updateWaterAmbient, destroyWaterAmbient } from "./foley";
+import { initPots, tryBreakPot, destroyPots } from "./pots";
 import { db, ref, get } from "../shared/firebase";
 import type { Submission } from "../shared/types";
 import { spriteDataToTexture } from "./sprites";
@@ -44,12 +45,14 @@ export interface Scene {
   uiLayer: Container;
   player: PlayerState;
   playerSprite: Sprite;
+  playerMask: Graphics;
   mapWidth: number;
   mapHeight: number;
   collision: Set<number>;
   halfCollision: HalfCollision;
   depthTiles: Set<number>;
   fieldTiles: Set<number>;
+  waterTiles: Set<number>;
   camera: { x: number; y: number };
   map: TMJMap;
   hasNpcs: boolean;
@@ -67,7 +70,7 @@ export async function loadScene(
   world.visible = false;
   const uiLayer = new Container();
 
-  const { base, decorBelow, decorAbove, collision, halfCollision, depthTiles, fieldTiles, mapWidth, mapHeight, map } = await loadTilemap(
+  const { base, decorBelow, decorAbove, collision, halfCollision, depthTiles, fieldTiles, waterTiles, tileTextures, mapWidth, mapHeight, map } = await loadTilemap(
     `${BASE}maps/${name}.tmj`,
     `${BASE}tilesets`
   );
@@ -92,6 +95,9 @@ export async function loadScene(
 
   const playerTexture = await getPlayerTexture();
   const playerSprite = new Sprite(playerTexture);
+  const playerMask = new Graphics();
+  playerSprite.mask = playerMask;
+
   const px = startX ?? defaultX;
   const py = startY ?? defaultY;
   const player = createPlayer(
@@ -100,6 +106,7 @@ export async function loadScene(
   );
   playerSprite.x = player.x;
   playerSprite.y = player.y;
+  playerMask.rect(player.x, player.y, TILE, TILE).fill(0xffffff);
 
   // Load NPCs for any map — Firebase is the source of truth for which NPCs appear where
   const hasNpcs = name === "village" || name === "home";
@@ -108,17 +115,21 @@ export async function loadScene(
     const { bottom, top } = await loadNpcSprites(name, map, collision);
     world.addChild(bottom);
     world.addChild(playerSprite);
+    world.addChild(playerMask);
     world.addChild(top);
     world.addChild(decorAbove);
     await initEmote(world);
   } else {
     world.addChild(playerSprite);
+    world.addChild(playerMask);
     world.addChild(decorAbove);
   }
+  initPots(map, tileTextures, collision, depthTiles, decorBelow, decorAbove);
   if (hasAtmosphere) await initAtmosphere(world);
   await loadAnimals(map, decorBelow, decorAbove);
   await loadHeartEmote(world);
   if (fieldTiles.size > 0) initFoley();
+  if (waterTiles.size > 0) initWaterAmbient();
 
   const camera = createCamera();
   updateCamera(camera, player, mapWidth, mapHeight);
@@ -128,7 +139,7 @@ export async function loadScene(
   stage.addChild(uiLayer);
   world.visible = true;
 
-  return { name, world, uiLayer, player, playerSprite, mapWidth, mapHeight, collision, halfCollision, depthTiles, fieldTiles, camera, map, hasNpcs, hasAtmosphere };
+  return { name, world, uiLayer, player, playerSprite, playerMask, mapWidth, mapHeight, collision, halfCollision, depthTiles, fieldTiles, waterTiles, camera, map, hasNpcs, hasAtmosphere };
 }
 
 export function updateScene(scene: Scene, frozen: boolean): void {
@@ -139,12 +150,24 @@ export function updateScene(scene: Scene, frozen: boolean): void {
     updatePlayer(scene.player, scene.mapWidth, scene.mapHeight, scene.collision, allNpcs, scene.depthTiles, scene.halfCollision);
     scene.playerSprite.x = scene.player.x;
     scene.playerSprite.y = scene.player.y;
+
+    // Mask bottom half of player when on field tiles
+    const cx = Math.floor((scene.player.x + 8) / TILE);
+    const cy = Math.floor((scene.player.y + 8) / TILE);
+    const onField = scene.fieldTiles.has(cy * (scene.mapWidth / TILE) + cx);
+    scene.playerMask.clear();
+    if (onField) {
+      scene.playerMask.rect(scene.player.x, scene.player.y, TILE, TILE / 2).fill(0xffffff);
+    } else {
+      scene.playerMask.rect(scene.player.x, scene.player.y, TILE, TILE).fill(0xffffff);
+    }
   }
   updateCamera(scene.camera, scene.player, scene.mapWidth, scene.mapHeight);
   applyCamera(scene.world, scene.camera);
-  if (scene.hasNpcs) updateEmote(scene.player.x, scene.player.y, frozen);
+  if (scene.hasNpcs) updateEmote(scene.player.x, scene.player.y, frozen, scene.name === "home" || scene.name === "bedroom");
   if (scene.hasAtmosphere) updateAtmosphere(scene.camera.x, scene.camera.y);
   if (!frozen && scene.fieldTiles.size > 0) updateFoley(scene.player.x, scene.player.y, scene.mapWidth, scene.fieldTiles);
+  if (scene.waterTiles.size > 0) updateWaterAmbient(scene.player.x, scene.player.y, scene.mapWidth, scene.waterTiles);
   updateAnimals();
 }
 
@@ -188,6 +211,8 @@ export { interactWithAnimal } from "./animals";
 export function unloadScene(scene: Scene, stage: Container): void {
   if (scene.hasAtmosphere) destroyAtmosphere();
   destroyAnimals();
+  destroyPots();
+  destroyWaterAmbient();
   stage.removeChild(scene.world);
   stage.removeChild(scene.uiLayer);
   scene.world.destroy({ children: true });

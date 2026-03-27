@@ -185,6 +185,10 @@ export async function loadNpcSprites(
   return { bottom, top };
 }
 
+export function getAllNpcs(): { token: string; name: string }[] {
+  return npcs.map((n) => ({ token: n.token, name: n.name }));
+}
+
 export function getNpcPositions(): { x: number; y: number }[] {
   return npcs.map((n) => ({ x: n.sprite.x, y: n.sprite.y }));
 }
@@ -208,8 +212,10 @@ export async function initEmote(world: Container): Promise<void> {
   defaultEmoteTexture = await Assets.load<Texture>(`${BASE}ui/emote-interact.png`);
   defaultEmoteTexture.source.scaleMode = "nearest";
 
-  // Preload emotes used by NPCs
+  // Preload emotes used by NPCs + pot-reaction emotes
   const usedEmotes = new Set(npcs.map((n) => n.emote).filter(Boolean) as string[]);
+  usedEmotes.add("emote10");
+  usedEmotes.add("emote12");
   for (const name of usedEmotes) {
     const tex = await Assets.load<Texture>(`${BASE}ui/emotes/${name}.png`);
     tex.source.scaleMode = "nearest";
@@ -221,20 +227,53 @@ export async function initEmote(world: Container): Promise<void> {
   world.addChild(emoteSprite);
 }
 
-export function updateEmote(px: number, py: number, dialogueActive: boolean): void {
+const INDOOR_TINT = 0xd0c8c0;
+
+// Per-token emote overrides and always-visible flags
+const emoteOverrides = new Map<string, string>();
+const alwaysShowEmote = new Set<string>();
+
+export function setEmoteOverride(token: string, emote: string, alwaysVisible: boolean): void {
+  emoteOverrides.set(token, emote);
+  if (alwaysVisible) alwaysShowEmote.add(token);
+}
+
+let overrideSprites: Sprite[] = [];
+
+export function updateEmote(px: number, py: number, dialogueActive: boolean, indoor = false): void {
   if (!emoteSprite) return;
+
+  // Clean up previous always-visible override sprites
+  for (const s of overrideSprites) s.destroy();
+  overrideSprites = [];
 
   if (dialogueActive) {
     emoteSprite.visible = false;
     return;
   }
 
+  // Render always-visible emote overrides
+  for (const npc of npcs) {
+    if (!alwaysShowEmote.has(npc.token)) continue;
+    const emoteName = emoteOverrides.get(npc.token);
+    const tex = emoteName ? emoteTextures.get(emoteName) : null;
+    if (!tex) continue;
+    const s = new Sprite(tex);
+    s.tint = indoor ? INDOOR_TINT : 0xffffff;
+    s.x = npc.sprite.x + 8 - s.width / 2;
+    s.y = npc.sprite.y - s.height - 2;
+    emoteSprite.parent?.addChild(s);
+    overrideSprites.push(s);
+  }
+
   const npc = findNearestNpc(px, py);
-  if (npc) {
-    const tex = (npc.emote && emoteTextures.get(npc.emote)) || defaultEmoteTexture;
+  if (npc && !alwaysShowEmote.has(npc.token)) {
+    const emoteName = emoteOverrides.get(npc.token) ?? npc.emote;
+    const tex = (emoteName && emoteTextures.get(emoteName)) || defaultEmoteTexture;
     if (tex && emoteSprite.texture !== tex) {
       emoteSprite.texture = tex;
     }
+    emoteSprite.tint = indoor ? INDOOR_TINT : 0xffffff;
     emoteSprite.visible = true;
     emoteSprite.x = npc.sprite.x + 8 - emoteSprite.width / 2;
     emoteSprite.y = npc.sprite.y - emoteSprite.height - 2;

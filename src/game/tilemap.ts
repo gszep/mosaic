@@ -6,10 +6,16 @@ const RENDER_LAYERS = ["ground", "buildings"];
 
 import type { HalfCollision } from "./camera";
 
+// GIDs managed by individual sprites (e.g. breakable pots) — skip in CompositeTilemap
+const SPRITE_MANAGED_GIDS = new Set([2153]);
+
+// GIDs that always render above the player
+const ALWAYS_ABOVE_GIDS = new Set([1916, 1917, 1918, 1919, 1920, 1921, 1922, 3416, 3417]);
+
 export async function loadTilemap(
   mapUrl: string,
   tilesetBasePath: string
-): Promise<{ base: Container; decorBelow: Container; decorAbove: Container; collision: Set<number>; halfCollision: HalfCollision; depthTiles: Set<number>; fieldTiles: Set<number>; mapWidth: number; mapHeight: number; map: TMJMap }> {
+): Promise<{ base: Container; decorBelow: Container; decorAbove: Container; collision: Set<number>; halfCollision: HalfCollision; depthTiles: Set<number>; fieldTiles: Set<number>; waterTiles: Set<number>; tileTextures: Map<number, Texture>; mapWidth: number; mapHeight: number; map: TMJMap }> {
   const map: TMJMap = await (await fetch(mapUrl)).json();
   const base = new Container();
   const decorBelow = new Container();
@@ -67,6 +73,23 @@ export async function loadTilemap(
     }
   }
 
+  // Determine TilesetWater GID range
+  const waterTs = map.tilesets.find((ts) => ts.name === "TilesetWater");
+  const waterGidMin = waterTs ? waterTs.firstgid : -1;
+  const waterGidMax = waterTs ? waterTs.firstgid + waterTs.tilecount : -1;
+
+  const waterTiles = new Set<number>();
+  if (waterTs) {
+    for (const layer of map.layers) {
+      if (layer.type !== "tilelayer" || !layer.data) continue;
+      if (!RENDER_LAYERS.includes(layer.name) && layer.name !== "decoration") continue;
+      for (let i = 0; i < layer.data.length; i++) {
+        const gid = layer.data[i];
+        if (gid >= waterGidMin && gid < waterGidMax) waterTiles.add(i);
+      }
+    }
+  }
+
   // Collect depth flags
   const depthLayer = map.layers.find((l) => l.type === "tilelayer" && l.name === "depth");
   const depthSet = new Set<number>();
@@ -108,13 +131,15 @@ export async function loadTilemap(
 
       for (let i = 0; i < layer.data.length; i++) {
         const gid = layer.data[i];
-        if (gid === 0) continue;
+        if (gid === 0 || SPRITE_MANAGED_GIDS.has(gid)) continue;
         const tex = tileTextures.get(gid);
         if (!tex) continue;
         const px = (i % map.width) * tw;
         const py = Math.floor(i / map.width) * th;
 
-        if (depthSet.has(i)) {
+        if (ALWAYS_ABOVE_GIDS.has(gid)) {
+          above.tile(tex, px, py);
+        } else if (depthSet.has(i)) {
           // Split: bottom half below player, top half above
           const frame = tex.frame;
           const bottomTex = new Texture({ source: tex.source, frame: new Rectangle(frame.x, frame.y + halfH, frame.width, frame.height - halfH) });
@@ -150,7 +175,10 @@ export async function loadTilemap(
       const px = (i % map.width) * tw;
       const py = Math.floor(i / map.width) * th;
 
-      if (layer.name !== "ground" && depthSet.has(i)) {
+      if (ALWAYS_ABOVE_GIDS.has(gid)) {
+        hasDepthSplit = true;
+        aboveTilemap.tile(tex, px, py);
+      } else if (layer.name !== "ground" && depthSet.has(i)) {
         hasDepthSplit = true;
         const frame = tex.frame;
         const bottomTex = new Texture({ source: tex.source, frame: new Rectangle(frame.x, frame.y + halfH, frame.width, frame.height - halfH) });
@@ -176,6 +204,8 @@ export async function loadTilemap(
     halfCollision,
     depthTiles: depthSet,
     fieldTiles,
+    waterTiles,
+    tileTextures,
     mapWidth: map.width * map.tilewidth,
     mapHeight: map.height * map.tileheight,
     map,
