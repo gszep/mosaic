@@ -35,6 +35,7 @@ async function boot() {
   );
 
   window.addEventListener("resize", () => applyViewport(app));
+  initInput();
 
   // Wake-up screen
   if (skipIntro) {
@@ -59,15 +60,14 @@ async function boot() {
     });
   }
 
-  initInput();
   let talkingTo: NpcData | null = null;
   const inventory = new Set<string>();
 
   // Gift tracker: list of NPC names not yet gifted (excluding player)
   const remaining: { token: string; name: string }[] = [];
   let TOTAL_NPCS = 0;
-  try {
-    const snapshot = await get(ref(db, "submissions"));
+  // Fetch async to avoid blocking the game loop
+  get(ref(db, "submissions")).then((snapshot) => {
     if (snapshot.exists()) {
       const all = snapshot.val() as Record<string, { name?: string }>;
       for (const [token, sub] of Object.entries(all)) {
@@ -76,7 +76,7 @@ async function boot() {
       }
       TOTAL_NPCS = remaining.length;
     }
-  } catch {}
+  }).catch(() => {});
 
   // Patch Grisha's dialogue tree nodes that report game state
   function patchGrishaTree(tree: DialogueNode): void {
@@ -137,7 +137,7 @@ async function boot() {
       }
 
       if (interactWithAnimal(scene.player.x, scene.player.y, inventory)) return;
-      if (tryBreakPot(scene.player.x, scene.player.y) && allPotsBroken()) {
+      if (tryBreakPot(scene.player.x, scene.player.y) && scene.name === "home" && allPotsBroken()) {
         setEmoteOverride("wally", "emote12", true);
         setEmoteOverride("penny", "emote10", true);
       }

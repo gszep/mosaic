@@ -17,8 +17,6 @@ interface Pot {
 }
 
 let pots: Pot[] = [];
-let totalBroken = 0;
-const TOTAL_POTS = 4;
 let brokenTexture: Texture | null = null;
 let belowContainer: Container | null = null;
 let aboveContainer: Container | null = null;
@@ -85,7 +83,6 @@ export function tryBreakPot(px: number, py: number): boolean {
     const dy = (pot.y + 8) - pcy;
     if (Math.abs(dx) < INTERACT_RANGE && Math.abs(dy) < INTERACT_RANGE) {
       pot.broken = true;
-      totalBroken++;
       // Replace with full broken sprite below player
       pot.bottomSprite.texture = brokenTexture;
       pot.bottomSprite.y = pot.y;
@@ -100,7 +97,7 @@ export function tryBreakPot(px: number, py: number): boolean {
 }
 
 export function allPotsBroken(): boolean {
-  return totalBroken >= TOTAL_POTS;
+  return pots.length > 0 && pots.every((p) => p.broken);
 }
 
 export function destroyPots(): void {
