@@ -46,18 +46,24 @@ export interface HalfCollision {
   right: Set<number>;  // blocks right 8px of tile
 }
 
+const HITBOX = 14; // 14x14 collision box, inset 1px from each edge of the 16x16 sprite
+const HB_OFF = (TILE - HITBOX) / 2; // 1px inset
+
 function blocked(x: number, y: number, mapWidth: number, collision: Set<number>, npcs?: NpcCollider[], depthTiles?: Set<number>, half?: HalfCollision): boolean {
   const cols = mapWidth / TILE;
   const HALF = TILE / 2;
-  for (const [ox, oy] of [[0, 0], [15, 0], [0, 15], [15, 15]]) {
-    const px = x + ox;
+  const x0 = x + HB_OFF;
+  const y0 = y + HB_OFF;
+  const x1 = x0 + HITBOX - 1;
+  const y1 = y0 + HITBOX - 1;
+  for (const [px, py] of [[x0, y0], [x1, y0], [x0, y1], [x1, y1]]) {
     const tx = Math.floor(px / TILE);
-    const ty = Math.floor((y + oy) / TILE);
+    const ty = Math.floor(py / TILE);
     const idx = ty * cols + tx;
     if (depthTiles?.has(idx)) {
-      // Center-line collision: 1px line at tile center
-      const tileY = ty * TILE + TILE / 2;
-      if (y < tileY + 1 && y + TILE > tileY) return true;
+      // Center-band collision: 2px band at tile center (rows 7-8, symmetrical)
+      const bandTop = ty * TILE + TILE / 2 - 1;
+      if (y0 < bandTop + 2 && y0 + HITBOX > bandTop) return true;
     } else if (half?.left.has(idx)) {
       // Only left 8px of tile blocks
       if (px < tx * TILE + HALF) return true;
@@ -70,10 +76,10 @@ function blocked(x: number, y: number, mapWidth: number, collision: Set<number>,
   }
   if (npcs) {
     for (const npc of npcs) {
-      // 1px horizontal collision line at NPC's vertical center
-      const npcLine = npc.y + 8;
-      const overlapsX = x < npc.x + 16 && x + 16 > npc.x;
-      const overlapsY = y < npcLine + 1 && y + 16 > npcLine;
+      // 2px horizontal collision band at NPC's vertical center (symmetrical)
+      const npcBandTop = npc.y + 7;
+      const overlapsX = x0 < npc.x + 16 && x0 + HITBOX > npc.x;
+      const overlapsY = y0 < npcBandTop + 2 && y0 + HITBOX > npcBandTop;
       if (overlapsX && overlapsY) return true;
     }
   }

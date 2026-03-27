@@ -5,6 +5,7 @@ import { createPlayer, createCamera, updatePlayer, updateCamera, applyCamera, ty
 import { playMusic } from "./music";
 import { initAtmosphere, updateAtmosphere, destroyAtmosphere } from "./atmosphere";
 import { loadAnimals, loadHeartEmote, updateAnimals, destroyAnimals, getAnimalColliders, interactWithAnimal } from "./animals";
+import { initFoley, updateFoley } from "./foley";
 import { db, ref, get } from "../shared/firebase";
 import type { Submission } from "../shared/types";
 import { spriteDataToTexture } from "./sprites";
@@ -48,6 +49,7 @@ export interface Scene {
   collision: Set<number>;
   halfCollision: HalfCollision;
   depthTiles: Set<number>;
+  fieldTiles: Set<number>;
   camera: { x: number; y: number };
   map: TMJMap;
   hasNpcs: boolean;
@@ -65,7 +67,7 @@ export async function loadScene(
   world.visible = false;
   const uiLayer = new Container();
 
-  const { base, decorBelow, decorAbove, collision, halfCollision, depthTiles, mapWidth, mapHeight, map } = await loadTilemap(
+  const { base, decorBelow, decorAbove, collision, halfCollision, depthTiles, fieldTiles, mapWidth, mapHeight, map } = await loadTilemap(
     `${BASE}maps/${name}.tmj`,
     `${BASE}tilesets`
   );
@@ -116,6 +118,7 @@ export async function loadScene(
   if (hasAtmosphere) await initAtmosphere(world);
   await loadAnimals(map, decorBelow, decorAbove);
   await loadHeartEmote(world);
+  if (fieldTiles.size > 0) initFoley();
 
   const camera = createCamera();
   updateCamera(camera, player, mapWidth, mapHeight);
@@ -125,7 +128,7 @@ export async function loadScene(
   stage.addChild(uiLayer);
   world.visible = true;
 
-  return { name, world, uiLayer, player, playerSprite, mapWidth, mapHeight, collision, halfCollision, depthTiles, camera, map, hasNpcs, hasAtmosphere };
+  return { name, world, uiLayer, player, playerSprite, mapWidth, mapHeight, collision, halfCollision, depthTiles, fieldTiles, camera, map, hasNpcs, hasAtmosphere };
 }
 
 export function updateScene(scene: Scene, frozen: boolean): void {
@@ -141,6 +144,7 @@ export function updateScene(scene: Scene, frozen: boolean): void {
   applyCamera(scene.world, scene.camera);
   if (scene.hasNpcs) updateEmote(scene.player.x, scene.player.y, frozen);
   if (scene.hasAtmosphere) updateAtmosphere(scene.camera.x, scene.camera.y);
+  if (!frozen && scene.fieldTiles.size > 0) updateFoley(scene.player.x, scene.player.y, scene.mapWidth, scene.fieldTiles);
   updateAnimals();
 }
 

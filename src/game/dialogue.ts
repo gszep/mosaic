@@ -1,4 +1,4 @@
-import { Assets, Container, NineSliceSprite, Texture } from "pixi.js";
+import { Assets, Container, Graphics, NineSliceSprite, Texture } from "pixi.js";
 import type { DialogueNode, DialogueResponse } from "../shared/types";
 import { INTERNAL_WIDTH, INTERNAL_HEIGHT } from "./viewport";
 import { createBitmapText } from "./bitmapfont";
@@ -9,7 +9,9 @@ const BOX_MARGIN = 1;
 const BOX_PAD_X = 5;
 const BOX_PAD_Y = 4;
 const LINE_GAP = 2;
-const TAB_W = 35;
+const TAB_W_MIN = 35;
+const TAB_PAD = 8;
+const CHAR_W = 4;
 const TAB_H = 7;
 const BORDER = 3;
 const TYPEWRITER_SPEED = 1;
@@ -37,6 +39,8 @@ let bodyContainer: Container | null = null;
 let optionContainers: Container[] = [];
 let boxTexture: Texture | null = null;
 let lastEndGaveGift = false;
+let tabW = TAB_W_MIN;
+let tabGraphic: Graphics | null = null;
 
 async function ensureBoxTexture() {
   if (!boxTexture) {
@@ -84,7 +88,7 @@ export async function startDialogue(
 
   panelSprite = new NineSliceSprite({
     texture: boxTexture!,
-    leftWidth: TAB_W, rightWidth: BORDER, topHeight: TAB_H, bottomHeight: BORDER,
+    leftWidth: TAB_W_MIN, rightWidth: BORDER, topHeight: TAB_H, bottomHeight: BORDER,
   });
   container.addChild(panelSprite);
   renderNode();
@@ -93,15 +97,27 @@ export async function startDialogue(
 function clearText() {
   if (speakerContainer) { speakerContainer.destroy({ children: true }); speakerContainer = null; }
   if (bodyContainer) { bodyContainer.destroy({ children: true }); bodyContainer = null; }
+  if (tabGraphic) { tabGraphic.destroy(); tabGraphic = null; }
   for (const c of optionContainers) c.destroy({ children: true });
   optionContainers = [];
 }
 
 function renderNode() {
-  if (!state || !container) return;
+  if (!state || !container || !panelSprite) return;
   clearText();
+  if (tabGraphic) { tabGraphic.destroy(); tabGraphic = null; }
 
-  speakerContainer = createBitmapText(state.speaker, TAB_W - 8, 0xffffff);
+  tabW = Math.max(TAB_W_MIN, state.speaker.length * CHAR_W + TAB_PAD);
+
+  // Draw extended tab if name is wider than the nine-slice left portion
+  if (tabW > TAB_W_MIN) {
+    tabGraphic = new Graphics();
+    // Overlap by 1px to cover the original right-edge border
+    tabGraphic.rect(0, 0, tabW - TAB_W_MIN + 1, TAB_H).fill(0x965340);
+    container.addChild(tabGraphic);
+  }
+
+  speakerContainer = createBitmapText(state.speaker, tabW, 0xffffff);
   container.addChild(speakerContainer);
 
   bodyContainer = new Container();
@@ -164,6 +180,10 @@ function layoutBox() {
 
   speakerContainer.x = BOX_MARGIN + 4;
   speakerContainer.y = boxY + 1;
+  if (tabGraphic) {
+    tabGraphic.x = BOX_MARGIN + TAB_W_MIN - 1;
+    tabGraphic.y = boxY;
+  }
   bodyContainer.x = contentX;
   bodyContainer.y = boxY + TAB_H + BOX_PAD_Y;
 

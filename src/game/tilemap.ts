@@ -9,7 +9,7 @@ import type { HalfCollision } from "./camera";
 export async function loadTilemap(
   mapUrl: string,
   tilesetBasePath: string
-): Promise<{ base: Container; decorBelow: Container; decorAbove: Container; collision: Set<number>; halfCollision: HalfCollision; depthTiles: Set<number>; mapWidth: number; mapHeight: number; map: TMJMap }> {
+): Promise<{ base: Container; decorBelow: Container; decorAbove: Container; collision: Set<number>; halfCollision: HalfCollision; depthTiles: Set<number>; fieldTiles: Set<number>; mapWidth: number; mapHeight: number; map: TMJMap }> {
   const map: TMJMap = await (await fetch(mapUrl)).json();
   const base = new Container();
   const decorBelow = new Container();
@@ -46,6 +46,24 @@ export async function loadTilemap(
           ),
         })
       );
+    }
+  }
+
+  // Determine TilesetField GID range
+  const fieldTs = map.tilesets.find((ts) => ts.name === "TilesetField");
+  const fieldGidMin = fieldTs ? fieldTs.firstgid : -1;
+  const fieldGidMax = fieldTs ? fieldTs.firstgid + fieldTs.tilecount : -1;
+
+  // Collect field tile indices (any rendered layer tile from TilesetField)
+  const fieldTiles = new Set<number>();
+  if (fieldTs) {
+    for (const layer of map.layers) {
+      if (layer.type !== "tilelayer" || !layer.data) continue;
+      if (!RENDER_LAYERS.includes(layer.name) && layer.name !== "decoration") continue;
+      for (let i = 0; i < layer.data.length; i++) {
+        const gid = layer.data[i];
+        if (gid >= fieldGidMin && gid < fieldGidMax) fieldTiles.add(i);
+      }
     }
   }
 
@@ -157,6 +175,7 @@ export async function loadTilemap(
     collision,
     halfCollision,
     depthTiles: depthSet,
+    fieldTiles,
     mapWidth: map.width * map.tilewidth,
     mapHeight: map.height * map.tileheight,
     map,
