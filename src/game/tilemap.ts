@@ -10,7 +10,7 @@ import type { HalfCollision } from "./camera";
 const SPRITE_MANAGED_GIDS = new Set([2153]);
 
 // GIDs that always render above the player
-const ALWAYS_ABOVE_GIDS = new Set([1916, 1917, 1918, 1919, 1920, 1921, 1922, 3416, 3417]);
+const ALWAYS_ABOVE_GIDS = new Set([1916, 1917, 1918, 1919, 1920, 1921, 1922, 3416, 3417, 3475, 3476, 3495, 3496]);
 
 export async function loadTilemap(
   mapUrl: string,
